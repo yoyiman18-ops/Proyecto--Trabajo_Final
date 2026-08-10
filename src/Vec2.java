@@ -34,7 +34,7 @@ public class Vec2 {
     public void normalizar() {
 
         // en caso de ser (0,0) no hace nada
-        if (x != 0 || y != 0) {
+        if (x == 0 && y == 0) {
         // magnitud = raiz cuadrada(x**2 + y**2)
         double magnitud = Math.sqrt(this.x * this.x + this.y * this.y);
         // vector normalizado: todas las componentes divididas por la magnitud del vec

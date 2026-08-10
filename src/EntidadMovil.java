@@ -15,8 +15,8 @@ public class EntidadMovil extends Entidad {
         aceleracion = 0;
     }
 
-    public EntidadMovil(Vec2 posicion, Entidad dueño, Vec2 direccion, double aceleracion, double velocidad) {
-        super(posicion,dueño);
+    public EntidadMovil(Vec2 posicion, Vec2 direccion, double aceleracion, double velocidad) {
+        super(posicion);
         this.direccion = new Vec2(direccion.getX(),direccion.getY());
         this.direccion.normalizar();
         this.aceleracion = aceleracion;

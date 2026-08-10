@@ -9,7 +9,6 @@ public class App {
     public static void main(String[] args) throws Exception {
         EntidadMovil algo = new EntidadMovil(
             new Vec2(1,1),
-            null,
             new Vec2(2,2),
             5.0,
             0.0

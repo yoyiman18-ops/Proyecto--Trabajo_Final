@@ -1,3 +1,9 @@
+# Editor
+.vscode/
+
+# Compilado
+bin/
+
 
 # Compiled class file
 *.class
