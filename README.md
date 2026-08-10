@@ -1,18 +1,16 @@
-## Getting Started
+# Proyecto: 
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+## 1. Integrantes del Equipo
 
-## Folder Structure
+- Rodríguez Joel
+- Ibarrola Enzo
+- Durante Baldessari Valentín
+- Gomez Lautaro
 
-The workspace contains two folders by default, where:
+## 2. Dominio y Alcance del Sistema
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+### Descripción del Problema
+Se busca desarrollar un videojuego de escritorio basado en el género "Roguelike". El jugador debe sobrevivir a un número limitado de oleadas aleatorias de enemigos con dificultad incremental en un mapa cerrado, buscando destruirlos ellos y recolectar mejoras aleatorias hasta acabar con todas las oleadas y finalizar la partida.
 
-Meanwhile, the compiled output files will be generated in the `bin` folder by default.
-
-> If you want to customize the folder structure, open `.vscode/settings.json` and update the related settings there.
-
-## Dependency Management
-
-The `JAVA PROJECTS` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
+### Objetivo del Sistema
+El sistema será un juego funcional que implemente las características del género "Roguelike", con un diseño orientado a la escalabilidad que permita la adición de nuevos tipos de personajes, enemigos y mejoras; respetando los cuatro pilares de la programación orientada a objetos (abstracción, encapsulación, herencia y polimorfismo).
