@@ -19,6 +19,10 @@ El sistema será un juego funcional que implemente las características del gén
 
 ### Funcionalidades Principales (Features)
 
+- **Diseño del motor del videojuego**
+    - El motor implementa "frames" (cuadros) de físicas para calcular la lógica correspondiente a las físicas del juego de forma consistente.
+    - Los gráficos 2D del juego son procesados y dibujados en los frames de renderizado correspondientes, a través de la liberaria Java Swing.
+    - Se implementa la obtención, lectura y almacenamiento del estado de teclas relevantes para un instante dado.
 - **Mecánicas de juego**
     - La jugabilidad se centra en la supervivencia un número finito oleadas de enemigos y la obtención de mejoras a través de la experiencia (recurso obtenido de los enemigos destruidos).
     - El personaje jugable tiene una cantidad de puntos de vida limitados, que al reducirse a cero finalizan la partida.
