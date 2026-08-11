@@ -1,5 +1,6 @@
 public class Personaje extends EntidadMovil {
     
+    private String nombre;
     private float vida,vidaMax;
     private float daño;
 
@@ -33,4 +34,15 @@ public class Personaje extends EntidadMovil {
         this.daño = daño;
     }
 
+    public void dañar(int daño) {
+        this.vida = this.vida - daño;
+        if (this.vida <= 0) {
+            this.vida = 0;
+            morir();
+        }
+    }
+
+    public void morir() {
+        System.out.printf("murio %s%n", nombre);
+    }
 }
