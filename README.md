@@ -1,11 +1,11 @@
-# Proyecto: 
+# Proyecto: {Nombre Por Definir}
 
 ## 1. Integrantes del Equipo
 
-- Rodríguez Joel
-- Ibarrola Enzo
 - Durante Baldessari Valentín
 - Gomez Lautaro
+- Ibarrola Enzo
+- Rodríguez Joel
 
 ## 2. Dominio y Alcance del Sistema
 
@@ -46,8 +46,8 @@ Por definir.
 ## 4. Stack Tecnológico
 - **Lenguaje:** Java 23
 - **IDE:** Visual Studio Code
-- **Base de Datos:** Por definir
-- **Framework de IGU:** Por definir
+- **Base de Datos:** MySQL 8.0
+- **Framework de IGU:** Java Swing
 - **Control de Versiones:** Git y GitHub
 
 
