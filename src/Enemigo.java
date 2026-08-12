@@ -10,10 +10,10 @@ public class Enemigo extends EntidadViva {
         if (!EstaVivo())    {
             morir();
         }
+    }
         public void morir() {
             // mas adelante se definita que pasa cuando muere un enemigo o como se maneja la muerte de un enemigo
     }
-
-   
 }
+
     
