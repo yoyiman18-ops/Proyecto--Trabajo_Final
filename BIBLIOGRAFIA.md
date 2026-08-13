@@ -3,5 +3,6 @@
 ## Patrón de diseño builder
 - https://refactoring.guru/es/design-patterns/builder
 
-## Geeneral
+## General
 - Deitel, P., & Deitel, H. (2017). Java How to Program, Early Objects.
+w
