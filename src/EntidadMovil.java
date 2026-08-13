@@ -7,28 +7,58 @@ public abstract class EntidadMovil extends Entidad {
     // ej: velocidad = velocidad + aceleracion
     // ej: posicion x = posicion x + direccion.x * velocidad
 
-
-    public EntidadMovil() {
-        super();
-        direccion = new Vec2(); // esto es la dirección de su movimiento, no a donde mira
-        velocidad = 0;
-        aceleracion = 0;
+    protected EntidadMovil(Builder builder) {
+        this.direccion = builder.direccion;
+        this.aceleracion = builder.aceleracion;
+        this.velocidad = builder.velocidad;
     }
 
-    public EntidadMovil(Vec2 posicion, Vec2 direccion, double aceleracion, double velocidad) {
-        super(posicion);
-        if (velocidad < 0) {
-            throw new IllegalArgumentException("Velocidad no puede ser menor a 0.");
-        }
-        if (aceleracion < 0) {
-            throw new IllegalArgumentException("Aceleracion no puede ser menora 0.");
+    public abstract static class Builder {
+        private Vec2 direccion;
+        private double aceleracion;
+        private double velocidad;
+        
+        public Builder direccion(double x, double y) {
+            this.direccion.x = x;
+            this.direccion.y = y;
+            return this;
         }
 
-        this.direccion = new Vec2(direccion.x,direccion.y);
-        this.direccion.normalizar();
-        this.aceleracion = aceleracion;
-        this.velocidad = velocidad;
+        public Builder aceleracion(double aceleracion) {
+            this.aceleracion = aceleracion;
+            return this;
+        }
+
+        public Builder velocidad(double velocidad) {
+            this.velocidad = velocidad;
+            return this;
+        }
+
+        public abstract EntidadMovil build();
     }
+
+    // private EntidadMovil(Builder builder) {
+    //     super();
+    //     direccion = new Vec2(); // esto es la dirección de su movimiento, no a donde mira
+    //     velocidad = 0;
+    //     aceleracion = 0;
+    // }
+    //
+    // public EntidadMovil(Vec2 posicion, Vec2 direccion, double aceleracion, double velocidad) {
+    //     super(posicion);
+    //     if (velocidad < 0) {
+    //         throw new IllegalArgumentException("Velocidad no puede ser menor a 0.");
+    //     }
+    //     if (aceleracion < 0) {
+    //         throw new IllegalArgumentException("Aceleracion no puede ser menora 0.");
+    //     }
+    //
+    //     this.direccion = direccion.clone();
+    //     this.direccion.normalizar();
+    //     this.aceleracion = aceleracion;
+    //     this.velocidad = velocidad;
+    // }
+
 
     public void setDireccion(double x, double y) {
         direccion.x = x;

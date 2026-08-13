@@ -7,11 +7,11 @@ public abstract class Entidad {
     }
 
     public Entidad(Vec2 posicion) {
-        this.posicion = new Vec2(posicion.x,posicion.y);
+        this.posicion = posicion.clone();
     }
 
    public Vec2 getPosicion() {
-    return new Vec2(this.posicion.x, this.posicion.y);
+    return this.posicion.clone();
 }
 
     public void setPosicion(double x, double y) {
