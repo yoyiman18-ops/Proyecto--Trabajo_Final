@@ -1,9 +1,11 @@
-public class Personaje extends EntidadMovil {
+public interface Personaje {
     
-    private String nombre;
-    private float vida,vidaMax;
-    private float daño;
+    public void disparar();
+    // {
+    //    System.out.println("disparo");
+    // }
 
+    /*
     public Personaje() {
         this(100,100,20);
     }
@@ -43,4 +45,5 @@ public class Personaje extends EntidadMovil {
     public void morir() {
         System.out.printf("murio %s%n", nombre);
     }
+    */
 }

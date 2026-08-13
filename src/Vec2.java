@@ -1,6 +1,6 @@
 public class Vec2 {
 
-    private double x,y;
+    public double x,y;
 
     public Vec2() {
         this.x = 0;
@@ -12,11 +12,15 @@ public class Vec2 {
         this.y = y;
     }
 
-
+    /* 
+    // no tiene mucho sentido mantener getters/setters cuando no hay
+    // condiciones y son públicos, solo complica el acceso.
+    // si se quiere poner el vector privado que se haga en la clase que
+    // lo instancie
+     
     public double getX() {
         return x;
     }
-
     public double getY() {
         return y;
     } 
@@ -28,6 +32,7 @@ public class Vec2 {
     public void setY(double y) {
         this.y = y;
     }
+    */
 
     // esto es para la direccion de las entidades, que se puede representar
     // como un vector normalizado de 2 componentes

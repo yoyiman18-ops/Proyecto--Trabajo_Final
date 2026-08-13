@@ -1,4 +1,4 @@
-public class EntidadMovil extends Entidad {
+public abstract class EntidadMovil extends Entidad {
 
     protected Vec2 direccion; // precondicion para todo lo que use direccion: direccion es un vec2 normalizado
     private double aceleracion; // tasa de cambio de velocidad en el tiempo
@@ -10,22 +10,29 @@ public class EntidadMovil extends Entidad {
 
     public EntidadMovil() {
         super();
-        direccion = new Vec2();
+        direccion = new Vec2(); // esto es la dirección de su movimiento, no a donde mira
         velocidad = 0;
         aceleracion = 0;
     }
 
     public EntidadMovil(Vec2 posicion, Vec2 direccion, double aceleracion, double velocidad) {
         super(posicion);
-        this.direccion = new Vec2(direccion.getX(),direccion.getY());
+        if (velocidad < 0) {
+            throw new IllegalArgumentException("Velocidad no puede ser menor a 0.");
+        }
+        if (aceleracion < 0) {
+            throw new IllegalArgumentException("Aceleracion no puede ser menora 0.");
+        }
+
+        this.direccion = new Vec2(direccion.x,direccion.y);
         this.direccion.normalizar();
         this.aceleracion = aceleracion;
         this.velocidad = velocidad;
     }
 
     public void setDireccion(double x, double y) {
-        direccion.setX(x);
-        direccion.setY(y);
+        direccion.x = x;
+        direccion.y = y;
         direccion.normalizar();
     }
 
@@ -47,8 +54,8 @@ public class EntidadMovil extends Entidad {
 
     public void mover() {
         setPosicion(
-            posicion.getX() + direccion.getX() * velocidad,
-            posicion.getY() + direccion.getY() * velocidad
+            posicion.x + direccion.x * velocidad,
+            posicion.y + direccion.y * velocidad
         );
     }
 
