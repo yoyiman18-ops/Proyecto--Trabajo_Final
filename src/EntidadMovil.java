@@ -50,6 +50,9 @@ public abstract class EntidadMovil extends Entidad {
 
     public void frenar() {
         velocidad -= aceleracion;
+        if (velocidad < 0) {
+            velocidad = 0;
+        }
     }
 
     public void mover() {

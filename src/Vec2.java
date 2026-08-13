@@ -17,7 +17,7 @@ public class Vec2 {
     // condiciones y son públicos, solo complica el acceso.
     // si se quiere poner el vector privado que se haga en la clase que
     // lo instancie
-     
+
     public double getX() {
         return x;
     }
@@ -49,4 +49,8 @@ public class Vec2 {
         }
     }
 
+    @Override
+    public Vec2 clone() {
+        return new Vec2(x,y);
+    }
 }

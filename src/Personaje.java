@@ -1,6 +1,6 @@
 public interface Personaje {
     
-    public void disparar();
+    
     // {
     //    System.out.println("disparo");
     // }

@@ -1,47 +1,50 @@
 public class EntidadViva extends EntidadMovil {
-   private float vida,vidaMax;
-   private float daño;
+   private double vida,vidaMax;
+   private double dañoBase;
 
-   public EntidadViva(float vida, float vidaMax, float daño){
+   public EntidadViva(double vida, double vidaMax, double dañoBase) {
     if (vidaMax <= 0) { 
-        throw new IllegalArgumentException(String.format("Vida max invalida %f", vidaMax));
+        throw new IllegalArgumentException("Vida max invalida");
     }
     this.vidaMax = vidaMax;
   
    if (vida <= 0) { 
-        throw new IllegalArgumentException(String.format("Vida invalida %f", vida)); 
+        throw new IllegalArgumentException("Vida invalida"); 
     } else if (vida > vidaMax) { 
         this.vida = vidaMax; 
     } else {
         this.vida = vida; 
     }
 
-    if (daño <= 0) {
-        throw new IllegalArgumentException(String.format("Daño invalido %f",daño));
+    if (dañoBase < 0) {
+        throw new IllegalArgumentException("Daño invalido");
     }
-    this.daño = daño;
-}
+    this.dañoBase = dañoBase;
+    }
 
-public boolean recibirDaño(float cantidad
-    if (daño <= 0) {
-        throw new IllegalArgumentException(String.format("Daño invalido %f",daño));
+    public boolean recibirDaño(double cantidad) {
+    if (cantidad <= 0) {
+        return false;
     }
+
     this.vida -= cantidad;
-    if (this.vida <= 0){
+    if (this.vida < 0) {
         this.vida = 0;
-        }
-        return true;
-}
-public boolean EstaVivo() {
-    return this.vida > 0;
-}
-public float getVida() {
-    return this.vida;
-}
-public float getVidaMax() {
-    return this.vidaMax;
-}
-public float getDaño() {
-    return this.daño;
     }
+    return true; 
+    }
+
+    public boolean estaVivo() {
+        return this.vida > 0;
+    }
+    public double getVida() {
+        return this.vida;
+    }
+    public double getVidaMax() {
+        return this.vidaMax;
+    }
+
+    public double getDañoBase() {
+        return this.dañoBase;
+        }
 }

@@ -7,16 +7,16 @@ public abstract class Entidad {
     }
 
     public Entidad(Vec2 posicion) {
-        this.posicion = new Vec2(posicion.getX(),posicion.getY());
+        this.posicion = new Vec2(posicion.x,posicion.y);
     }
 
    public Vec2 getPosicion() {
-    return new Vec2(this.posicion.getX(), this.posicion.getY());
+    return new Vec2(this.posicion.x, this.posicion.y);
 }
 
     public void setPosicion(double x, double y) {
-        posicion.setX(x);
-        posicion.setY(y);
+        posicion.x = y;
+        posicion.x = y;
     }
 
 } 
