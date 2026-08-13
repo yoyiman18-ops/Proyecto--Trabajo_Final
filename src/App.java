@@ -41,5 +41,6 @@ public class App {
 
         imprimirPrueba(algo);
 
+        PruebaGUI.probarMensaje();
     }
 }
