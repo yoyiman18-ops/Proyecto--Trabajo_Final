@@ -5,7 +5,8 @@ public class App {
             entidad.getPosicion().x,entidad.getPosicion().y,
             entidad.getVelocidad(),entidad.getAceleracion());
     }
-    
+
+    };
     public static void main(String[] args) throws Exception {
         
         /* 

@@ -7,34 +7,45 @@ public abstract class EntidadMovil extends Entidad {
     // ej: velocidad = velocidad + aceleracion
     // ej: posicion x = posicion x + direccion.x * velocidad
 
-    protected EntidadMovil(Builder builder) {
+    protected EntidadMovil(Builder<?, ?> builder) {
+        this.posicion = builder.posicion;
         this.direccion = builder.direccion;
         this.aceleracion = builder.aceleracion;
         this.velocidad = builder.velocidad;
     }
 
-    public abstract static class Builder {
-        private Vec2 direccion;
-        private double aceleracion;
-        private double velocidad;
+    public abstract static class Builder<T extends Builder<T,B>,B extends EntidadMovil> {
+        private Vec2 posicion = new Vec2(0,0);
+        private Vec2 direccion = new Vec2(0,0);
+        private double aceleracion = 0;
+        private double velocidad = 0;
         
-        public Builder direccion(double x, double y) {
+        public abstract T self(); // debe devolver un constructor T
+
+        public abstract B build(); // debe devolver un objeto de tipo B (la clase EntidadMovil)
+
+        public T direccion(double x, double y) {
             this.direccion.x = x;
             this.direccion.y = y;
-            return this;
+            return self();
         }
 
-        public Builder aceleracion(double aceleracion) {
+        public T aceleracion(double aceleracion) {
             this.aceleracion = aceleracion;
-            return this;
+            return self();
         }
 
-        public Builder velocidad(double velocidad) {
+        public T posicion(double x, double y) {
+            this.posicion.x = x;
+            this.posicion.y = y;
+            return self();
+        }
+
+        public T velocidad(double velocidad) {
             this.velocidad = velocidad;
-            return this;
+            return self();
         }
 
-        public abstract EntidadMovil build();
     }
 
     // private EntidadMovil(Builder builder) {

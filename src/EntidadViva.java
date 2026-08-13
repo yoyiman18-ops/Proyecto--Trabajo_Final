@@ -5,10 +5,11 @@ public class EntidadViva extends EntidadMovil {
     private static final double VIDA_DEFAULT = 20;
     private static final double DEFENSA_DEFAULT = 1;
 
-    public EntidadViva() {
-        super();
-        this.vida = VIDA_DEFAULT;
-        this.defensa = DEFENSA_DEFAULT;
+    protected EntidadViva(Builder builder) {
+        super(builder);
+        this.vida = builder.vida;
+        this.vidaMax = builder.vidaMax;
+        this.defensa = builder.defensa;
     }
 
    public EntidadViva(double vida, double vidaMax, double defensa) {
