@@ -14,6 +14,7 @@ gh auth login
 
 ### El ciclo de trabajo
 
+```
 | `git clone <url>` | Descarga un repositorio remoto con todo su historial |
 | `git status` | Dice en qué estado está todo. **Ejecutarlo después de cada paso** |
 | `git add <archivo>` | Prepara cambios para el próximo commit (`git add .` prepara todo) |
@@ -24,6 +25,7 @@ gh auth login
 | `git pull` | Baja e integra los commits del remoto |
 | `git switch -c <rama>` | Crea una rama y se para en ella (`git switch <rama>` para cambiar) |
 | `git merge <rama>` | Fusiona la rama indicada en la rama actual |
+```
 
 ### Resolver un conflicto
 
