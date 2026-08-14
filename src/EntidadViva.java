@@ -12,19 +12,40 @@ public class EntidadViva extends EntidadMovil {
         this.defensa = builder.defensa;
     }
 
-   public EntidadViva(double vida, double vidaMax, double defensa) {
-    super();
-    if (vidaMax <= 0) { 
-        throw new IllegalArgumentException("Vida max invalida");
-    }
-    this.vidaMax = vidaMax;
+    // nota - la estructura es:
+    // public static class Builder extends Padre.Builder<Builder,Hijo>
+    public static class Builder extends EntidadMovil.Builder<EntidadViva.Builder,EntidadViva> {
+        private double vida = VIDA_DEFAULT;
+        private double vidaMax = VIDA_DEFAULT;
+        private double defensa = DEFENSA_DEFAULT;
 
-   if (vida <= 0) { 
-        throw new IllegalArgumentException("Vida invalida"); 
-    } else if (vida > vidaMax) { 
-        this.vida = vidaMax; 
-    } else {
-        this.vida = vida;
+        // método requerido por clase padre abstracta, porque no puede hacer "this" ya que no puede instanciarse
+        public Builder self() {
+            return this;
+        }
+
+        // este es el método que aplica los parámetros del builder para crear una nueva EntidadViva
+        // en base al objeto Builder, que queda descartado tras el uso
+        public EntidadViva build() {
+            return new EntidadViva(this);
+        }
+
+        // se crea un método que retorna EntidadViva.Builder para cada atributo relevante
+        // lo que sucede es que cada vez se usa el mismo Builder, no se crea un nuevo objeto
+        // al terminar
+        public Builder vida(double vida) {
+            this.vida = vida;
+            return this;
+        }
+
+        public Builder vidaMax(double vidaMax) {
+            this.vidaMax = vidaMax;
+            return this;
+        }
+
+        public Builder defensa(double defensa) {
+            this.defensa = defensa;
+            return this;
         }
     }
 

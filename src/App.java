@@ -6,32 +6,16 @@ public class App {
             entidad.getVelocidad(),entidad.getAceleracion());
     }
 
-    };
     public static void main(String[] args) throws Exception {
         
-        /* 
-        EntidadMovil algo = new EntidadMovil(
-            new Vec2(1,1),
-            new Vec2(2,2),
-            5.0,
-            0.0
-        );
-        imprimirPrueba(algo);
-        algo.acelerar();
-        algo.mover();
-        imprimirPrueba(algo);
-        algo.frenar();
-        algo.mover();
-        imprimirPrueba(algo);
-        algo.setDireccion(0, 0);
-        algo.acelerar();
-        algo.mover();
-        imprimirPrueba(algo);
-        algo.frenar();
-        algo.setDireccion(-1,-1 );
-        algo.acelerar();
-        algo.mover();
-        imprimirPrueba(algo);
-        */
+        EntidadViva e1 = new EntidadViva.Builder()
+                        .velocidad(5)
+                        .direccion(1, 0)
+                        .build();
+
+        imprimirPrueba(e1);
+        e1.mover();
+        imprimirPrueba(e1);
+                    
     }
 }

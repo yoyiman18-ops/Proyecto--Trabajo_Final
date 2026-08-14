@@ -8,6 +8,7 @@ public abstract class EntidadMovil extends Entidad {
     // ej: posicion x = posicion x + direccion.x * velocidad
 
     protected EntidadMovil(Builder<?, ?> builder) {
+
         this.posicion = builder.posicion;
         this.direccion = builder.direccion;
         this.aceleracion = builder.aceleracion;
@@ -15,29 +16,30 @@ public abstract class EntidadMovil extends Entidad {
     }
 
     public abstract static class Builder<T extends Builder<T,B>,B extends EntidadMovil> {
-        private Vec2 posicion = new Vec2(0,0);
-        private Vec2 direccion = new Vec2(0,0);
+        private Vec2 posicion = new Vec2();
+        private Vec2 direccion = new Vec2();
         private double aceleracion = 0;
         private double velocidad = 0;
         
-        public abstract T self(); // debe devolver un constructor T
+        public abstract T self(); // debe devolver un constructor T que herede de este propio constructo
 
-        public abstract B build(); // debe devolver un objeto de tipo B (la clase EntidadMovil)
+        public abstract B build(); // debe devolver un objeto de tipo B que herede de EntidadMovil
+
+        public T posicion(double x, double y) {
+            this.posicion.x = x;
+            this.posicion.y = y;
+            return self();
+        }
 
         public T direccion(double x, double y) {
             this.direccion.x = x;
             this.direccion.y = y;
+            this.direccion.normalizar();
             return self();
         }
 
         public T aceleracion(double aceleracion) {
             this.aceleracion = aceleracion;
-            return self();
-        }
-
-        public T posicion(double x, double y) {
-            this.posicion.x = x;
-            this.posicion.y = y;
             return self();
         }
 
@@ -48,27 +50,6 @@ public abstract class EntidadMovil extends Entidad {
 
     }
 
-    // private EntidadMovil(Builder builder) {
-    //     super();
-    //     direccion = new Vec2(); // esto es la dirección de su movimiento, no a donde mira
-    //     velocidad = 0;
-    //     aceleracion = 0;
-    // }
-    //
-    // public EntidadMovil(Vec2 posicion, Vec2 direccion, double aceleracion, double velocidad) {
-    //     super(posicion);
-    //     if (velocidad < 0) {
-    //         throw new IllegalArgumentException("Velocidad no puede ser menor a 0.");
-    //     }
-    //     if (aceleracion < 0) {
-    //         throw new IllegalArgumentException("Aceleracion no puede ser menora 0.");
-    //     }
-    //
-    //     this.direccion = direccion.clone();
-    //     this.direccion.normalizar();
-    //     this.aceleracion = aceleracion;
-    //     this.velocidad = velocidad;
-    // }
 
 
     public void setDireccion(double x, double y) {
@@ -97,10 +78,8 @@ public abstract class EntidadMovil extends Entidad {
     }
 
     public void mover() {
-        setPosicion(
-            posicion.x + direccion.x * velocidad,
-            posicion.y + direccion.y * velocidad
-        );
+        this.posicion.x += velocidad * direccion.x;
+        this.posicion.y += velocidad * direccion.y;
     }
 
 
