@@ -1,9 +1,9 @@
 public class EntidadViva extends EntidadMovil {
-   private double vida,vidaMax;
-   private double defensa;
+   private int vida,vidaMax;
+   private int defensa;
 
-    private static final double VIDA_DEFAULT = 20;
-    private static final double DEFENSA_DEFAULT = 1;
+    private static final int VIDA_DEFAULT = 20;
+    private static final int DEFENSA_DEFAULT = 1;
 
     protected EntidadViva(Builder builder) {
         super(builder);
@@ -15,9 +15,9 @@ public class EntidadViva extends EntidadMovil {
     // nota - la estructura es:
     // public static class Builder extends Padre.Builder<Builder,Hijo>
     public static class Builder extends EntidadMovil.Builder<EntidadViva.Builder,EntidadViva> {
-        private double vida = VIDA_DEFAULT;
-        private double vidaMax = VIDA_DEFAULT;
-        private double defensa = DEFENSA_DEFAULT;
+        private int vida = VIDA_DEFAULT;
+        private int vidaMax = VIDA_DEFAULT;
+        private int defensa = DEFENSA_DEFAULT;
 
         // método requerido por clase padre abstracta, porque no puede hacer "this" ya una abstracta no puede instanciarse como objeto, en cambio la clase concreta si
         public Builder self() {
@@ -33,27 +33,36 @@ public class EntidadViva extends EntidadMovil {
         // se crea un método que retorna EntidadViva.Builder para cada atributo relevante
         // lo que sucede es que cada vez se usa el mismo Builder, no se crea un nuevo objeto
         // al terminar
-        public Builder vida(double vida) {
+        public Builder vida(int vida) {
             this.vida = vida;
             return this;
         }
 
-        public Builder vidaMax(double vidaMax) {
+        public Builder vidaMax(int vidaMax) {
             this.vidaMax = vidaMax;
             return this;
         }
 
-        public Builder defensa(double defensa) {
+        public Builder defensa(int defensa) {
             this.defensa = defensa;
             return this;
         }
     }
 
     public boolean recibirDaño(double cantidad) {
-    if (cantidad <= 0) {
+    // si el daño es menor a 1 falla
+    if (cantidad < 1.0) {
         return false;
     }
-    this.vida -= (cantidad / defensa);
+   
+    // calcula el daño recibido y reduce la vida
+    if (defensa == 0) { this.vida -= cantidad; } 
+    else { 
+        double dañoRecibido = Math.max(Math.log10(cantidad + 10.0) - defensa/2 , 1.0); 
+        this.vida -= dañoRecibido; 
+    }
+
+    // si la vida es menor a 0, la pone en 0
     if (this.vida < 0) {
         this.vida = 0;
     }
@@ -63,10 +72,10 @@ public class EntidadViva extends EntidadMovil {
     public boolean estaVivo() {
         return this.vida > 0;
     }
-    public double getVida() {
+    public int getVida() {
         return this.vida;
     }
-    public double getVidaMax() {
+    public int getVidaMax() {
         return this.vidaMax;
     }
 
