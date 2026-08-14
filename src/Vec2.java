@@ -53,4 +53,9 @@ public class Vec2 implements Cloneable {
     public Vec2 clone() {
         return new Vec2(x,y);
     }
+
+    @Override
+    public String toString() {
+        return String.format("(%.2f;%.2f)", x,y);
+    }
 }

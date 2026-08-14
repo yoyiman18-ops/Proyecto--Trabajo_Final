@@ -19,7 +19,7 @@ public class EntidadViva extends EntidadMovil {
         private double vidaMax = VIDA_DEFAULT;
         private double defensa = DEFENSA_DEFAULT;
 
-        // método requerido por clase padre abstracta, porque no puede hacer "this" ya que no puede instanciarse
+        // método requerido por clase padre abstracta, porque no puede hacer "this" ya una abstracta no puede instanciarse como objeto, en cambio la clase concreta si
         public Builder self() {
             return this;
         }
@@ -68,5 +68,10 @@ public class EntidadViva extends EntidadMovil {
     }
     public double getVidaMax() {
         return this.vidaMax;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
     }
 }

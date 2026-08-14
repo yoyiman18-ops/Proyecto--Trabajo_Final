@@ -15,35 +15,27 @@ public abstract class EntidadMovil extends Entidad {
         this.velocidad = builder.velocidad;
     }
 
-    public abstract static class Builder<T extends Builder<T,B>,B extends EntidadMovil> {
-        private Vec2 posicion = new Vec2();
+    // recursividad:
+    // 
+    public abstract static class Builder<B extends Builder<B,T>,T extends EntidadMovil> extends Entidad.Builder<B,T> {
         private Vec2 direccion = new Vec2();
         private double aceleracion = 0;
         private double velocidad = 0;
         
-        public abstract T self(); // debe devolver un constructor T que herede de este propio constructo
 
-        public abstract B build(); // debe devolver un objeto de tipo B que herede de EntidadMovil
-
-        public T posicion(double x, double y) {
-            this.posicion.x = x;
-            this.posicion.y = y;
-            return self();
-        }
-
-        public T direccion(double x, double y) {
+        public B direccion(double x, double y) {
             this.direccion.x = x;
             this.direccion.y = y;
             this.direccion.normalizar();
             return self();
         }
 
-        public T aceleracion(double aceleracion) {
+        public B aceleracion(double aceleracion) {
             this.aceleracion = aceleracion;
             return self();
         }
 
-        public T velocidad(double velocidad) {
+        public B velocidad(double velocidad) {
             this.velocidad = velocidad;
             return self();
         }
@@ -82,6 +74,14 @@ public abstract class EntidadMovil extends Entidad {
         this.posicion.y += velocidad * direccion.y;
     }
 
+    @Override 
+    public String toString() {
+        return String.format("%sDireccion: %s%nVelocidad: %.2f%nAceleracion: %.2f%n",
+                super.toString(),
+                direccion.toString(),
+                velocidad,
+                aceleracion);
+    }
 
 
 }
