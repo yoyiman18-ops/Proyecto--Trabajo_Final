@@ -18,9 +18,9 @@ public abstract class EntidadMovil extends Entidad {
     // recursividad:
     // 
     public abstract static class Builder<B extends Builder<B,T>,T extends EntidadMovil> extends Entidad.Builder<B,T> {
-        private Vec2 direccion = new Vec2();
-        private double aceleracion = 0;
-        private double velocidad = 0;
+        private Vec2 direccion;
+        private double aceleracion;
+        private double velocidad;
         
 
         public B direccion(double x, double y) {
@@ -31,12 +31,14 @@ public abstract class EntidadMovil extends Entidad {
         }
 
         public B aceleracion(double aceleracion) {
+            if (aceleracion < 0) { throw new IllegalArgumentException("Aceleracion no puede ser < 0"); }
             this.aceleracion = aceleracion;
             return self();
         }
 
         public B velocidad(double velocidad) {
             this.velocidad = velocidad;
+            if (velocidad < 0) { throw new IllegalArgumentException("Velocidad no puede ser < 0"); }
             return self();
         }
 
@@ -69,16 +71,22 @@ public abstract class EntidadMovil extends Entidad {
         }
     }
 
-    public void mover() {
+    public boolean mover() {
+        if (this.posicion == null || this.direccion == null) return false;
         this.posicion.x += velocidad * direccion.x;
         this.posicion.y += velocidad * direccion.y;
+        return true;
     }
 
     @Override 
     public String toString() {
-        return String.format("%sDireccion: %s%nVelocidad: %.2f%nAceleracion: %.2f%n",
+        String direccionString;
+        if (this.direccion == null) { direccionString = "Null"; }
+        else { direccionString = this.direccion.toString(); }
+
+        return String.format("%s%nDireccion: %s%nVelocidad: %.2f%nAceleracion: %.2f",
                 super.toString(),
-                direccion.toString(),
+                direccionString,
                 velocidad,
                 aceleracion);
     }

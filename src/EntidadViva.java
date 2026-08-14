@@ -3,7 +3,6 @@ public class EntidadViva extends EntidadMovil {
    private int defensa;
 
     private static final int VIDA_DEFAULT = 20;
-    private static final int DEFENSA_DEFAULT = 1;
 
     protected EntidadViva(Builder builder) {
         super(builder);
@@ -15,9 +14,9 @@ public class EntidadViva extends EntidadMovil {
     // nota - la estructura es:
     // public static class Builder extends Padre.Builder<Builder,Hijo>
     public static class Builder extends EntidadMovil.Builder<EntidadViva.Builder,EntidadViva> {
-        private int vida = VIDA_DEFAULT;
+        private int vida = 0; // valor sentinela, no se puede setear normalmente en 0. para setear vida = vidaMax en .build
         private int vidaMax = VIDA_DEFAULT;
-        private int defensa = DEFENSA_DEFAULT;
+        private int defensa;
 
         // método requerido por clase padre abstracta, porque no puede hacer "this" ya una abstracta no puede instanciarse como objeto, en cambio la clase concreta si
         public Builder self() {
@@ -27,46 +26,56 @@ public class EntidadViva extends EntidadMovil {
         // este es el método que aplica los parámetros del builder para crear una nueva EntidadViva
         // en base al objeto Builder, que queda descartado tras el uso
         public EntidadViva build() {
+            if (vida > vidaMax) {
+                System.out.println("- Advertencia: vida > vidaMax; seteando vida = vidaMax");
+                vida = vidaMax;
+            }
+            // si la vida max
+            else if (vida == 0) {
+                vida = vidaMax;
+            }
             return new EntidadViva(this);
         }
 
-        // se crea un método que retorna EntidadViva.Builder para cada atributo relevante
-        // lo que sucede es que cada vez se usa el mismo Builder, no se crea un nuevo objeto
-        // al terminar
+        // se crea un método que retorna EntidadViva.Builder para cada atributo relevante de EntidadViva
+        // lo que sucede es que cada vez se usa el mismo Builder, no se crea un nuevo objeto Builder.
+        // al terminar la configuración (ya sea por defecto o personalizada) se usa .build() y retorna un nuevo objeto EntidadViva
         public Builder vida(int vida) {
+            if (vida <= 0) { throw new IllegalArgumentException("La vida no puede ser <= 0"); }
             this.vida = vida;
             return this;
         }
 
         public Builder vidaMax(int vidaMax) {
+            if (vidaMax <= 0) { throw new IllegalArgumentException("La vida maxima no puede ser <= 0"); }
             this.vidaMax = vidaMax;
             return this;
         }
 
         public Builder defensa(int defensa) {
+            if (defensa < 0 || defensa > 10) { throw new IllegalArgumentException("La defensa debe ser [0,10]"); } 
             this.defensa = defensa;
             return this;
         }
     }
 
     public boolean recibirDaño(double cantidad) {
-    // si el daño es menor a 1 falla
-    if (cantidad < 1.0) {
-        return false;
-    }
-   
-    // calcula el daño recibido y reduce la vida
-    if (defensa == 0) { this.vida -= cantidad; } 
-    else { 
-        double dañoRecibido = Math.max(Math.log10(cantidad + 10.0) - defensa/2 , 1.0); 
-        this.vida -= dañoRecibido; 
-    }
 
-    // si la vida es menor a 0, la pone en 0
-    if (this.vida < 0) {
-        this.vida = 0;
-    }
-    return true; 
+        if (cantidad < 1.0) {
+            return false;
+        }
+       
+        double dañoRecibido;
+        // calcula el daño recibido con defensa == 0, o con defensa >= 1
+        if (defensa == 0) { dañoRecibido = cantidad; } 
+        else { dañoRecibido = Math.max(cantidad/Math.log10(defensa + 10.0) - defensa/2 , 1.0); }
+
+        this.vida -= (int) dañoRecibido; 
+        if (this.vida < 0) {
+            this.vida = 0;
+        }
+        System.out.println(nombre + " ha recibido " + (int) dañoRecibido + " de daño");
+        return true; 
     }
 
     public boolean estaVivo() {
@@ -81,6 +90,6 @@ public class EntidadViva extends EntidadMovil {
 
     @Override
     public String toString() {
-        return super.toString();
+        return String.format("%s%nVida: %s/%s%nDefensa: %s",super.toString(),vida,vidaMax,defensa);
     }
 }
