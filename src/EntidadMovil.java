@@ -9,7 +9,7 @@ public abstract class EntidadMovil extends Entidad {
 
     protected EntidadMovil(Builder<?, ?> builder) {
 
-        this.posicion = builder.posicion;
+        super(builder);
         this.direccion = builder.direccion;
         this.aceleracion = builder.aceleracion;
         this.velocidad = builder.velocidad;
