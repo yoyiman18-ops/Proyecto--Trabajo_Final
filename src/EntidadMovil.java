@@ -1,8 +1,9 @@
 public abstract class EntidadMovil extends Entidad {
 
     protected Vec2 direccion; // precondicion para todo lo que use direccion: direccion es un vec2 normalizado
-    private double aceleracion; // tasa de cambio de velocidad en el tiempo
     private double velocidad; // tasa de cambio de posicion en el tiempo en base a la direccion
+    private final double VELOCIDAD_MAX;
+    private double aceleracion; // tasa de cambio de velocidad en el tiempo
 
     // ej: velocidad = velocidad + aceleracion
     // ej: posicion x = posicion x + direccion.x * velocidad
@@ -13,14 +14,15 @@ public abstract class EntidadMovil extends Entidad {
         this.direccion = builder.direccion;
         this.aceleracion = builder.aceleracion;
         this.velocidad = builder.velocidad;
-    }
+        this.VELOCIDAD_MAX = builder.VELOCIDAD_MAX; 
+        }
 
     // recursividad:
-    // 
     public abstract static class Builder<B extends Builder<B,T>,T extends EntidadMovil> extends Entidad.Builder<B,T> {
-        private Vec2 direccion;
+        private Vec2 direccion = new Vec2();
         private double aceleracion;
         private double velocidad;
+        private double VELOCIDAD_MAX = 0;
         
 
         public B direccion(double x, double y) {
@@ -37,11 +39,16 @@ public abstract class EntidadMovil extends Entidad {
         }
 
         public B velocidad(double velocidad) {
-            this.velocidad = velocidad;
             if (velocidad < 0) { throw new IllegalArgumentException("Velocidad no puede ser < 0"); }
+            this.velocidad = velocidad;
             return self();
         }
 
+        public B VELOCIDAD_MAX(double VELOCIDAD_MAX) {
+            if (VELOCIDAD_MAX < 0) { throw new IllegalArgumentException("VELOCIDAD_MAX no puede ser < 0"); }
+            this.VELOCIDAD_MAX = VELOCIDAD_MAX;
+            return self();
+        }
     }
 
 
@@ -62,6 +69,7 @@ public abstract class EntidadMovil extends Entidad {
 
     public void acelerar() {
         velocidad += aceleracion;
+        if (velocidad >= VELOCIDAD_MAX) { velocidad = VELOCIDAD_MAX; }
     }
 
     public void frenar() {
@@ -90,6 +98,5 @@ public abstract class EntidadMovil extends Entidad {
                 velocidad,
                 aceleracion);
     }
-
 
 }

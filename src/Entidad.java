@@ -13,7 +13,7 @@ public abstract class Entidad {
     }
 
     public abstract static class Builder<B extends Builder<B,T>,T extends Entidad> {
-        private Vec2 posicion;
+        private Vec2 posicion = new Vec2();
         private BufferedImage sprite;
         private String nombre;
         

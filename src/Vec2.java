@@ -1,5 +1,5 @@
 /**
- * Almacena dos componentes (x,y) de tipo primitive double.
+ * Almacena dos componentes (x,y) de tipo primitivo double.
  */
 public class Vec2 implements Cloneable {
 
@@ -38,7 +38,7 @@ public class Vec2 implements Cloneable {
      * Convierte el vector en un vector unitario.
      * Mantiene la dirección y sentido originales, pero la magnitud pasa a ser 1.
      * No hace nada si el vector ya era unitario, o si equivale a (0,0).
-     */
+    */
     public void normalizar() {
     // esto es para la direccion de las entidades, que se puede representar
     // como un vector normalizado de 2 componentes

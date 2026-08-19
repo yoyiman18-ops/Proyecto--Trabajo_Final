@@ -27,10 +27,8 @@ public class EntidadViva extends EntidadMovil {
         // en base al objeto Builder, que queda descartado tras el uso
         public EntidadViva build() {
             if (vida > vidaMax) {
-                System.out.println("- Advertencia: vida > vidaMax; seteando vida = vidaMax");
                 vida = vidaMax;
             }
-            // si la vida max
             else if (vida == 0) {
                 vida = vidaMax;
             }
@@ -61,7 +59,7 @@ public class EntidadViva extends EntidadMovil {
 
     public boolean recibirDaño(double cantidad) {
 
-        if (cantidad < 1.0) {
+        if (!estaVivo() || cantidad < 1.0) {
             return false;
         }
        
@@ -75,12 +73,18 @@ public class EntidadViva extends EntidadMovil {
             this.vida = 0;
         }
         System.out.println(nombre + " ha recibido " + (int) dañoRecibido + " de daño");
+        if (this.vida == 0) { morir(); }
         return true; 
     }
 
     public boolean estaVivo() {
         return this.vida > 0;
     }
+
+    public void morir() {
+        System.out.println(nombre + " ha muerto.");
+    }
+
     public int getVida() {
         return this.vida;
     }
