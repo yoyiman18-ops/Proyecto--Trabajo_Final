@@ -1,45 +1,35 @@
+import java.util.Random;
+
 public class App {
 
-    private static void imprimirPrueba(EntidadMovil entidad) {
-        System.out.printf("Posicion: x: %f ; y: %f | Velocidad: %f | Acel: %f %n",
-            entidad.getPosicion().getX(),entidad.getPosicion().getY(),
-            entidad.getVelocidad(),entidad.getAceleracion());
-    }
-
     public static void main(String[] args) throws Exception {
-        EntidadMovil algo = new EntidadMovil(
-            new Vec2(1,1),
-            new Vec2(2,2),
-            5.0,
-            0.0
-        );
 
+        Vec2 vector = new Vec2().normalizado();
 
-        imprimirPrueba(algo);
+        vector.normalizar();
+        
+        Random rng = new Random();
 
-        algo.acelerar();
-        algo.mover();
+        EntidadViva e1 = new EntidadViva.Builder()
+                        .nombre("Geralt")
+                        .direccion(0.45, 0.55)
+                        .VELOCIDAD_MAX(1)
+                        .aceleracion(10)
+                        .vidaMax(rng.nextInt(20,201))
+                        .defensa(rng.nextInt(1,11))
+                        .build();
 
-        imprimirPrueba(algo);
+        System.out.println(e1.toString());
 
-        algo.frenar();
-        algo.mover();
-
-        imprimirPrueba(algo);
-
-        algo.setDireccion(0, 0);
-
-        algo.acelerar();
-        algo.mover();
-
-        imprimirPrueba(algo);
-
-        algo.frenar();
-        algo.setDireccion(-1,-1 );
-        algo.acelerar();
-        algo.mover();
-
-        imprimirPrueba(algo);
-
+        while (e1.estaVivo()) {
+            e1.recibirDaño(rng.nextInt(10,40));
+        }
+        System.out.println(e1.toString());
+        // e1.mover();
+        // System.out.println(e1.toString());
+                    
+        e1.acelerar();
+        e1.mover();
+        System.out.println(e1.toString());
     }
 }

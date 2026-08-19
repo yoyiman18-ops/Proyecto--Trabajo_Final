@@ -1,22 +1,28 @@
-# Proyecto: Por Definir
+# Proyecto: {Nombre Por Definir}
 
 ## 1. Integrantes del Equipo
 
-- Rodríguez Joel
-- Ibarrola Enzo
 - Durante Baldessari Valentín
 - Gomez Lautaro
+- Ibarrola Enzo
+- Rodríguez Joel
 
 ## 2. Dominio y Alcance del Sistema
 
 ### Descripción del Problema
+
 Se busca desarrollar un videojuego de escritorio basado en el género "Roguelike". El jugador debe sobrevivir a un número limitado de oleadas aleatorias de enemigos con dificultad incremental en un mapa cerrado, buscando destruirlos ellos y recolectar mejoras aleatorias hasta acabar con todas las oleadas y finalizar la partida.
 
 ### Objetivo del Sistema
+
 El sistema será un juego funcional que implemente las características del género "Roguelike", con un diseño orientado a la escalabilidad que permita la adición de nuevos tipos de personajes, enemigos y mejoras; respetando los cuatro pilares de la programación orientada a objetos (abstracción, encapsulación, herencia y polimorfismo).
 
 ### Funcionalidades Principales (Features)
 
+- **Diseño del motor del videojuego**
+    - El motor implementa "frames" (cuadros) de físicas para calcular la lógica correspondiente a las físicas del juego de forma consistente.
+    - Los gráficos 2D del juego son procesados y dibujados en los frames de renderizado correspondientes, a través de la liberaria Java Swing.
+    - Se implementa la obtención, lectura y almacenamiento del estado de teclas relevantes para un instante dado.
 - **Mecánicas de juego**
     - La jugabilidad se centra en la supervivencia un número finito oleadas de enemigos y la obtención de mejoras a través de la experiencia (recurso obtenido de los enemigos destruidos).
     - El personaje jugable tiene una cantidad de puntos de vida limitados, que al reducirse a cero finalizan la partida.
@@ -44,8 +50,8 @@ Por definir.
 ## 4. Stack Tecnológico
 - **Lenguaje:** Java 23
 - **IDE:** Visual Studio Code
-- **Base de Datos:** Por definir
-- **Framework de IGU:** Por definir
+- **Base de Datos:** MySQL 8.0
+- **Framework de IGU:** Java Swing
 - **Control de Versiones:** Git y GitHub
 
 
