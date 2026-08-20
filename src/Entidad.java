@@ -1,20 +1,18 @@
-import java.awt.image.BufferedImage;
-
 public abstract class Entidad {
 
     protected String nombre;
     protected Vec2 posicion;
-    protected BufferedImage sprite;
+    protected String pathsprite;
 
     protected Entidad(Builder<?, ?> builder) {
         this.nombre = builder.nombre;
         this.posicion = builder.posicion;
-        this.sprite = builder.sprite;
+        this.pathsprite = builder.pathsprite;
     }
 
     public abstract static class Builder<B extends Builder<B,T>,T extends Entidad> {
         private Vec2 posicion = new Vec2();
-        private BufferedImage sprite;
+        private String pathsprite;
         private String nombre;
         
         public abstract B self(); // debe devolver un builder B que herede de este propio builder
@@ -33,8 +31,8 @@ public abstract class Entidad {
             return self();
         }
 
-        public B sprite(BufferedImage sprite) {
-            this.sprite = sprite;
+        public B pathsprite(String sprite) {
+            this.pathsprite = sprite;
             return self();
         }
         
@@ -51,6 +49,10 @@ public abstract class Entidad {
 
     public void setPosicion(Vec2 posicion) {
         this.posicion = posicion;
+    }
+
+    public String getPathSprite() {
+        return this.pathsprite;
     }
 
     @Override
