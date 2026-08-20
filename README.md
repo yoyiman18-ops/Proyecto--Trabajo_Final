@@ -1,4 +1,4 @@
-# Proyecto: {Nombre Por Definir}
+# Proyecto: Waves 2D
 
 ## 1. Integrantes del Equipo
 
