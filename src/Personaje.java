@@ -1,3 +1,4 @@
+/*
 public class Personaje extends EntidadMovil {
     
     private float vida,vidaMax;
@@ -34,3 +35,4 @@ public class Personaje extends EntidadMovil {
     }
 
 }
+*/

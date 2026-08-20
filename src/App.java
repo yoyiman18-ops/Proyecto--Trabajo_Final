@@ -31,5 +31,7 @@ public class App {
         e1.acelerar();
         e1.mover();
         System.out.println(e1.toString());
+
+        Motor.dibujar();
     }
 }

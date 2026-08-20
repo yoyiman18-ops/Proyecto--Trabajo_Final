@@ -1,3 +1,4 @@
+/*
 public class enemigo extends Personaje {
     private int experiencia;
     
@@ -12,3 +13,4 @@ public class enemigo extends Personaje {
 
 
 }
+*/
