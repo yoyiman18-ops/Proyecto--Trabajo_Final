@@ -26,8 +26,8 @@ public abstract class EntidadMovil extends Entidad {
         
 
         public B direccion(double x, double y) {
-            this.direccion.x = x;
-            this.direccion.y = y;
+            this.direccion.setX(x);
+            this.direccion.setY(y);
             this.direccion.normalizar();
             return self();
         }
@@ -54,8 +54,8 @@ public abstract class EntidadMovil extends Entidad {
 
 
     public void setDireccion(double x, double y) {
-        direccion.x = x;
-        direccion.y = y;
+        direccion.setX(x);
+        direccion.setY(y);
         direccion.normalizar();
     }
 
@@ -81,8 +81,8 @@ public abstract class EntidadMovil extends Entidad {
 
     public boolean mover() {
         if (this.posicion == null || this.direccion == null) return false;
-        this.posicion.x += velocidad * direccion.x;
-        this.posicion.y += velocidad * direccion.y;
+        this.posicion.setX(velocidad * direccion.getX());
+        this.posicion.setY(velocidad * direccion.getY());
         return true;
     }
 
