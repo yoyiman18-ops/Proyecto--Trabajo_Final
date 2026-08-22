@@ -1,5 +1,6 @@
+package main;
+import modelo.*;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 public class App {
@@ -15,7 +16,7 @@ public class App {
                         .VELOCIDAD_MAX(1)
                         .aceleracion(10)
                         .vidaMax(rng.nextInt(100,201))
-                        .defensa(rng.nextInt(0,1))
+                        .defensa(rng.nextInt(0,11))
                         .build();
 
         System.out.println(e1.toString());
@@ -23,14 +24,13 @@ public class App {
         while (e1.estaVivo()) {
             e1.recibirDaño(rng.nextInt(20,50));
         }
-        System.out.println(e1.toString());
+        // System.out.println(e1.toString());
         // e1.mover();
         // System.out.println(e1.toString());
                     
-        e1.acelerar();
-        e1.mover();
-        System.out.println(e1.toString());
+        // e1.acelerar();
+        // e1.mover();
+        // System.out.println(e1.toString());
 
-        Motor.dibujar(new ArrayList<>(java.util.List.of(e1,e2)));
     }
 }

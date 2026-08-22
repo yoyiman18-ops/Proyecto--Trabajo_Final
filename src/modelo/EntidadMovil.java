@@ -1,3 +1,6 @@
+package modelo;
+
+
 public abstract class EntidadMovil extends Entidad {
 
     protected Vec2 direccion; // precondicion para todo lo que use direccion: direccion es un vec2 normalizado

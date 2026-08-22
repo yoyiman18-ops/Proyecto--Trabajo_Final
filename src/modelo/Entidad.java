@@ -1,4 +1,7 @@
-public abstract class Entidad {
+package modelo;
+import javafx.scene.image.Image;
+
+public abstract class Entidad implements SpriteModelo {
 
     protected String nombre;
     protected Vec2 posicion;
@@ -23,19 +26,25 @@ public abstract class Entidad {
         }
 
         public B posicion(double x, double y) {
-            this.posicion.x = x;
-            this.posicion.y = y;
+            this.posicion.setX(x);
+            this.posicion.setX(x);
             return self();
         }
     }
 
+    @Override
     public Vec2 getPosicion() {
     return this.posicion.clone();
 }
 
+    @Override
+    public Image getImagen() {
+        return new Image("hola");
+    }
+
     public void setPosicion(double x, double y) {
-        posicion.x = y;
-        posicion.y = y;
+        posicion.setX(x);
+        posicion.setY(y);
     }
 
     public void setPosicion(Vec2 posicion) {

@@ -1,3 +1,5 @@
+package modelo;
+
 public class EntidadViva extends EntidadMovil {
    private int vida,vidaMax;
    private int defensa;

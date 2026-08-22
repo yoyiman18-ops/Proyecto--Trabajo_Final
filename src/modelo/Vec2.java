@@ -1,3 +1,5 @@
+package modelo;
+
 public class Vec2 implements Cloneable {
 
     private double x,y;

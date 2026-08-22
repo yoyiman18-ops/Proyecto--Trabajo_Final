@@ -1,9 +1,9 @@
 all:
 	mkdir -p bin
-	javac -d bin src/**/*.java
+	javac --module-path lib --add-modules javafx.controls,javafx.fxml -d bin src/**/*.java
 
 run:
-	java -cp bin App
+	java --module-path lib --add-modules javafx.controls,javafx.fxml -cp bin main.App
 
 clean:
 	rm -rf bin
