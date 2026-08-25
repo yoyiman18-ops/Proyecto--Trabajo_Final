@@ -17,7 +17,7 @@ public abstract class EntidadMovil extends Entidad {
         this.direccion = builder.direccion;
         this.aceleracion = builder.aceleracion;
         this.velocidad = builder.velocidad;
-        this.VELOCIDAD_MAX = builder.VELOCIDAD_MAX; 
+        this.VELOCIDAD_MAX = builder.velocidadMax; 
         }
 
     // recursividad:
@@ -25,9 +25,8 @@ public abstract class EntidadMovil extends Entidad {
         private Vec2 direccion = new Vec2();
         private double aceleracion;
         private double velocidad;
-        private double VELOCIDAD_MAX = 0;
+        private double velocidadMax = 0;
         
-
         public B direccion(double x, double y) {
             this.direccion.setX(x);
             this.direccion.setY(y);
@@ -47,9 +46,9 @@ public abstract class EntidadMovil extends Entidad {
             return self();
         }
 
-        public B VELOCIDAD_MAX(double VELOCIDAD_MAX) {
-            if (VELOCIDAD_MAX < 0) { throw new IllegalArgumentException("VELOCIDAD_MAX no puede ser < 0"); }
-            this.VELOCIDAD_MAX = VELOCIDAD_MAX;
+        public B velocidadMax (double velocidadMax) {
+            if (velocidadMax < 0) { throw new IllegalArgumentException("VELOCIDAD_MAX no puede ser < 0"); }
+            this.velocidadMax = velocidadMax;
             return self();
         }
     }
@@ -83,7 +82,7 @@ public abstract class EntidadMovil extends Entidad {
     }
 
     public boolean mover() {
-        if (this.posicion == null || this.direccion == null) return false;
+        if (getPosicion() == null || this.direccion == null) return false;
         this.posicion.setX(velocidad * direccion.getX());
         this.posicion.setY(velocidad * direccion.getY());
         return true;

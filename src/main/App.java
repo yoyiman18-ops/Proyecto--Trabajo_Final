@@ -1,36 +1,42 @@
 package main;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import modelo.*;
+import vista.SpriteVista;
 
-import java.util.Random;
+import java.net.CacheRequest;
 
-public class App {
+// import java.util.Random;
 
-    public static void main(String[] args) throws Exception {
+import controlador.SpriteControlador;
 
-        Random rng = new Random();
+public class App extends Application {
 
+    CacheRecursos cr = new CacheRecursos();
+
+    @Override
+    public void start(Stage stage) {           
         EntidadViva e1 = new EntidadViva.Builder()
                         .nombre("Brotato")
                         .posicion(-12,53)
                         .direccion(0.45, 0.55)
-                        .VELOCIDAD_MAX(1)
+                        .velocidadMax(1)
                         .aceleracion(10)
-                        .vidaMax(rng.nextInt(100,201))
-                        .defensa(rng.nextInt(0,11))
                         .build();
 
-        System.out.println(e1.toString());
+        SpriteVista vista = new SpriteVista(cr);
+        SpriteControlador controlador = new SpriteControlador(e1, vista);
 
-        while (e1.estaVivo()) {
-            e1.recibirDaño(rng.nextInt(20,50));
-        }
-        // System.out.println(e1.toString());
-        // e1.mover();
-        // System.out.println(e1.toString());
-                    
-        // e1.acelerar();
-        // e1.mover();
-        // System.out.println(e1.toString());
+        Scene escena = new Scene(vista, 800, 600);
+        stage.setScene(escena);
+        stage.show();
+        vista.requestFocus();
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        launch();
 
     }
 }

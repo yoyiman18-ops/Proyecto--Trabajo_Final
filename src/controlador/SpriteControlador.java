@@ -1,6 +1,6 @@
 package controlador;
 
-import javafx.scene.input.KeyCode;
+// import javafx.scene.input.KeyCode;
 import modelo.SpriteModelo;
 import vista.SpriteVista;
 

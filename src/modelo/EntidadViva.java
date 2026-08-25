@@ -6,7 +6,7 @@ public class EntidadViva extends EntidadMovil {
 
     private static final int VIDA_DEFAULT = 20;
 
-    protected EntidadViva(Builder builder) {
+    private EntidadViva(Builder builder) {
         super(builder);
         this.vida = builder.vida;
         this.vidaMax = builder.vidaMax;
@@ -19,23 +19,6 @@ public class EntidadViva extends EntidadMovil {
         private int vida = 0; // valor sentinela, no se puede setear normalmente en 0. para setear vida = vidaMax en .build
         private int vidaMax = VIDA_DEFAULT;
         private int defensa;
-
-        // método requerido por clase padre abstracta, porque no puede hacer "this" ya una abstracta no puede instanciarse como objeto, en cambio la clase concreta si
-        public Builder self() {
-            return this;
-        }
-
-        // este es el método que aplica los parámetros del builder para crear una nueva EntidadViva
-        // en base al objeto Builder, que queda descartado tras el uso
-        public EntidadViva build() {
-            if (vida > vidaMax) {
-                vida = vidaMax;
-            }
-            else if (vida == 0) {
-                vida = vidaMax;
-            }
-            return new EntidadViva(this);
-        }
 
         // se crea un método que retorna EntidadViva.Builder para cada atributo relevante de EntidadViva
         // lo que sucede es que cada vez se usa el mismo Builder, no se crea un nuevo objeto Builder.
@@ -57,6 +40,21 @@ public class EntidadViva extends EntidadMovil {
             this.defensa = defensa;
             return this;
         }
+
+        // método requerido por clase padre abstracta, porque no puede hacer "this" ya una abstracta no puede instanciarse como objeto, en cambio la clase concreta si
+        public Builder self() {
+            return this;
+        }
+
+        // este es el método que aplica los parámetros del builder para crear una nueva EntidadViva
+        // en base al objeto Builder, que queda descartado tras el uso
+        public EntidadViva build() {
+            if (vida > vidaMax) { vida = vidaMax; }
+            else if (vida == 0) { vida = vidaMax; }
+
+            return new EntidadViva(this);
+        }
+
     }
 
     public boolean recibirDaño(double cantidad) {
@@ -74,7 +72,7 @@ public class EntidadViva extends EntidadMovil {
         if (this.vida < 0) {
             this.vida = 0;
         }
-        System.out.println(nombre + " ha recibido " + (int) dañoRecibido + " de daño");
+        System.out.println(getNombre() + " ha recibido " + (int) dañoRecibido + " de daño");
         if (this.vida == 0) { morir(); }
         return true; 
     }
@@ -84,7 +82,7 @@ public class EntidadViva extends EntidadMovil {
     }
 
     public void morir() {
-        System.out.println(nombre + " ha muerto.");
+        System.out.println(getNombre() + " ha muerto.");
     }
 
     public int getVida() {
