@@ -12,33 +12,7 @@ public class SpriteControlador {
     public SpriteControlador(SpriteModelo modelo, SpriteVista vista) {
         this.modelo = modelo;
         this.vista = vista;
-
-        configurarEventos();
         actualizarVista();
-    }
-
-    private void configurarEventos() {
-
-        vista.setOnKeyPressed(evento -> {
-
-            switch (evento.getCode()) {
-
-                case LEFT:
-                    break;
-                case RIGHT:
-                    break;
-                case UP:
-                    break;
-                case DOWN:
-                    break;
-                default:
-                    break;
-            }
-
-            actualizarVista();
-        });
-        
-        vista.setFocusTraversable(true);
     }
 
     public void actualizarVista() {
