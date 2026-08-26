@@ -10,7 +10,7 @@ public class CacheRecursos {
     /**
      * Busca la imagen correspondiente al path en el HashMap.
      * 
-     * Si la imagen ya está cargada, la retorna directamente.
+     * <p>Si la imagen ya está cargada, la retorna directamente. 
      * Sino, la carga a memoria, la guarda en el HashMap y la retorna.
      * 
      * @param path Ubicación del archivo.
@@ -21,7 +21,7 @@ public class CacheRecursos {
     }
 
     /**
-     * Limpia el HashMap.
+     * Limpia el HashMap cache.
      */
     public void limpiar() { cache.clear(); }
 

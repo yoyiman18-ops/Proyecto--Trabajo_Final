@@ -3,7 +3,9 @@ package modelo;
 public class Hitbox {
     private final Vec2 desplazamiento;
     private final Vec2 dimension;
-    private boolean activa = true;
+    private boolean activa;
+
+    public Hitbox() { desplazamiento = new Vec2(); dimension = new Vec2(); }
 
     public Hitbox(double ancho, double alto) {
         desplazamiento = new Vec2();
@@ -21,8 +23,10 @@ public class Hitbox {
         this.activa = activa;
     }
 
+    public boolean vacia() { return this.dimension.getX() == 0 && this.dimension.getY() == 0; }
     public Vec2 getDimension() { return dimension.clone(); }
     public void setDimension(double x, double y) { dimension.setX(x); dimension.setY(y); }
+    public Vec2 getDesplazamiento() { return this.desplazamiento.clone(); }
     public boolean estaActiva() { return this.activa; }
     public void setActiva(boolean activa) { this.activa = activa; }
 

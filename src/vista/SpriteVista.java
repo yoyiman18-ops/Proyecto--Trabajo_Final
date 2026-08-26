@@ -19,8 +19,8 @@ public class SpriteVista extends Pane {
     }
 
     private String getPathRecurso(SpriteModelo modelo) {
-        System.out.println("/recursos/" + modelo.getId() + ".jpg");
-        return getClass().getResource("/recursos/" + modelo.getId() + ".jpg").toExternalForm();
+        System.out.println("/recursos/" + modelo.getNombre() + ".jpg");
+        return getClass().getResource("/recursos/" + modelo.getNombre() + ".jpg").toExternalForm();
     }
 
     public void actualizar(SpriteModelo modelo) {

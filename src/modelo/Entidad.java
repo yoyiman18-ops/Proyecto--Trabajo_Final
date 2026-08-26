@@ -1,13 +1,20 @@
 package modelo;
 import javafx.geometry.Rectangle2D;
 
-public abstract class Entidad implements SpriteModelo, Colisionable {
+public abstract class Entidad implements 
+    SpriteModelo,
+    Colisionable,
+    Comparable<Entidad> {
 
+    private static int idActual = 0;
+
+    private final int id;
     private final String nombre;
     protected final Vec2 posicion;
-    private final Vec2 hitbox; // dimensión lógica de la hitbox
+    private final Hitbox hitbox;
 
     protected Entidad(Builder<?, ?> builder) {
+        this.id = siguienteId();
         this.nombre = builder.nombre;
         this.posicion = builder.posicion;
         this.hitbox = builder.hitbox;
@@ -16,7 +23,7 @@ public abstract class Entidad implements SpriteModelo, Colisionable {
     public abstract static class Builder<B extends Builder<B,T>,T extends Entidad> {
         private String nombre;
         private final Vec2 posicion = new Vec2();
-        private Vec2 hitbox;
+        private Hitbox hitbox = new Hitbox();
         
         public abstract B self(); // debe devolver un builder B que herede de este propio builder
         public abstract T build(); // debe devolver un objeto de tipo B que herede de Entidad
@@ -33,16 +40,33 @@ public abstract class Entidad implements SpriteModelo, Colisionable {
             return self();
         }
 
-        public B hitbox(double x, double y) { this.hitbox = new Vec2(x,y); return self(); }
+        public B hitbox(double ancho, double alto, double desplazamientoX, double desplazamientoY, boolean activa) { 
+            this.hitbox = new Hitbox(ancho, alto, desplazamientoX, desplazamientoY, activa);
+            return self(); 
+        }
+
     }
 
-    @Override public boolean intersecta(Colisionable otro) { return getHitbox().intersects(otro.getHitbox()); }
-
+    private int siguienteId() { idActual++; return idActual-1;  }
+    public int getId() { return id; }
     public void setPosicion(double x, double y) { posicion.setX(x); posicion.setY(y); }
-    public String getNombre() { return nombre; }
-    public Rectangle2D getHitbox() { return new Rectangle2D(posicion.getX(), posicion.getY(), posicion.getY(), hitbox.getY()); }
-    @Override public String getId() { return nombre; }
     @Override public Vec2 getPosicion() { return posicion.clone(); }
+    @Override public String getNombre() { return nombre; }
+    @Override public boolean hitboxActiva() { return (hitbox.estaActiva() && !hitbox.getDimension().equals(Vec2.ORIGEN)); }
+    @Override public boolean intersecta(Colisionable otro) { return getPoligonoColision().intersects(otro.getPoligonoColision()); }
+    @Override public Rectangle2D getPoligonoColision() {
+        return new Rectangle2D(
+            this.posicion.getX() + this.hitbox.getDesplazamiento().getX(),
+            this.posicion.getY() + this.hitbox.getDesplazamiento().getY(),
+            this.hitbox.getDimension().getX(),
+            this.hitbox.getDimension().getY()
+        );
+    }
+
+    @Override
+    public int compareTo(Entidad otro) {
+        return Integer.compare(this.id, otro.id);
+    }
 
     @Override
     public String toString() {
@@ -53,4 +77,4 @@ public abstract class Entidad implements SpriteModelo, Colisionable {
         return String.format("Nombre: %s%nPosicion: %s" , nombre, posicionString);
     }
 
-} 
+}
