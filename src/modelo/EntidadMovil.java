@@ -3,10 +3,10 @@ package modelo;
 
 public abstract class EntidadMovil extends Entidad {
 
-    protected Vec2 direccion; // precondicion para todo lo que use direccion: direccion es un vec2 normalizado
-    private double velocidad; // tasa de cambio de posicion en el tiempo en base a la direccion
     private final double VELOCIDAD_MAX;
+    private double velocidad; // tasa de cambio de posicion en el tiempo en base a la direccion
     private double aceleracion; // tasa de cambio de velocidad en el tiempo
+    private final Vec2 direccion; // precondicion para todo lo que use direccion: direccion es un vec2 normalizado
 
     // ej: velocidad = velocidad + aceleracion
     // ej: posicion x = posicion x + direccion.x * velocidad
@@ -20,9 +20,8 @@ public abstract class EntidadMovil extends Entidad {
         this.VELOCIDAD_MAX = builder.velocidadMax; 
         }
 
-    // recursividad:
     public abstract static class Builder<B extends Builder<B,T>,T extends EntidadMovil> extends Entidad.Builder<B,T> {
-        private Vec2 direccion = new Vec2();
+        private final Vec2 direccion = new Vec2();
         private double aceleracion;
         private double velocidad;
         private double velocidadMax = 0;
@@ -53,21 +52,16 @@ public abstract class EntidadMovil extends Entidad {
         }
     }
 
-
-
     public void setDireccion(double x, double y) {
         direccion.setX(x);
         direccion.setY(y);
         direccion.normalizar();
     }
 
-    public double getVelocidad() {
-        return velocidad;
-    }
-
-    public double getAceleracion() {
-        return aceleracion;
-    }
+    public double getVelocidad() { return velocidad; }
+    public double getVelocidadMax() { return VELOCIDAD_MAX; }
+    public double getAceleracion() { return aceleracion; }
+    public Vec2 direccion() { return direccion; }
 
     public void acelerar() {
         velocidad += aceleracion;
@@ -76,13 +70,11 @@ public abstract class EntidadMovil extends Entidad {
 
     public void frenar() {
         velocidad -= aceleracion;
-        if (velocidad < 0) {
-            velocidad = 0;
-        }
+        if (velocidad < 0) { velocidad = 0; }
     }
 
     public boolean mover() {
-        if (getPosicion() == null || this.direccion == null) return false;
+        if (getPosicion() == null || this.direccion == null) { return false; }
         this.posicion.setX(velocidad * direccion.getX());
         this.posicion.setY(velocidad * direccion.getY());
         return true;

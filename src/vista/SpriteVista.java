@@ -5,7 +5,7 @@ import modelo.Vec2;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import main.CacheRecursos;
+import motor.CacheRecursos;
 
 public class SpriteVista extends Pane {
 

@@ -42,9 +42,7 @@ public class EntidadViva extends EntidadMovil {
         }
 
         // método requerido por clase padre abstracta, porque no puede hacer "this" ya una abstracta no puede instanciarse como objeto, en cambio la clase concreta si
-        public Builder self() {
-            return this;
-        }
+        public Builder self() { return this; }
 
         // este es el método que aplica los parámetros del builder para crear una nueva EntidadViva
         // en base al objeto Builder, que queda descartado tras el uso
@@ -54,43 +52,33 @@ public class EntidadViva extends EntidadMovil {
 
             return new EntidadViva(this);
         }
+    }
 
+    private double reducirDaño(double cantidad) {
+        return Math.max(cantidad/Math.log10(defensa + 10.0) - defensa/2 , 1.0);
     }
 
     public boolean recibirDaño(double cantidad) {
-
-        if (!estaVivo() || cantidad < 1.0) {
-            return false;
-        }
+        if (!estaVivo() || cantidad < 1.0) { return false; }
        
         double dañoRecibido;
         // calcula el daño recibido con defensa == 0, o con defensa >= 1
         if (defensa == 0) { dañoRecibido = cantidad; } 
-        else { dañoRecibido = Math.max(cantidad/Math.log10(defensa + 10.0) - defensa/2 , 1.0); }
+        else { dañoRecibido = reducirDaño(cantidad); }
 
-        this.vida -= (int) dañoRecibido; 
-        if (this.vida < 0) {
-            this.vida = 0;
-        }
+        vida -= (int) dañoRecibido; 
+        if (vida < 0) { vida = 0; }
         System.out.println(getNombre() + " ha recibido " + (int) dañoRecibido + " de daño");
         if (this.vida == 0) { morir(); }
         return true; 
     }
 
-    public boolean estaVivo() {
-        return this.vida > 0;
-    }
+    public boolean estaVivo() { return this.vida > 0; }
+    public int getVida() { return this.vida; }
+    public int getVidaMax() { return this.vidaMax; }
 
-    public void morir() {
-        System.out.println(getNombre() + " ha muerto.");
-    }
+    public void morir() { System.out.println(getNombre() + " ha muerto."); }
 
-    public int getVida() {
-        return this.vida;
-    }
-    public int getVidaMax() {
-        return this.vidaMax;
-    }
 
     @Override
     public String toString() {

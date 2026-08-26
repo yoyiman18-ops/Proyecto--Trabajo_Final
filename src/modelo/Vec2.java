@@ -1,5 +1,7 @@
 package modelo;
 
+import java.util.Objects;
+
 public class Vec2 implements Cloneable {
 
     private double x,y;
@@ -44,12 +46,24 @@ public class Vec2 implements Cloneable {
     }
 
     @Override
-    public Vec2 clone() {
-        return new Vec2(x,y);
+    public Vec2 clone() { return new Vec2(x,y); }
+
+    @Override
+    public boolean equals(Object obj) {
+        // si apuntan al mismo objeto devuelve true
+        if (this == obj) { return true; }
+        // si son distintos objetos, y el otro es nulo o son de clases distintas devuelve falso
+        if ( obj == null || this.getClass() != obj.getClass() ) { return false; }
+        // son de la misma clase, retorna (x1,y1) == (x2,y2)
+        Vec2 otroVec = (Vec2) obj;
+        return (this.x == otroVec.x && this.y == otroVec.y);
     }
 
     @Override
-    public String toString() {
-        return String.format("(%.2f;%.2f)", x,y);
-    }
+    public int hashCode() { return Objects.hash(x,y); }
+
+    @Override
+    public String toString() { return String.format("(%.2f;%.2f)", x,y); }
+
+
 }

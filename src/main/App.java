@@ -3,9 +3,8 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import modelo.*;
+import motor.CacheRecursos;
 import vista.SpriteVista;
-
-import java.net.CacheRequest;
 
 // import java.util.Random;
 
