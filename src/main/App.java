@@ -7,7 +7,6 @@ import motor.SpatialHashGrid;
 import motor.cache.CacheImagenes;
 import motor.colisiones.FaseEspecifica;
 import motor.colisiones.FaseGeneral;
-import motor.colisiones.ParColision;
 import vista.SpriteVista;
 
 import controlador.SpriteControlador;
@@ -15,7 +14,7 @@ import controlador.SpriteControlador;
 public class App extends Application {
 
     CacheImagenes cache = new CacheImagenes();
-    SpatialHashGrid cuadricula = new SpatialHashGrid(64); 
+    SpatialHashGrid<Entidad> cuadricula = new SpatialHashGrid<>(64); 
     FaseGeneral faseGen = new FaseGeneral();
     FaseEspecifica faseEsp = new FaseEspecifica();
 
@@ -23,16 +22,16 @@ public class App extends Application {
     public void start(Stage stage) {           
         EntidadViva e1 = new EntidadViva.Builder()
                         .nombre("Brotato")
-                        .posicion(2,53)
+                        .posicion(10,10)
                         .direccion(0.45, 0.55)
                         .velocidadMax(1)
                         .aceleracion(10)
-                        .hitbox(30, 30, 0, 0,true)
+                        .hitbox(10, 10, 0, 0,true)
                         .build();
         EntidadViva e2 = new EntidadViva.Builder()
                         .nombre("Brotato")
-                        .posicion(-10, 0)
-                        .hitbox(20, 20, 0, 0, true)
+                        .posicion(0, 0)
+                        .hitbox(11, 10, 0, 0, true)
                         .build();
 
         cuadricula.insertar(e1);

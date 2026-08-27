@@ -8,8 +8,6 @@
 
 package motor.colisiones;
 
-import motor.SpatialHashGrid;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.ArrayList;
 import modelo.Entidad;

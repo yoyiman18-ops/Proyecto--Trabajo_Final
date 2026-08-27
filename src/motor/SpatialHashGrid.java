@@ -10,14 +10,14 @@ package motor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javafx.geometry.Rectangle2D;
-import modelo.Entidad;
+import modelo.Colisionable;
 
 import java.util.Objects;
 
-public class SpatialHashGrid {
+public class SpatialHashGrid<T extends Colisionable> {
 
     private final int TAMAÑO_CELDA; // aproximadamente debería ser el doble del tamaño de una hitbox promedio
-    private final HashMap<Long, ArrayList<Entidad>> cuadricula;
+    private final HashMap<Long, ArrayList<T>> cuadricula;
 
     public SpatialHashGrid(int tamañoCelda) {
         if (tamañoCelda < 1) { throw new IllegalArgumentException("Tamaño de celda no puede ser < 1"); } 
@@ -49,8 +49,8 @@ public class SpatialHashGrid {
      * @param objeto El objeto con hitbox a insertar.
      * @return {@code true} si completó la inserción, {@code false} si falló porque el objeto no tiene hitbox activa.
      */
-    public boolean insertar(Entidad objeto) {
-        if (!objeto.hitboxActiva()) { return false; }
+    public boolean insertar(T objeto) {
+        if (!objeto.colisionesActivas()) { return false; }
         
         Rectangle2D poligonoColision = objeto.getPoligonoColision();
         int celdaMinX = calcularCelda(poligonoColision.getMinX());
@@ -67,13 +67,12 @@ public class SpatialHashGrid {
                 // guarda el objeto en la "celda" (una arraylist, conjunto de objetos en esa celda) correspondiente a la clave
                 // si la "celda" no existe, la crea, y guarda el objeto en ella
                 cuadricula.computeIfAbsent(clave, celda -> new ArrayList<>()).add(objeto);
-                System.out.printf("%d Insertado en %d %d%n", objeto.getId(), celdaX, celdaY);
             }
         }
         return true;
     }
 
-    public ArrayList<Entidad> getCelda(int x, int y) {
+    public ArrayList<T> getCelda(int x, int y) {
         long clave = Objects.hash(x,y);
         return cuadricula.get(clave);
     }

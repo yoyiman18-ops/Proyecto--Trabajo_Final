@@ -3,6 +3,7 @@ import javafx.geometry.Rectangle2D;
 
 public abstract class Entidad implements 
     SpriteModelo,
+    Colisionable,
     Comparable<Entidad> {
 
     private static int idActual = 0;
@@ -52,9 +53,9 @@ public abstract class Entidad implements
     public void setPosicion(double x, double y) { posicion.setX(x); posicion.setY(y); }
     @Override public Vec2 getPosicion() { return posicion.clone(); }
     @Override public String getNombre() { return nombre; }
-    public boolean hitboxActiva() { return (hitbox.estaActiva() && !hitbox.getDimension().equals(Vec2.ORIGEN)); }
-    public boolean intersecta(Entidad otro) { return getPoligonoColision().intersects(otro.getPoligonoColision()); }
-    public Rectangle2D getPoligonoColision() {
+    @Override public boolean colisionesActivas() { return (hitbox.estaActiva() && !hitbox.getDimension().equals(Vec2.ORIGEN)); }
+    @Override public boolean intersecta(Colisionable otro) { return getPoligonoColision().intersects(otro.getPoligonoColision()); }
+    @Override public Rectangle2D getPoligonoColision() {
         return new Rectangle2D(
             this.posicion.getX() + this.hitbox.getDesplazamiento().getX(),
             this.posicion.getY() + this.hitbox.getDesplazamiento().getY(),
