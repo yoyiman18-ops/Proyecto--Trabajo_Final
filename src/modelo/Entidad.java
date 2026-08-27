@@ -3,7 +3,6 @@ import javafx.geometry.Rectangle2D;
 
 public abstract class Entidad implements 
     SpriteModelo,
-    Colisionable,
     Comparable<Entidad> {
 
     private static int idActual = 0;
@@ -48,13 +47,14 @@ public abstract class Entidad implements
     }
 
     private int siguienteId() { idActual++; return idActual-1;  }
+
     public int getId() { return id; }
     public void setPosicion(double x, double y) { posicion.setX(x); posicion.setY(y); }
     @Override public Vec2 getPosicion() { return posicion.clone(); }
     @Override public String getNombre() { return nombre; }
-    @Override public boolean hitboxActiva() { return (hitbox.estaActiva() && !hitbox.getDimension().equals(Vec2.ORIGEN)); }
-    @Override public boolean intersecta(Colisionable otro) { return getPoligonoColision().intersects(otro.getPoligonoColision()); }
-    @Override public Rectangle2D getPoligonoColision() {
+    public boolean hitboxActiva() { return (hitbox.estaActiva() && !hitbox.getDimension().equals(Vec2.ORIGEN)); }
+    public boolean intersecta(Entidad otro) { return getPoligonoColision().intersects(otro.getPoligonoColision()); }
+    public Rectangle2D getPoligonoColision() {
         return new Rectangle2D(
             this.posicion.getX() + this.hitbox.getDesplazamiento().getX(),
             this.posicion.getY() + this.hitbox.getDesplazamiento().getY(),
@@ -62,6 +62,8 @@ public abstract class Entidad implements
             this.hitbox.getDimension().getY()
         );
     }
+
+    public abstract void colisionar(Entidad otra);
 
     @Override
     public int compareTo(Entidad otro) {

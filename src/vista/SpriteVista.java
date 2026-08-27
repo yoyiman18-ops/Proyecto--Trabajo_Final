@@ -2,30 +2,24 @@ package vista;
 
 import modelo.SpriteModelo;
 import modelo.Vec2;
-import javafx.scene.image.Image;
+import motor.cache.CacheImagenes;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import motor.CacheRecursos;
 
 public class SpriteVista extends Pane {
 
-    private CacheRecursos cacheRecursos;
+    private CacheImagenes cache;
     private ImageView imageView;
 
-    public SpriteVista(CacheRecursos cacheRecursos) {
-        this.cacheRecursos = cacheRecursos;
+    public SpriteVista(CacheImagenes cache) {
+        this.cache = cache;
         imageView = new ImageView();
         getChildren().add(imageView);
     }
 
-    private String getPathRecurso(SpriteModelo modelo) {
-        System.out.println("/recursos/" + modelo.getNombre() + ".jpg");
-        return getClass().getResource("/recursos/" + modelo.getNombre() + ".jpg").toExternalForm();
-    }
-
     public void actualizar(SpriteModelo modelo) {
         Vec2 posicion = modelo.getPosicion();
-        imageView.setImage(cacheRecursos.getImagen(getPathRecurso(modelo)));
+        imageView.setImage(cache.getRecurso(modelo.getNombre()));
         imageView.setLayoutX(posicion.getX());
         imageView.setLayoutY(posicion.getY());
     }

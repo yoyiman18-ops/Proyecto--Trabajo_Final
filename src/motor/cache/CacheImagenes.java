@@ -3,6 +3,10 @@ import javafx.scene.image.Image;
 
 public class CacheImagenes extends CacheRecursos<String,Image> {
 
+    @Override protected String resolverPathRecurso(String nombre) {
+        return "/recursos/" + nombre + ".jpg";
+    }
+
     /**
      * Busca la imagen correspondiente al path en el HashMap.
      * 
@@ -13,11 +17,11 @@ public class CacheImagenes extends CacheRecursos<String,Image> {
      * @return Imagen correspondiente a path, cargada en el HashMap.
     */
     @Override public Image getRecurso(String clave) {
-    
         return cache.computeIfAbsent(clave, k -> {
-            var recurso = getClass().getResource(clave);
-            if (recurso == null) { throw new IllegalArgumentException("Recurso no encontrado: " + clave); }
+            var recurso = getClass().getResource(resolverPathRecurso(clave));
+            if (recurso == null) { throw new IllegalArgumentException("Recurso no encontrado: " + resolverPathRecurso(clave)); }
             String path = recurso.toExternalForm();
+            System.out.println("Imagen no encontrada, cargándola.");
             return new Image(path);
         }); 
     }

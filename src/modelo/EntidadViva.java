@@ -76,9 +76,13 @@ public class EntidadViva extends EntidadMovil {
     public boolean estaVivo() { return this.vida > 0; }
     public int getVida() { return this.vida; }
     public int getVidaMax() { return this.vidaMax; }
-
     public void morir() { System.out.println(getNombre() + " ha muerto."); }
-
+    
+    @Override public void colisionar(Entidad otra) {
+        System.out.printf("%s (%d) ha colisionado con %s (%d)%n",
+            this.getNombre(),this.getId(),otra.getNombre(),otra.getId()
+        );
+    }
 
     @Override
     public String toString() {

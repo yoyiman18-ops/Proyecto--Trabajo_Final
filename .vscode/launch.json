@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "main.App",
+            "projectName": "Proyecto--Trabajo_Final_5ff23185",
+            "vmArgs": "-p lib/javafx-sdk-26.0.2/lib --add-modules javafx.controls,javafx.swing,javafx.fxml"
+        }
+    ]
+}
