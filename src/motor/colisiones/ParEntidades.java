@@ -1,9 +1,9 @@
 package motor.colisiones;
 import modelo.Entidad;
 
-public record ParColision(Entidad primera, Entidad segunda) {
+public record ParEntidades(Entidad primera, Entidad segunda) {
 
-    public ParColision(Entidad primera, Entidad segunda) {
+    public ParEntidades(Entidad primera, Entidad segunda) {
         if (primera == null || segunda == null) { throw new IllegalArgumentException("No puede haber entidad nula en par de colision");}
         if (primera.compareTo(segunda) >= 0) {
         this.primera = primera;

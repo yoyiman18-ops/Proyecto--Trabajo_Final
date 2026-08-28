@@ -64,13 +64,18 @@ public abstract class Entidad implements
         );
     }
 
+    public long combinarIds(Entidad otra) { 
+        int idMenor = Math.min(id, otra.id);
+        int idMayor = Math.max(id, otra.id);
+        // el primer id se va a los 32 bit de la izquierda, el segundo se va a los 32 bit de la derecha
+        return ((long) idMenor << 32) ^ (idMayor & 0xffffffffL); }
+
     public abstract void colisionar(Entidad otra);
 
     @Override
     public int compareTo(Entidad otro) {
         return Integer.compare(this.id, otro.id);
     }
-
     @Override
     public String toString() {
         String posicionString;

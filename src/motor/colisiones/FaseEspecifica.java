@@ -1,11 +1,11 @@
 package motor.colisiones;
 
-import java.util.HashSet;
+import java.util.Collection;
 
 public class FaseEspecifica {
     
-    public void procesarColisiones(HashSet<ParColision> pares) {
-        for (ParColision par : pares) {
+    public void procesarColisiones(Collection<ParEntidades> pares) {
+        for (ParEntidades par : pares) {
             if (par.getPrimera().intersecta(par.getSegunda())) { par.colisionar(); }
         }
     }

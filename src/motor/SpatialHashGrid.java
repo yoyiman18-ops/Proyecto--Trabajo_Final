@@ -8,30 +8,22 @@ Sino, se deberían comparar absolutamente todas la entidades con cada otra entid
 package motor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import javafx.geometry.Rectangle2D;
 import modelo.Colisionable;
-
-import java.util.Objects;
 
 public class SpatialHashGrid<T extends Colisionable> {
 
     private final int TAMAÑO_CELDA; // aproximadamente debería ser el doble del tamaño de una hitbox promedio
-    private final HashMap<Long, ArrayList<T>> cuadricula;
+    private final Map<Long,ArrayList<T>> cuadricula;
 
     public SpatialHashGrid(int tamañoCelda) {
-        if (tamañoCelda < 1) { throw new IllegalArgumentException("Tamaño de celda no puede ser < 1"); } 
+        if (tamañoCelda < 1) { throw new IllegalArgumentException("Tamaño de celda no puede ser < 1"); }
         this.TAMAÑO_CELDA = tamañoCelda;
-        cuadricula = new HashMap<>();
+        cuadricula = new HashMap<Long, ArrayList<T>>();
     }
-
-    /**
-     * Calcula el índice de celda que corresponde al valor, dividiéndolo por TAMAÑO_CELDA y redondeando para abajo hacia el entero más cercano.
-     * 
-     * @param valor (double)
-     * @return Índice lógico de celda (int)
-     */
-    private int calcularCelda(double valor) { return (int) Math.floor(valor / TAMAÑO_CELDA); }
 
     /**
      * 
@@ -51,31 +43,34 @@ public class SpatialHashGrid<T extends Colisionable> {
      */
     public boolean insertar(T objeto) {
         if (!objeto.colisionesActivas()) { return false; }
-        
+
         Rectangle2D poligonoColision = objeto.getPoligonoColision();
-        int celdaMinX = calcularCelda(poligonoColision.getMinX());
-        int celdaMaxX = calcularCelda(poligonoColision.getMaxX());
-        int celdaMinY = calcularCelda(poligonoColision.getMinY());
-        int celdaMaxY = calcularCelda(poligonoColision.getMaxY());
+        int celdaMinX = calcularIndiceCelda(poligonoColision.getMinX());
+        int celdaMaxX = calcularIndiceCelda(poligonoColision.getMaxX());
+        int celdaMinY = calcularIndiceCelda(poligonoColision.getMinY());
+        int celdaMaxY = calcularIndiceCelda(poligonoColision.getMaxY());
 
         // para todo par de celdaX y celdaY donde pertenezca el poligono de colisión del objeto
         for (int celdaX = celdaMinX; celdaX <= celdaMaxX; celdaX++) {
             for (int celdaY = celdaMinY; celdaY <= celdaMaxY; celdaY++) {
                 // se calcula la clave a partir de (celdaX,celdaY)
                 // dos objetos que estén en las mismas celdas caerán en las mismas arraylist
-                long clave = Objects.hash(celdaX,celdaY);
                 // guarda el objeto en la "celda" (una arraylist, conjunto de objetos en esa celda) correspondiente a la clave
-                // si la "celda" no existe, la crea, y guarda el objeto en ella
-                cuadricula.computeIfAbsent(clave, celda -> new ArrayList<>()).add(objeto);
+                // si la celda no existe, la crea, y guarda el objeto en ella
+                cuadricula.computeIfAbsent(
+                    calcularClave(celdaMaxX, celdaMaxY),
+                    celda -> new ArrayList<>()
+                    ).add(objeto);
             }
         }
         return true;
     }
-
-    public ArrayList<T> getCelda(int x, int y) {
-        long clave = Objects.hash(x,y);
-        return cuadricula.get(clave);
-    }
-
+    public ArrayList<T> getCeldaEn(int x, int y) { return cuadricula.get(calcularClave(x, y)); }
+    public Collection<ArrayList<T>> getCeldas() { return cuadricula.values(); } 
+    public void suprimirCeldaEn(int x, int y) { cuadricula.remove(calcularClave(x, y)); }
     public void limpiar() { cuadricula.clear(); }
+    public boolean vacia() { return cuadricula.isEmpty(); }
+
+    private int calcularIndiceCelda(double valor) { return (int) Math.floor(valor / TAMAÑO_CELDA); }
+    private long calcularClave(int x, int y) { return ((long) x << 32) ^ (y & 0xffffffffL); }
 }
