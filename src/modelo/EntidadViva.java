@@ -76,6 +76,16 @@ public class EntidadViva extends EntidadMovil {
     public boolean estaVivo() { return this.vida > 0; }
     public int getVida() { return this.vida; }
     public int getVidaMax() { return this.vidaMax; }
+    public int getDefensa() { return this.defensa; }
+    public void curar(int cantidad) {
+        if (cantidad < 0) { throw new IllegalArgumentException("La curación no puede ser negativa"); }
+        vida = Math.min(vidaMax, vida + cantidad);
+    }
+
+    public void mejorarDefensa(int cantidad) {
+        if (cantidad < 0) { throw new IllegalArgumentException("La mejora no puede ser negativa"); }
+        defensa = Math.min(10, defensa + cantidad);
+    }
     public void revivir() { this.vida = this.vidaMax; }
     public void morir() { System.out.println(getNombre() + " ha muerto."); }
     

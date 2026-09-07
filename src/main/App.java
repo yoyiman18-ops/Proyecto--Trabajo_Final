@@ -18,6 +18,8 @@ import controlador.SpriteControlador;
 import controlador.JugadorControlador;
 import controlador.EnemigoControlador;
 import controlador.ProyectilControlador;
+import controlador.ExperienciaControlador;
+import controlador.VidaControlador;
 
 public class App extends Application {
 
@@ -25,8 +27,11 @@ public class App extends Application {
     ArrayList<Entidad> entidades = new ArrayList<>();
     List<EnemigoControlador> enemigos = new ArrayList<>();
     List<ProyectilControlador> proyectiles = new ArrayList<>();
+    List<ExperienciaControlador> experiencias = new ArrayList<>();
+    List<VidaControlador> recuperaciones = new ArrayList<>();
     ControladorColisiones colisiones = new ControladorColisiones(64);
     private int siguienteTipoEnemigo;
+    private static final int MAX_ENEMIGOS_ACTIVOS = 40;
 
     @Override
     public void start(Stage stage) {           
@@ -51,8 +56,20 @@ public class App extends Application {
         contadorBajas.setLayoutX(10);
         contadorBajas.setLayoutY(10);
         escenario.getChildren().add(contadorBajas);
+        Label progreso = new Label();
+        progreso.setLayoutX(10);
+        progreso.setLayoutY(35);
+        escenario.getChildren().add(progreso);
+        Label vida = new Label();
+        vida.setLayoutX(10);
+        vida.setLayoutY(60);
+        escenario.getChildren().add(vida);
+        Label tiempo = new Label("Tiempo: 00:00");
+        tiempo.setLayoutX(10);
+        tiempo.setLayoutY(85);
+        escenario.getChildren().add(tiempo);
         JugadorControlador jugadorControlador = new JugadorControlador(
-                e1, vista1, enemigos, proyectiles, escenario, cache
+                e1, vista1, enemigos, proyectiles, escenario, cache, experiencias, progreso
         );
 
         agregarEnemigo(25, 25, new Rectangle2D(18, 18, 45, 45), e1, escenario, bajas, contadorBajas);
@@ -67,10 +84,14 @@ public class App extends Application {
 
         AnimationTimer cicloJuego = new AnimationTimer() {
             private long ultimoSpawn;
+            private final long inicioPartida = System.nanoTime();
 
             @Override
             public void handle(long ahora) {
                 jugadorControlador.actualizar();
+                vida.setText("Vida: " + e1.getVida() + "/" + e1.getVidaMax());
+                long segundos = (ahora - inicioPartida) / 1_000_000_000L;
+                tiempo.setText(String.format("Tiempo: %02d:%02d", segundos / 60, segundos % 60));
                 if (!e1.estaVivo()) {
                     contadorBajas.setText("Bajas: " + bajas.get() + " - Jugador derrotado");
                     return;
@@ -78,6 +99,26 @@ public class App extends Application {
                 for (EnemigoControlador enemigo : enemigos) {
                     enemigo.actualizar();
                 }
+                for (ExperienciaControlador experiencia : experiencias) {
+                    experiencia.actualizar(e1);
+                }
+                experiencias.removeIf(experiencia -> {
+                    if (experiencia.fueRecogida()) {
+                        escenario.getChildren().remove(experiencia.getVista());
+                        return true;
+                    }
+                    return false;
+                });
+                for (VidaControlador recuperacion : recuperaciones) {
+                    recuperacion.actualizar(e1);
+                }
+                recuperaciones.removeIf(recuperacion -> {
+                    if (recuperacion.fueRecogida()) {
+                        escenario.getChildren().remove(recuperacion.getVista());
+                        return true;
+                    }
+                    return false;
+                });
                 for (ProyectilControlador proyectil : proyectiles) {
                     proyectil.actualizar(enemigos);
                 }
@@ -93,10 +134,11 @@ public class App extends Application {
                 }
                 long intervaloSpawn = Math.max(1_500_000_000L,
                         5_000_000_000L - (ahora - ultimoSpawn) / 3);
-                if (ahora - ultimoSpawn >= intervaloSpawn) {
+                if (ahora - ultimoSpawn >= intervaloSpawn
+                        && enemigos.size() < MAX_ENEMIGOS_ACTIVOS) {
                     double angulo = siguienteTipoEnemigo++ * Math.PI / 3;
-                    double x = 150 + Math.cos(angulo) * 125;
-                    double y = 150 + Math.sin(angulo) * 125;
+                    double x = 150 + Math.cos(angulo) * 155;
+                    double y = 150 + Math.sin(angulo) * 155;
                     Rectangle2D recorte = recorteEnemigo(siguienteTipoEnemigo);
                     agregarEnemigo(x, y, recorte, e1, escenario, bajas, contadorBajas);
                     ultimoSpawn = ahora;
@@ -125,6 +167,18 @@ public class App extends Application {
         enemigos.add(new EnemigoControlador(modelo, jugador, vista, () -> {
             int total = bajas.incrementAndGet();
             contadorBajas.setText("Bajas: " + total);
+            ExperienciaControlador experiencia = new ExperienciaControlador(
+                    modelo.getPosicion(), 10
+            );
+            experiencias.add(experiencia);
+            escenario.getChildren().add(experiencia.getVista());
+            if (total % 20 == 0) {
+                VidaControlador recuperacion = new VidaControlador(
+                        modelo.getPosicion(), 5
+                );
+                recuperaciones.add(recuperacion);
+                escenario.getChildren().add(recuperacion.getVista());
+            }
         }));
     }
 

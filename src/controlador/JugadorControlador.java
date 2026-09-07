@@ -17,6 +17,7 @@ import vista.SpriteVista;
 import javafx.stage.Window;
 import javafx.scene.layout.Pane;
 import motor.cache.CacheImagenes;
+import javafx.scene.control.Label;
 
 /**
  * Controla el movimiento del jugador mediante el teclado.
@@ -33,6 +34,8 @@ public class JugadorControlador {
     private final List<ProyectilControlador> proyectiles;
     private final Pane escenario;
     private final CacheImagenes cache;
+    private final List<ExperienciaControlador> experiencias;
+    private final Label progreso;
     private final Set<KeyCode> teclasPresionadas = EnumSet.noneOf(KeyCode.class);
     private final EventHandler<KeyEvent> manejadorPresionar = this::alPresionarTecla;
     private final EventHandler<KeyEvent> manejadorSoltar = this::alSoltarTecla;
@@ -45,22 +48,29 @@ public class JugadorControlador {
     private Scene escena;
     private Window ventana;
     private long ultimoAtaque;
-    private static final long COOLDOWN_ATAQUE_NS = 300_000_000L;
+    private long cooldownAtaqueNs = 300_000_000L;
     private static final double ALCANCE_ATAQUE = 75.0;
+    private int daño = 5;
+    private int nivel = 1;
+    private int experiencia;
+    private int experienciaSiguiente = 30;
+    private boolean eligiendoMejora;
 
     public JugadorControlador(EntidadMovil modelo, SpriteVista vista) {
-        this(modelo, vista, List.of(), new ArrayList<>(), null, null);
+        this(modelo, vista, List.of(), new ArrayList<>(), null, null, new ArrayList<>(), null);
     }
 
     public JugadorControlador(EntidadMovil modelo, SpriteVista vista,
                               List<EnemigoControlador> enemigos) {
-        this(modelo, vista, enemigos, new ArrayList<>(), null, null);
+        this(modelo, vista, enemigos, new ArrayList<>(), null, null, new ArrayList<>(), null);
     }
 
     public JugadorControlador(EntidadMovil modelo, SpriteVista vista,
                               List<EnemigoControlador> enemigos,
                               List<ProyectilControlador> proyectiles,
-                              Pane escenario, CacheImagenes cache) {
+                              Pane escenario, CacheImagenes cache,
+                              List<ExperienciaControlador> experiencias,
+                              Label progreso) {
         if (modelo == null) {
             throw new IllegalArgumentException("El modelo del jugador no puede ser null");
         }
@@ -73,7 +83,10 @@ public class JugadorControlador {
         this.proyectiles = proyectiles;
         this.escenario = escenario;
         this.cache = cache;
+        this.experiencias = experiencias;
+        this.progreso = progreso;
         vista.actualizar(modelo);
+        actualizarProgreso();
     }
 
     /**
@@ -112,6 +125,7 @@ public class JugadorControlador {
         if (modelo instanceof modelo.EntidadViva entidadViva && !entidadViva.estaVivo()) {
             return;
         }
+        recogerExperiencia();
         double direccionX = 0;
         double direccionY = 0;
 
@@ -135,7 +149,7 @@ public class JugadorControlador {
             modelo.frenar();
         }
 
-        if (teclaPresionada(KeyCode.SPACE)) {
+        if (teclaPresionada(KeyCode.SPACE) && !eligiendoMejora) {
             atacar();
         }
 
@@ -145,7 +159,7 @@ public class JugadorControlador {
 
     private void atacar() {
         long ahora = System.nanoTime();
-        if (ahora - ultimoAtaque < COOLDOWN_ATAQUE_NS) {
+        if (ahora - ultimoAtaque < cooldownAtaqueNs) {
             return;
         }
 
@@ -178,11 +192,63 @@ public class JugadorControlador {
             escenario.getChildren().add(vistaProyectil);
             proyectiles.add(new ProyectilControlador(
                     jugador.getX(), jugador.getY(),
-                    direccion.getX(), direccion.getY(), vistaProyectil
+                    direccion.getX(), direccion.getY(), daño, vistaProyectil
             ));
             ultimoAtaque = ahora;
         }
     }
+
+    private void recogerExperiencia() {
+            for (ExperienciaControlador experienciaControlador : experiencias) {
+                if (experienciaControlador.actualizar(modelo)) {
+                    experiencia += experienciaControlador.getCantidad();
+                    comprobarSubidaNivel();
+                }
+            }
+        }
+
+        private void comprobarSubidaNivel() {
+            if (experiencia < experienciaSiguiente || eligiendoMejora) {
+                actualizarProgreso();
+                return;
+            }
+            experiencia -= experienciaSiguiente;
+            nivel++;
+            experienciaSiguiente += 20;
+            eligiendoMejora = true;
+            actualizarProgreso();
+        }
+
+        private void elegirMejora(KeyCode tecla) {
+            if (!eligiendoMejora) {
+                return;
+            }
+            if (tecla == KeyCode.DIGIT1) {
+                daño += 2;
+            } else if (tecla == KeyCode.DIGIT2) {
+                cooldownAtaqueNs = Math.max(100_000_000L, cooldownAtaqueNs - 50_000_000L);
+            } else if (tecla == KeyCode.DIGIT3 && modelo instanceof modelo.EntidadViva jugador) {
+                jugador.mejorarDefensa(1);
+            } else {
+                return;
+            }
+            eligiendoMejora = false;
+            comprobarSubidaNivel();
+            actualizarProgreso();
+        }
+
+        private void actualizarProgreso() {
+            if (progreso == null) {
+                return;
+            }
+            if (eligiendoMejora) {
+                progreso.setText("Nivel " + nivel + " | XP " + experiencia + "/" + experienciaSiguiente
+                        + "\nMEJORA: [1] Daño  [2] Vel. ataque  [3] Defensa");
+            } else {
+                progreso.setText("Nivel " + nivel + " | XP " + experiencia + "/" + experienciaSiguiente
+                        + " | Daño: " + daño);
+            }
+        }
 
     public EntidadMovil getModelo() {
         return modelo;
@@ -197,6 +263,7 @@ public class JugadorControlador {
     }
 
     private void alPresionarTecla(KeyEvent evento) {
+        elegirMejora(evento.getCode());
         if (esTeclaDeMovimiento(evento.getCode())) {
             teclasPresionadas.add(evento.getCode());
             evento.consume();

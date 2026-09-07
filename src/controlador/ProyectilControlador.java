@@ -15,12 +15,14 @@ public class ProyectilControlador {
     private final SpriteVista vista;
     private final double direccionX;
     private final double direccionY;
+    private final int daño;
     private boolean activo = true;
 
     public ProyectilControlador(double x, double y, double direccionX,
-                                double direccionY, SpriteVista vista) {
+                                double direccionY, int daño, SpriteVista vista) {
         this.modelo = new Proyectil(x, y);
         this.vista = vista;
+        this.daño = daño;
         double magnitud = Math.sqrt(direccionX * direccionX + direccionY * direccionY);
         this.direccionX = direccionX / magnitud;
         this.direccionY = direccionY / magnitud;
@@ -48,7 +50,7 @@ public class ProyectilControlador {
 
         for (EnemigoControlador enemigo : enemigos) {
             if (enemigo.estaVivo() && distanciaA(enemigo) <= RADIO_IMPACTO) {
-                enemigo.recibirAtaque(5);
+                enemigo.recibirAtaque(daño);
                 desactivar();
                 return;
             }
