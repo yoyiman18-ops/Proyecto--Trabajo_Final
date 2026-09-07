@@ -58,7 +58,7 @@ public class SpatialHashGrid<T extends Colisionable> {
                 // guarda el objeto en la "celda" (una arraylist, conjunto de objetos en esa celda) correspondiente a la clave
                 // si la celda no existe, la crea, y guarda el objeto en ella
                 cuadricula.computeIfAbsent(
-                    calcularClave(celdaMaxX, celdaMaxY),
+                    calcularClave(celdaX, celdaY),
                     celda -> new ArrayList<>()
                     ).add(objeto);
             }

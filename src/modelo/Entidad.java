@@ -36,7 +36,7 @@ public abstract class Entidad implements
 
         public B posicion(double x, double y) {
             this.posicion.setX(x);
-            this.posicion.setX(x);
+            this.posicion.setY(y);
             return self();
         }
 
