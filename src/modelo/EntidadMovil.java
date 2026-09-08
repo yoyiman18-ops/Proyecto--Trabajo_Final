@@ -3,7 +3,7 @@ package modelo;
 
 public abstract class EntidadMovil extends Entidad {
 
-    private final double VELOCIDAD_MAX;
+    private final double velocidadMax;
     private double velocidad; // tasa de cambio de posicion en el tiempo en base a la direccion
     private double aceleracion; // tasa de cambio de velocidad en el tiempo
     private final Vec2 direccion; // precondicion para todo lo que use direccion: direccion es un vec2 normalizado
@@ -17,7 +17,7 @@ public abstract class EntidadMovil extends Entidad {
         this.direccion = builder.direccion;
         this.aceleracion = builder.aceleracion;
         this.velocidad = builder.velocidad;
-        this.VELOCIDAD_MAX = builder.velocidadMax; 
+        this.velocidadMax = builder.velocidadMax; 
         }
 
     public abstract static class Builder<B extends Builder<B,T>,T extends EntidadMovil> extends Entidad.Builder<B,T> {
@@ -46,7 +46,7 @@ public abstract class EntidadMovil extends Entidad {
         }
 
         public B velocidadMax (double velocidadMax) {
-            if (velocidadMax < 0) { throw new IllegalArgumentException("VELOCIDAD_MAX no puede ser < 0"); }
+            if (velocidadMax < 0) { throw new IllegalArgumentException("velocidadMax no puede ser < 0"); }
             this.velocidadMax = velocidadMax;
             return self();
         }
@@ -59,13 +59,13 @@ public abstract class EntidadMovil extends Entidad {
     }
 
     public double getVelocidad() { return velocidad; }
-    public double getVelocidadMax() { return VELOCIDAD_MAX; }
+    public double getVelocidadMax() { return velocidadMax; }
     public double getAceleracion() { return aceleracion; }
     public Vec2 direccion() { return direccion; }
 
     public void acelerar() {
         velocidad += aceleracion;
-        if (velocidad >= VELOCIDAD_MAX) { velocidad = VELOCIDAD_MAX; }
+        if (velocidad >= velocidadMax) { velocidad = velocidadMax; }
     }
 
     public void frenar() {

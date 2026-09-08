@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class CacheRecursos<K,V> {
 
     protected final ConcurrentHashMap<K,V> cache = new ConcurrentHashMap<>();
+    
     protected abstract String resolverPathRecurso(String nombre);
     public abstract V getRecurso(K clave);
 
