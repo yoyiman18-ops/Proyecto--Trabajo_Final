@@ -45,7 +45,16 @@ El sistema será un juego funcional que implemente las características del gén
     - Sistema de guardado y carga que registra la experiencia total obtenida del jugador.
 
 ## 3. Arquitectura de Diseño
-Por definir.
+
+### Patrón de diseño adicional: Builder Pattern
+- **Nombre del Patrón**: **Builder Pattern**
+- **Justificación**: El patrón Builder simplifica la instanciación de objetos con muchos atributos que pueden combinarse de muchas formas, al delegar un único parámetro de clase "Builder" en los constructores complejos en lugar de tener una gran cantidad de constructores con distintas combinaciones de parámetros, evitando así también las instanciaciones y consistencias repetidas de atributos en cada constructor de una misma clase.
+
+#### Diagramas de Diseño:
+
+#### **Diagrama de Clases UML (Simplificado hasta el progreso de desarrollo actual)**
+
+![Diagrama de Clases UML](UML.jpeg)
 
 ## 4. Stack Tecnológico
 - **Lenguaje:** Java 26
