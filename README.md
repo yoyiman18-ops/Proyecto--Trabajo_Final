@@ -59,7 +59,7 @@ El sistema será un juego funcional que implemente las características del gén
 ## 4. Stack Tecnológico
 - **Lenguaje:** Java 26
 - **IDE:** Visual Studio Code
-- **Base de Datos:** MySQL 8.0
+- **Base de Datos:** PostgreSQL 18
 - **Framework de IGU:** JavaFX 26.0.2
 - **Control de Versiones:** Git y GitHub
 
