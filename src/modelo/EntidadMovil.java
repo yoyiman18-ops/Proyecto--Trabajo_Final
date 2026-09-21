@@ -75,8 +75,8 @@ public abstract class EntidadMovil extends Entidad {
 
     public boolean mover() {
         if (getPosicion() == null || this.direccion == null) { return false; }
-        this.posicion.setX(velocidad * direccion.getX());
-        this.posicion.setY(velocidad * direccion.getY());
+        this.posicion.setX(this.posicion.getX() + velocidad * direccion.getX());
+        this.posicion.setY(this.posicion.getY() + velocidad * direccion.getY());
         return true;
     }
 
