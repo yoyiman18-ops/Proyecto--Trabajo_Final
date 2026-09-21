@@ -32,10 +32,7 @@ public class App extends Application {
                         .hitbox(11, 10, 0, 0, true)
                         .build();
 
-        entidades.add(e1);
-        entidades.add(e2);
 
-        colisiones.resolverColisiones(entidades);
 
         SpriteVista vista1 = new SpriteVista(cache);
         SpriteControlador controlador1 = new SpriteControlador(e1, vista1);
@@ -43,6 +40,12 @@ public class App extends Application {
         stage.setScene(escena);
         stage.show();
         vista1.requestFocus();
+
+        entidades.add(e1);
+        entidades.add(e2);
+        for (int i = 0; i < 10; i++) {
+        colisiones.resolverColisiones(entidades);
+        }
 
     }
 

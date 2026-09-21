@@ -1,17 +1,17 @@
 package motor.cache;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class CacheRecursos<K,V> {
 
-    protected final ConcurrentHashMap<K,V> cache = new ConcurrentHashMap<>();
+    protected final Map<K,V> cache = new HashMap<>();
     
-    protected abstract String resolverPathRecurso(String nombre);
-    public abstract V getRecurso(K clave);
+    protected String resolverPathRecurso(String nombre, Extension.IExtension ext) {
+        return nombre + ext.getExtension();
+    }
 
-    /**
-     * Limpia el HashMap cache.
-    */
+    public abstract V getRecurso(K clave);
     public void limpiar() { cache.clear(); }
 
 }
