@@ -18,12 +18,10 @@ import motor.SpatialHashGrid;
 
 public class FaseGeneralSpatialHashGrid implements FaseGeneral {
 
-    private final int TAMAÑO_CELDA;
     private final SpatialHashGrid<Entidad> cuadricula;
 
     public FaseGeneralSpatialHashGrid(int tamañoCelda) {
-        this.TAMAÑO_CELDA = tamañoCelda;
-        this.cuadricula = new SpatialHashGrid<>(TAMAÑO_CELDA);
+        this.cuadricula = new SpatialHashGrid<>(tamañoCelda);
     }
 
     @Override
@@ -35,12 +33,17 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
 
         Set<Long> idsVisitados = new HashSet<>();  
         for (ArrayList<Entidad> celda : cuadricula.getCeldas() ) { 
-            if (celda == null || celda.isEmpty()) { continue; }
+            if (celda == null || celda.isEmpty() || celda.size() <= 1 ) { continue; }
             for (int i = 0; i < celda.size(); i++) {
                 Entidad a = celda.get(i);
+                System.out.println("ID i " + i + " : " + a.getId());
                 for (int j = i+1; j < celda.size(); j++) {
                     Entidad b = celda.get(j);
-                    if (idsVisitados.add(a.combinarIds(b))) { pares.add(new ParEntidades(a, b)); }
+                     System.out.println("ID j " + j + " : " + b.getId());
+                    if (idsVisitados.add(a.combinarIds(b))) {
+                        pares.add(new ParEntidades(a, b));
+                        System.out.println("Añadido: " + a.getId() + "|" + b.getId());
+                     }
                 }
             }
         }

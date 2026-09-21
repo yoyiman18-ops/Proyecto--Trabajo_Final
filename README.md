@@ -21,7 +21,7 @@ El sistema será un juego funcional que implemente las características del gén
 
 - **Diseño del motor del videojuego**
     - El motor implementa "frames" (cuadros) de físicas para calcular la lógica correspondiente a las físicas del juego de forma consistente.
-    - Los gráficos 2D del juego son procesados y dibujados en los frames de renderizado correspondientes, a través de la liberaria Java Swing.
+    - Los gráficos 2D del juego son procesados y dibujados en los frames de renderizado correspondientes, a través de la liberaria JavaFX.
     - Se implementa la obtención, lectura y almacenamiento del estado de teclas relevantes para un instante dado.
 - **Mecánicas de juego**
     - La jugabilidad se centra en la supervivencia un número finito oleadas de enemigos y la obtención de mejoras a través de la experiencia (recurso obtenido de los enemigos destruidos).
@@ -45,13 +45,22 @@ El sistema será un juego funcional que implemente las características del gén
     - Sistema de guardado y carga que registra la experiencia total obtenida del jugador.
 
 ## 3. Arquitectura de Diseño
-Por definir.
+
+### Patrón de diseño adicional: Builder Pattern
+- **Nombre del Patrón**: **Builder Pattern**
+- **Justificación**: El patrón Builder simplifica la instanciación de objetos con muchos atributos que pueden combinarse de muchas formas, al delegar un único parámetro de clase "Builder" en los constructores complejos en lugar de tener una gran cantidad de constructores con distintas combinaciones de parámetros, evitando así también las instanciaciones y consistencias repetidas de atributos en cada constructor de una misma clase.
+
+#### Diagramas de Diseño:
+
+#### **Diagrama de Clases UML (Simplificado hasta el progreso de desarrollo actual)**
+
+![Diagrama de Clases UML](UML.jpeg)
 
 ## 4. Stack Tecnológico
-- **Lenguaje:** Java 23
+- **Lenguaje:** Java 26
 - **IDE:** Visual Studio Code
-- **Base de Datos:** MySQL 8.0
-- **Framework de IGU:** Java Swing
+- **Base de Datos:** PostgreSQL 18
+- **Framework de IGU:** JavaFX 26.0.2
 - **Control de Versiones:** Git y GitHub
 
 
