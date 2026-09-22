@@ -18,8 +18,8 @@ public class CapturadorEntradaTeclado {
     public EstadoEntradaTeclado getEstado() {
         return new EstadoEntradaTeclado(
             teclasPresionadas,
-            teclasPresionadas,
-            teclasPresionadas
+            teclasSostenidas,
+            teclasSoltadas
         );}
 
     public void iniciarFrame() { 
