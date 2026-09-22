@@ -16,12 +16,12 @@ import modelo.Colisionable;
 
 public class SpatialHashGrid<T extends Colisionable> {
 
-    private final int TAMAÑO_CELDA; // aproximadamente debería ser el doble del tamaño de una hitbox promedio
+    private final int tamañoCelda; // aproximadamente debería ser el doble del tamaño de una hitbox promedio
     private final Map<Long,ArrayList<T>> cuadricula;
 
     public SpatialHashGrid(int tamañoCelda) {
         if (tamañoCelda < 1) { throw new IllegalArgumentException("Tamaño de celda no puede ser < 1"); }
-        this.TAMAÑO_CELDA = tamañoCelda;
+        this.tamañoCelda = tamañoCelda;
         cuadricula = new HashMap<Long, ArrayList<T>>();
     }
 
@@ -45,32 +45,29 @@ public class SpatialHashGrid<T extends Colisionable> {
         if (!objeto.colisionesActivas()) { return false; }
 
         Rectangle2D poligonoColision = objeto.getPoligonoColision();
+
         int celdaMinX = calcularIndiceCelda(poligonoColision.getMinX());
         int celdaMaxX = calcularIndiceCelda(poligonoColision.getMaxX());
         int celdaMinY = calcularIndiceCelda(poligonoColision.getMinY());
         int celdaMaxY = calcularIndiceCelda(poligonoColision.getMaxY());
 
-        // para todo par de celdaX y celdaY donde pertenezca el poligono de colisión del objeto
         for (int celdaX = celdaMinX; celdaX <= celdaMaxX; celdaX++) {
             for (int celdaY = celdaMinY; celdaY <= celdaMaxY; celdaY++) {
-                // se calcula la clave a partir de (celdaX,celdaY)
-                // dos objetos que estén en las mismas celdas caerán en las mismas arraylist
-                // guarda el objeto en la "celda" (una arraylist, conjunto de objetos en esa celda) correspondiente a la clave
-                // si la celda no existe, la crea, y guarda el objeto en ella
                 cuadricula.computeIfAbsent(
-                    calcularClave(celdaMaxX, celdaMaxY),
-                    celda -> new ArrayList<>()
+                    calcularClaveCelda(celdaX, celdaY),
+                    claveCelda -> new ArrayList<>()
                     ).add(objeto);
             }
         }
         return true;
     }
-    public ArrayList<T> getCeldaEn(int x, int y) { return cuadricula.get(calcularClave(x, y)); }
+    private int calcularIndiceCelda(double valor) { return (int) Math.floor(valor / tamañoCelda); }
+    private long calcularClaveCelda(int x, int y) { return ((long) x << 32) ^ (y & 0xffffffffL); }
+
+    public ArrayList<T> getCeldaEn(int x, int y) { return cuadricula.get(calcularClaveCelda(x, y)); }
     public Collection<ArrayList<T>> getCeldas() { return cuadricula.values(); } 
-    public void suprimirCeldaEn(int x, int y) { cuadricula.remove(calcularClave(x, y)); }
+    public void suprimirCeldaEn(int x, int y) { cuadricula.remove(calcularClaveCelda(x, y)); }
     public void limpiar() { cuadricula.clear(); }
     public boolean vacia() { return cuadricula.isEmpty(); }
 
-    private int calcularIndiceCelda(double valor) { return (int) Math.floor(valor / TAMAÑO_CELDA); }
-    private long calcularClave(int x, int y) { return ((long) x << 32) ^ (y & 0xffffffffL); }
 }

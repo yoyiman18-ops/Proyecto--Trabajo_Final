@@ -4,9 +4,7 @@ import java.util.logging.Level;
 import java.util.HashMap;
 import java.util.Map;
 
-// arquitectura singleton
 public abstract class CacheRecursos<K,V> {
-
     protected final Map<K,V> cache;
     private final String carpeta;
     protected final Logger logger;
@@ -23,7 +21,6 @@ public abstract class CacheRecursos<K,V> {
         return "/assets/" + carpeta + "/" + nombre + ext.getExtension();
     }
 
-    public abstract CacheRecursos<K,V> getInstancia();
     public abstract V getRecurso(K nombre, Extension.IExtension ext);
     public void limpiar() { cache.clear(); }
 

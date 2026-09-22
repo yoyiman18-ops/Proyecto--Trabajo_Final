@@ -4,7 +4,7 @@ public class Extension {
 
     public interface IExtension {
         public String getExtension();
-     }
+    }
 
     public enum Imagen implements IExtension {
         PNG,JPG;
