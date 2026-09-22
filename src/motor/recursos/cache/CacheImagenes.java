@@ -1,4 +1,6 @@
 package motor.recursos.cache;
+import javax.management.RuntimeErrorException;
+
 import javafx.scene.image.Image;
 import motor.recursos.Extension;
 
@@ -11,7 +13,11 @@ public class CacheImagenes extends CacheRecursos<String,Image> {
         if (!(ext instanceof Extension.Imagen)) { throw new IllegalArgumentException("Extension invalida."); }
         return cache.computeIfAbsent(
             resolverPathRecurso(nombre, ext),
-            k -> new Image(k)
+            k -> { try {
+                Image imagen = new Image(k);
+                imagen.getException();
+                return imagen; 
+            } catch (Exception e) { throw new RuntimeException(e.getMessage()); }}
         );
     }
 }
