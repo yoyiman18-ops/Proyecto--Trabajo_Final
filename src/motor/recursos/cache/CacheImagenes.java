@@ -1,5 +1,5 @@
 package motor.recursos.cache;
-import javax.management.RuntimeErrorException;
+import java.util.logging.Level;
 
 import javafx.scene.image.Image;
 import motor.recursos.Extension;
@@ -16,6 +16,7 @@ public class CacheImagenes extends CacheRecursos<String,Image> {
             k -> { try {
                 Image imagen = new Image(k);
                 imagen.getException();
+                this.logger.log(Level.INFO,"Cargado: " + k);
                 return imagen; 
             } catch (Exception e) { throw new RuntimeException(e.getMessage()); }}
         );

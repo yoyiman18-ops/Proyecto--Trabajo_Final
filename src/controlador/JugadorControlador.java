@@ -13,10 +13,10 @@ import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import modelo.EntidadMovil;
 import modelo.Vec2;
+import motor.recursos.cache.CacheImagenes;
 import vista.SpriteVista;
 import javafx.stage.Window;
 import javafx.scene.layout.Pane;
-import motor.cache.CacheImagenes;
 import javafx.scene.control.Label;
 
 /**
@@ -33,7 +33,6 @@ public class JugadorControlador {
     private final List<EnemigoControlador> enemigos;
     private final List<ProyectilControlador> proyectiles;
     private final Pane escenario;
-    private final CacheImagenes cache;
     private final List<ExperienciaControlador> experiencias;
     private final Label progreso;
     private final Set<KeyCode> teclasPresionadas = EnumSet.noneOf(KeyCode.class);
@@ -57,18 +56,18 @@ public class JugadorControlador {
     private boolean eligiendoMejora;
 
     public JugadorControlador(EntidadMovil modelo, SpriteVista vista) {
-        this(modelo, vista, List.of(), new ArrayList<>(), null, null, new ArrayList<>(), null);
+        this(modelo, vista, List.of(), new ArrayList<>(), null, new ArrayList<>(), null);
     }
 
     public JugadorControlador(EntidadMovil modelo, SpriteVista vista,
                               List<EnemigoControlador> enemigos) {
-        this(modelo, vista, enemigos, new ArrayList<>(), null, null, new ArrayList<>(), null);
+        this(modelo, vista, enemigos, new ArrayList<>(), null, new ArrayList<>(), null);
     }
 
     public JugadorControlador(EntidadMovil modelo, SpriteVista vista,
                               List<EnemigoControlador> enemigos,
                               List<ProyectilControlador> proyectiles,
-                              Pane escenario, CacheImagenes cache,
+                              Pane escenario,
                               List<ExperienciaControlador> experiencias,
                               Label progreso) {
         if (modelo == null) {
@@ -82,7 +81,6 @@ public class JugadorControlador {
         this.enemigos = enemigos;
         this.proyectiles = proyectiles;
         this.escenario = escenario;
-        this.cache = cache;
         this.experiencias = experiencias;
         this.progreso = progreso;
         vista.actualizar(modelo);
@@ -163,7 +161,7 @@ public class JugadorControlador {
             return;
         }
 
-        if (escenario == null || cache == null || !(modelo instanceof modelo.EntidadViva)) {
+        if (escenario == null || !(modelo instanceof modelo.EntidadViva)) {
             return;
         }
 
@@ -187,7 +185,7 @@ public class JugadorControlador {
                     enemigo.getY() - jugador.getY()
             );
             SpriteVista vistaProyectil = new SpriteVista(
-                    cache, "disparo", new javafx.geometry.Rectangle2D(0, 0, 360, 360), 20, 20
+                    "disparo", new javafx.geometry.Rectangle2D(0, 0, 360, 360), 20, 20
             );
             escenario.getChildren().add(vistaProyectil);
             proyectiles.add(new ProyectilControlador(

@@ -1,5 +1,4 @@
 package motor.colisiones;
-
 import java.util.Collection;
 import modelo.Entidad;
 

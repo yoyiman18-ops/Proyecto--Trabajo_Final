@@ -1,7 +1,6 @@
 package motor.recursos;
-
-import javax.net.ssl.ExtendedSSLSession;
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import javafx.scene.image.Image;
 import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
@@ -16,12 +15,15 @@ public class GestorRecursos {
     private final CacheRecursos<String,Image> imagenes;
     private final CacheRecursos<String,AudioClip> sonido;
     private final CacheRecursos<String,Media> musica;
+    private final Logger logger;
 
     private static final String CARPETA_IMAGENES = "imagenes";
     private static final String CARPETA_SONIDO = "sonido";
     private static final String CARPETA_MUSICA = "musica";
 
     private GestorRecursos() {
+        this.logger = Logger.getLogger(getClass().getName());
+        logger.log(Level.INFO,"Creado: "+ getClass().getName());
         this.imagenes = new CacheImagenes(CARPETA_IMAGENES);
         this.sonido = new CacheSonido(CARPETA_SONIDO);
         this.musica = new CacheMusica(CARPETA_MUSICA);

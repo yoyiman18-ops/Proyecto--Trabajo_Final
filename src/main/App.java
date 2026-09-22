@@ -7,9 +7,11 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Label;
 import modelo.*;
-import motor.cache.CacheImagenes;
 import vista.SpriteVista;
 import motor.colisiones.*;
+import motor.recursos.GestorRecursos;
+import motor.recursos.cache.CacheImagenes;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,7 +25,6 @@ import controlador.VidaControlador;
 
 public class App extends Application {
 
-    CacheImagenes cache = new CacheImagenes();
     ArrayList<Entidad> entidades = new ArrayList<>();
     List<EnemigoControlador> enemigos = new ArrayList<>();
     List<ProyectilControlador> proyectiles = new ArrayList<>();
@@ -34,7 +35,8 @@ public class App extends Application {
     private static final int MAX_ENEMIGOS_ACTIVOS = 40;
 
     @Override
-    public void start(Stage stage) {           
+    public void start(Stage stage) {      
+        /*     
         EntidadViva e1 = new EntidadViva.Builder()
                         .nombre("Brotato")
                         .posicion(126,126)
@@ -44,13 +46,22 @@ public class App extends Application {
                         .hitbox(10, 10, 0, 0,true)
                         .build();
         entidades.add(e1);
+        */
 
         SpriteVista vista1 = new SpriteVista(
-                cache, "Brotato", new Rectangle2D(0, 0, 300, 300), 48, 48
+                "Brotato", new Rectangle2D(0, 0, 300, 300), 48, 48
         );
-        new SpriteControlador(e1, vista1);
+        //new SpriteControlador(e1, vista1);
         Pane escenario = new Pane();
         escenario.getChildren().add(vista1);
+        
+        Scene escena = new Scene(escenario, 400, 400);
+        stage.setTitle("Test");
+        stage.setScene(escena);
+        stage.show();
+    }
+
+        /*
         AtomicInteger bajas = new AtomicInteger();
         Label contadorBajas = new Label("Bajas: 0");
         contadorBajas.setLayoutX(10);
@@ -69,7 +80,7 @@ public class App extends Application {
         tiempo.setLayoutY(85);
         escenario.getChildren().add(tiempo);
         JugadorControlador jugadorControlador = new JugadorControlador(
-                e1, vista1, enemigos, proyectiles, escenario, cache, experiencias, progreso
+                e1, vista1, enemigos, proyectiles, escenario, experiencias, progreso
         );
 
         agregarEnemigo(25, 25, new Rectangle2D(18, 18, 45, 45), e1, escenario, bajas, contadorBajas);
@@ -149,6 +160,7 @@ public class App extends Application {
         cicloJuego.start();
 
     }
+    */
 
     private void agregarEnemigo(double x, double y, Rectangle2D recorte,
                                 EntidadViva jugador, Pane escenario,
@@ -161,7 +173,7 @@ public class App extends Application {
                 .vidaMax(10)
                 .hitbox(11, 10, 0, 0, true)
                 .build();
-        SpriteVista vista = new SpriteVista(cache, "images", recorte, 42, 42);
+        SpriteVista vista = new SpriteVista("images", recorte, 42, 42);
         escenario.getChildren().add(vista);
         entidades.add(modelo);
         enemigos.add(new EnemigoControlador(modelo, jugador, vista, () -> {

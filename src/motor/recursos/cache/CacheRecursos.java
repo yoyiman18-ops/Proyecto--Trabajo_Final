@@ -1,5 +1,8 @@
-package motor.cache;
+package motor.recursos.cache;
 import java.util.logging.Logger;
+
+import motor.recursos.Extension;
+
 import java.util.logging.Level;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,12 +16,12 @@ public abstract class CacheRecursos<K,V> {
         this.logger = Logger.getLogger(nombre);
         this.cache = new HashMap<>();
         this.carpeta = carpeta;
-        logger.log(Level.FINE, "Creado cache: " + nombre);
+        logger.log(Level.INFO, "Creado cache: " + nombre);
         
     }
     
     protected String resolverPathRecurso(String nombre, Extension.IExtension ext) {
-        return "/assets/" + carpeta + "/" + nombre + ext.getExtension();
+        return "/recursos/" + carpeta + "/" + nombre + ext.getExtension();
     }
 
     public abstract V getRecurso(K nombre, Extension.IExtension ext);

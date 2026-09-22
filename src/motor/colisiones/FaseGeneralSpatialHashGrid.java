@@ -7,7 +7,8 @@
  */
 
 package motor.colisiones;
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,9 +20,11 @@ import motor.util.SpatialHashGrid;
 public class FaseGeneralSpatialHashGrid implements FaseGeneral {
 
     private final SpatialHashGrid<Entidad> cuadricula;
+    private final Logger logger;
 
     public FaseGeneralSpatialHashGrid(int tamañoCelda) {
         this.cuadricula = new SpatialHashGrid<>(tamañoCelda);
+        this.logger = Logger.getLogger(getClass().getName());
     }
 
     @Override
@@ -34,7 +37,7 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
         Set<Long> idsVisitados = new HashSet<>();  
         for (ArrayList<Entidad> celda : cuadricula.getCeldas() ) { 
             if (celda == null || celda.isEmpty() || celda.size() <= 1 ) { continue; }
-            for (int i = 0; i < celda.size(); i++) {
+            for (int i = 0; i < celda.size() - 1; i++) {
                 Entidad a = celda.get(i);
                 System.out.println("ID i " + i + " : " + a.getId());
                 for (int j = i+1; j < celda.size(); j++) {
