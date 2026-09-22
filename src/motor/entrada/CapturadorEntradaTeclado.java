@@ -16,21 +16,18 @@ public class CapturadorEntradaTeclado {
         this.teclasPresionadas = EnumSet.noneOf(KeyCode.class);
     }
 
-    public CapturadorEntradaTeclado(Scene escena) {
-        this.teclasSoltadas= EnumSet.noneOf(KeyCode.class);
-        this.teclasSostenidas = EnumSet.noneOf(KeyCode.class);
-        this.teclasPresionadas = EnumSet.noneOf(KeyCode.class);
-        this.registrar(escena);  
-    }
-
     public EstadoEntradaTeclado getEstado() {
         return new EstadoEntradaTeclado(
             teclasPresionadas,
             teclasPresionadas,
             teclasPresionadas
-        );
+        );}
+
+    public void iniciarFrame() { 
+        this.teclasPresionadas.clear(); 
+        this.teclasSoltadas.clear(); 
     }
-    public void iniciarFrame() { this.teclasPresionadas.clear(); this.teclasSoltadas.clear(); }
+
     public void registrar(Scene escena) {
         escena.addEventHandler(
             KeyEvent.KEY_PRESSED, 
@@ -41,6 +38,7 @@ public class CapturadorEntradaTeclado {
             this::soltarTecla
         );
     }
+
     public void deregistrar(Scene escena) {
         escena.removeEventHandler(
             KeyEvent.KEY_PRESSED, 
@@ -56,6 +54,7 @@ public class CapturadorEntradaTeclado {
         this.teclasSostenidas.add(e.getCode());
         this.teclasPresionadas.add(e.getCode()); 
     }
+
     private void soltarTecla(KeyEvent e) { 
         this.teclasSostenidas.remove(e.getCode());
         this.teclasSoltadas.add(e.getCode());

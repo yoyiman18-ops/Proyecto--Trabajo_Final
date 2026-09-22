@@ -27,7 +27,6 @@ public class GestorRecursos {
         this.imagenes = new CacheImagenes(CARPETA_IMAGENES);
         this.sonido = new CacheSonido(CARPETA_SONIDO);
         this.musica = new CacheMusica(CARPETA_MUSICA);
-
     }
 
     public static GestorRecursos getInstancia() {
