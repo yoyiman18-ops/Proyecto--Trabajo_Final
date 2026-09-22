@@ -1,18 +1,10 @@
-package motor.cache;
+package motor.recursos.cache;
 import javafx.scene.image.Image;
+import motor.recursos.Extension;
 
-// arquitectura singleton
 public class CacheImagenes extends CacheRecursos<String,Image> {
 
-    private static final String CARPETA = "imagenes"; 
-    private static CacheImagenes instancia;
-
-    private CacheImagenes() { super(CacheImagenes.class.getName(), CARPETA); }
-    
-    public static CacheImagenes getInstancia() {
-        if (CacheImagenes.instancia == null) { CacheImagenes.instancia = new CacheImagenes(); }
-        return instancia;
-    }
+    public CacheImagenes(String carpeta) { super(CacheImagenes.class.getName(), carpeta); }
 
     @Override
     public Image getRecurso(String nombre, Extension.IExtension ext) {

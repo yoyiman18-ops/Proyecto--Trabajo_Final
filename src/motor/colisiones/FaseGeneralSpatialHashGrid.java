@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import modelo.Entidad;
-import motor.SpatialHashGrid;
+import motor.util.SpatialHashGrid;
 
 public class FaseGeneralSpatialHashGrid implements FaseGeneral {
 
