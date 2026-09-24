@@ -6,15 +6,26 @@ import javafx.animation.AnimationTimer;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
 import modelo.*;
 import vista.SpriteVista;
 import motor.colisiones.*;
+import motor.entrada.Accion;
+import motor.entrada.EstadoAcciones;
+import motor.entrada.EstadoEntradaTeclado;
+import motor.entrada.GestorEntradaTeclado;
+import motor.entrada.MapeoTeclado;
+import motor.entrada.TipoEntrada;
 import motor.recursos.GestorRecursos;
 import motor.recursos.cache.CacheImagenes;
+import motor.util.Observador;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.swing.Timer;
 
 import controlador.SpriteControlador;
 import controlador.JugadorControlador;
@@ -33,6 +44,7 @@ public class App extends Application {
     ControladorColisiones colisiones = new ControladorColisiones(64);
     private int siguienteTipoEnemigo;
     private static final int MAX_ENEMIGOS_ACTIVOS = 40;
+    private Observador<EstadoAcciones> parlante;
 
     @Override
     public void start(Stage stage) {      
@@ -59,6 +71,37 @@ public class App extends Application {
         stage.setTitle("Test");
         stage.setScene(escena);
         stage.show();
+
+        GestorEntradaTeclado gestor = new GestorEntradaTeclado(escena);
+        gestor.añadirMapeo(new MapeoTeclado(
+            KeyCode.A,
+            TipoEntrada.PRESIONAR,
+            Accion.TEST_PRESIONAR));
+        gestor.añadirMapeo(new MapeoTeclado(
+            KeyCode.A,
+            TipoEntrada.MANTENER,
+            Accion.TEST_MANTENER));
+        gestor.añadirMapeo(new MapeoTeclado(
+            KeyCode.A,
+            TipoEntrada.SOLTAR,
+            Accion.TEST_SOLTAR));
+        
+        Timer temporizador = new Timer(16, e -> gestor.tick());
+        temporizador.start();
+
+        this.parlante = new Observador<EstadoAcciones>() {
+            @Override 
+            public void cambio(EstadoAcciones acciones) {
+                if (acciones.activa(Accion.TEST_PRESIONAR)) { System.out.println("-- INICIO INPUT --"); }
+                if (acciones.activa(Accion.TEST_MANTENER)) { System.out.println("++ MANTIENE INPUT ++"); }
+                if (acciones.activa(Accion.TEST_SOLTAR)) { System.out.println("-- FIN INPUT --"); }               
+            };
+        };
+
+
+        gestor.getNotificador().suscribir(e -> {
+            if (e.activa(Accion.TEST_MANTENER)) { System.out.print(e.toString()); }
+        });
     }
 
         /*
@@ -192,6 +235,7 @@ public class App extends Application {
                 escenario.getChildren().add(recuperacion.getVista());
             }
         }));
+        
     }
 
     private Rectangle2D recorteEnemigo(int numero) {

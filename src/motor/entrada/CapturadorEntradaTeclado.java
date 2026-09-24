@@ -1,5 +1,7 @@
 package motor.entrada;
+import java.util.ArrayDeque;
 import java.util.EnumSet;
+import java.util.Queue;
 import java.util.Set;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
@@ -7,24 +9,22 @@ import javafx.scene.input.KeyEvent;
 
 public class CapturadorEntradaTeclado {
     
-    private final Set<KeyCode> teclasSoltadas,teclasPresionadas,teclasSostenidas;
+    private final Set<KeyCode> soltadas,presionadas,mantenidas;
+    private final Queue<EstadoEntradaTeclado> bufferEntrada;
 
     public CapturadorEntradaTeclado() {
-        this.teclasSoltadas= EnumSet.noneOf(KeyCode.class);
-        this.teclasSostenidas = EnumSet.noneOf(KeyCode.class);
-        this.teclasPresionadas = EnumSet.noneOf(KeyCode.class);
+        this.soltadas= EnumSet.noneOf(KeyCode.class);
+        this.mantenidas = EnumSet.noneOf(KeyCode.class);
+        this.presionadas = EnumSet.noneOf(KeyCode.class);
+        this.bufferEntrada = new ArrayDeque<>();
     }
 
-    public EstadoEntradaTeclado getEstado() {
-        return new EstadoEntradaTeclado(
-            teclasPresionadas,
-            teclasSostenidas,
-            teclasSoltadas
-        );}
+    public EstadoEntradaTeclado getEstado() { return bufferEntrada.poll(); }
 
-    public void iniciarFrame() { 
-        this.teclasPresionadas.clear(); 
-        this.teclasSoltadas.clear(); 
+    public void reiniciarFrame() { 
+        encolarEstado();
+        this.presionadas.clear(); 
+        this.soltadas.clear(); 
     }
 
     public void registrar(Scene escena) {
@@ -40,23 +40,27 @@ public class CapturadorEntradaTeclado {
 
     public void deregistrar(Scene escena) {
         escena.removeEventHandler(
-            KeyEvent.KEY_PRESSED, 
+            KeyEvent.KEY_PRESSED,
             this::registrarTecla
         );
         escena.removeEventHandler(
-            KeyEvent.KEY_RELEASED, 
+            KeyEvent.KEY_RELEASED,
             this::soltarTecla
         );
     }
 
+    private void encolarEstado() {
+        this.bufferEntrada.add(new EstadoEntradaTeclado(presionadas, mantenidas, soltadas));
+    }
+
     private void registrarTecla(KeyEvent e) { 
-        this.teclasSostenidas.add(e.getCode());
-        this.teclasPresionadas.add(e.getCode()); 
+        if (!(this.mantenidas.contains(e.getCode()))) { this.presionadas.add(e.getCode()); }
+        this.mantenidas.add(e.getCode());
     }
 
     private void soltarTecla(KeyEvent e) { 
-        this.teclasSostenidas.remove(e.getCode());
-        this.teclasSoltadas.add(e.getCode());
+        this.soltadas.add(e.getCode());
+        this.mantenidas.remove(e.getCode());
     }
 
 }
