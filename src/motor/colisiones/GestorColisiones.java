@@ -4,7 +4,6 @@ import java.util.List;
 import modelo.Entidad;
 
 public class GestorColisiones {
-    private final int tamañoCelda;
     private final FaseGeneral faseGeneral;
     private final FaseEspecifica faseEspecifica;
 

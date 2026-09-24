@@ -12,9 +12,9 @@ import motor.recursos.cache.CacheSonido;
 // patron singleton
 public class GestorRecursos {
     private static GestorRecursos instancia;
-    private final CacheRecursos<String,Image> imagenes;
-    private final CacheRecursos<String,AudioClip> sonido;
-    private final CacheRecursos<String,Media> musica;
+    private final CacheRecursos<Image> imagenes;
+    private final CacheRecursos<AudioClip> sonido;
+    private final CacheRecursos<Media> musica;
     private final Logger logger;
 
     private static final String CARPETA_IMAGENES = "imagenes";
