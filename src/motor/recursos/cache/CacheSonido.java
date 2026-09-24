@@ -2,7 +2,7 @@ package motor.recursos.cache;
 import javafx.scene.media.AudioClip;
 import motor.recursos.Extension;
 
-public class CacheSonido extends CacheRecursos<String,AudioClip> {
+public class CacheSonido extends CacheRecursos<AudioClip> {
 
     public CacheSonido(String carpeta) { super(CacheSonido.class.getName(), carpeta); }
 
