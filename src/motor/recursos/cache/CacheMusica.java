@@ -3,7 +3,7 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 import motor.recursos.Extension;
 
-public class CacheMusica extends CacheRecursos<String,Media> {
+public class CacheMusica extends CacheRecursos<Media> {
 
     public CacheMusica(String carpeta) { super(CacheMusica.class.getName(), carpeta); }
 

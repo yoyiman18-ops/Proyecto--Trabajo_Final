@@ -9,20 +9,19 @@ package motor.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import javafx.geometry.Rectangle2D;
 import modelo.Colisionable;
 
 public class SpatialHashGrid<T extends Colisionable> {
 
     private final int tamañoCelda; // aproximadamente debería ser el doble del tamaño de una hitbox promedio
-    private final Map<Long,ArrayList<T>> cuadricula;
+    private final Long2ObjectOpenHashMap<ArrayList<T>> cuadricula;
 
     public SpatialHashGrid(int tamañoCelda) {
         if (tamañoCelda < 1) { throw new IllegalArgumentException("Tamaño de celda no puede ser < 1"); }
         this.tamañoCelda = tamañoCelda;
-        cuadricula = new HashMap<Long, ArrayList<T>>();
+        cuadricula = new Long2ObjectOpenHashMap<>();
     }
 
     /**
@@ -61,13 +60,13 @@ public class SpatialHashGrid<T extends Colisionable> {
         }
         return true;
     }
-    private int calcularIndiceCelda(double valor) { return (int) Math.floor(valor / tamañoCelda); }
-    private long calcularClaveCelda(int x, int y) { return ((long) x << 32) ^ (y & 0xffffffffL); }
 
     public ArrayList<T> getCeldaEn(int x, int y) { return cuadricula.get(calcularClaveCelda(x, y)); }
     public Collection<ArrayList<T>> getCeldas() { return cuadricula.values(); } 
     public void suprimirCeldaEn(int x, int y) { cuadricula.remove(calcularClaveCelda(x, y)); }
     public void limpiar() { cuadricula.clear(); }
     public boolean vacia() { return cuadricula.isEmpty(); }
+    private int calcularIndiceCelda(double valor) { return (int) Math.floor(valor / tamañoCelda); }
+    private long calcularClaveCelda(int x, int y) { return ((long) x << 32) ^ (y & 0xffffffffL); }
 
 }

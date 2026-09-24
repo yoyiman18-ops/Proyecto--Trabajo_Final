@@ -1,20 +1,32 @@
 package main;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
 import modelo.*;
 import vista.SpriteVista;
 import motor.colisiones.*;
+import motor.entrada.Accion;
+import motor.entrada.EstadoAcciones;
+import motor.entrada.EstadoEntradaTeclado;
+import motor.entrada.GestorEntradaTeclado;
+import motor.entrada.MapeoTeclado;
+import motor.entrada.TipoEntrada;
 import motor.recursos.GestorRecursos;
 import motor.recursos.cache.CacheImagenes;
+import motor.util.Observer.Observador;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.swing.Timer;
 
 import controlador.SpriteControlador;
 import controlador.JugadorControlador;
@@ -30,9 +42,11 @@ public class App extends Application {
     List<ProyectilControlador> proyectiles = new ArrayList<>();
     List<ExperienciaControlador> experiencias = new ArrayList<>();
     List<VidaControlador> recuperaciones = new ArrayList<>();
-    ControladorColisiones colisiones = new ControladorColisiones(64);
     private int siguienteTipoEnemigo;
     private static final int MAX_ENEMIGOS_ACTIVOS = 40;
+    private Observador<EstadoAcciones> parlante;
+    private final Timer llamadorRecolector = new Timer(1000, e -> { System.gc(); }); // eventualmente debería liberar el parlante
+    private Timer temporizador;
 
     @Override
     public void start(Stage stage) {      
@@ -58,7 +72,45 @@ public class App extends Application {
         Scene escena = new Scene(escenario, 400, 400);
         stage.setTitle("Test");
         stage.setScene(escena);
+        stage.setOnCloseRequest(e -> Platform.exit());
         stage.show();
+
+        GestorEntradaTeclado gestor = new GestorEntradaTeclado(escena);
+        gestor.añadirMapeo(new MapeoTeclado(
+            KeyCode.A,
+            TipoEntrada.PRESIONAR,
+            Accion.TEST_PRESIONAR));
+        gestor.añadirMapeo(new MapeoTeclado(
+            KeyCode.A,
+            TipoEntrada.MANTENER,
+            Accion.TEST_MANTENER));
+        gestor.añadirMapeo(new MapeoTeclado(
+            KeyCode.A,
+            TipoEntrada.SOLTAR,
+            Accion.TEST_SOLTAR));
+        
+        this.temporizador = new Timer(16, e -> gestor.tick());
+
+        this.parlante = new Observador<EstadoAcciones>() {
+            @Override 
+            public void cambio(EstadoAcciones acciones) {
+                if (acciones.activa(Accion.TEST_PRESIONAR)) { System.out.println("-- INICIO INPUT --"); }
+                if (acciones.activa(Accion.TEST_MANTENER)) { System.out.println("++ MANTIENE INPUT ++"); }
+                if (acciones.activa(Accion.TEST_SOLTAR)) { System.out.println("-- FIN INPUT --"); }               
+            };
+        };
+
+        temporizador.start();
+        gestor.getNotificador().suscribirObservador(parlante);
+
+
+        llamadorRecolector.start();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        temporizador.stop();
+        llamadorRecolector.stop();
     }
 
         /*
@@ -192,6 +244,7 @@ public class App extends Application {
                 escenario.getChildren().add(recuperacion.getVista());
             }
         }));
+        
     }
 
     private Rectangle2D recorteEnemigo(int numero) {
