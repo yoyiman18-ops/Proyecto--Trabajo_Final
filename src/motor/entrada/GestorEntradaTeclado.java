@@ -4,20 +4,20 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javafx.scene.Scene;
-import motor.util.Notificador;
+import motor.util.Observer.NotificadorDebil;
 
 public class GestorEntradaTeclado {
     private final CapturadorEntradaTeclado capturador;
     private final List<MapeoTeclado> mapeos;
     private final EnumSet<Accion> acciones;
-    private final Notificador<EstadoAcciones> notificador;
+    private final NotificadorDebil<EstadoAcciones> notificador;
 
     public GestorEntradaTeclado(Scene root) {
         this.mapeos = new CopyOnWriteArrayList<>();
         this.acciones = EnumSet.noneOf(Accion.class);
         this.capturador = new CapturadorEntradaTeclado();
         capturador.registrar(root);
-        this.notificador = new Notificador<EstadoAcciones>();
+        this.notificador = new NotificadorDebil<EstadoAcciones>();
     }
 
     public void tick() {
@@ -33,7 +33,7 @@ public class GestorEntradaTeclado {
 
     public void eliminarMapeo(MapeoTeclado mapeo) { this.mapeos.remove(mapeo); }
 
-    public Notificador<EstadoAcciones> getNotificador() { return this.notificador; }
+    public NotificadorDebil<EstadoAcciones> getNotificador() { return this.notificador; }
     
     private void mapear(EstadoEntradaTeclado estadoEntrada) {
         this.acciones.clear();

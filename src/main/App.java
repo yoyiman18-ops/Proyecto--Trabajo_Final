@@ -19,7 +19,7 @@ import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
 import motor.recursos.GestorRecursos;
 import motor.recursos.cache.CacheImagenes;
-import motor.util.Observador;
+import motor.util.Observer.Observador;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -46,6 +46,8 @@ public class App extends Application {
     private int siguienteTipoEnemigo;
     private static final int MAX_ENEMIGOS_ACTIVOS = 40;
     private Observador<EstadoAcciones> parlante;
+    private final Timer llamadorRecolector = new Timer(1000, e -> { System.gc(); }); // eventualmente debería liberar el parlante
+    private Timer temporizador;
 
     @Override
     public void start(Stage stage) {      
@@ -88,7 +90,7 @@ public class App extends Application {
             TipoEntrada.SOLTAR,
             Accion.TEST_SOLTAR));
         
-        Timer temporizador = new Timer(16, e -> gestor.tick());
+        this.temporizador = new Timer(16, e -> gestor.tick());
 
         this.parlante = new Observador<EstadoAcciones>() {
             @Override 
@@ -99,9 +101,17 @@ public class App extends Application {
             };
         };
 
-        gestor.getNotificador().suscribir(parlante);
-        // gestor.getNotificador().suscribir(e -> { System.out.print(e.toString()); });
-        parlante = null;
+        temporizador.start();
+        gestor.getNotificador().suscribirObservador(parlante);
+
+
+        llamadorRecolector.start();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        temporizador.stop();
+        llamadorRecolector.stop();
     }
 
         /*

@@ -1,12 +1,14 @@
 package motor.util;
 
 import javafx.animation.AnimationTimer;
+import motor.util.Observer.NotificadorDebil;
 
-public class RelojDelta extends Notificador<Double> {
+public class RelojDelta extends NotificadorDebil<Double> {
     private final AnimationTimer temporizador;
-    private long ultimoTiempo = 0;   
+    private long ultimoTiempo;   
 
     private RelojDelta() {
+        this.ultimoTiempo = 0;
         this.temporizador = new AnimationTimer() {
         @Override
         public void handle(long ahora) {

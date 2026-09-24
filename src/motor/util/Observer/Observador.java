@@ -1,4 +1,4 @@
-package motor.util;
+package motor.util.Observer;
 
 @FunctionalInterface 
 public interface Observador<T> {
