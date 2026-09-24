@@ -21,7 +21,7 @@ public class GestorEntradaTeclado {
     }
 
     public void tick() {
-        capturador.reiniciarFrame();
+        capturador.iniciarFrame();
         EstadoEntradaTeclado estado = capturador.getEstado();
         mapear(estado);
         notificador.notificar(new EstadoAcciones(acciones));

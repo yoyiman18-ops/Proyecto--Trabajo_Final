@@ -21,7 +21,7 @@ public class CapturadorEntradaTeclado {
 
     public EstadoEntradaTeclado getEstado() { return bufferEntrada.poll(); }
 
-    public void reiniciarFrame() { 
+    public void iniciarFrame() { 
         encolarEstado();
         this.presionadas.clear(); 
         this.soltadas.clear(); 
@@ -30,7 +30,7 @@ public class CapturadorEntradaTeclado {
     public void registrar(Scene escena) {
         escena.addEventHandler(
             KeyEvent.KEY_PRESSED, 
-            this::registrarTecla
+            this::presionarTecla
         );
         escena.addEventHandler(
             KeyEvent.KEY_RELEASED, 
@@ -41,7 +41,7 @@ public class CapturadorEntradaTeclado {
     public void deregistrar(Scene escena) {
         escena.removeEventHandler(
             KeyEvent.KEY_PRESSED,
-            this::registrarTecla
+            this::presionarTecla
         );
         escena.removeEventHandler(
             KeyEvent.KEY_RELEASED,
@@ -53,7 +53,7 @@ public class CapturadorEntradaTeclado {
         this.bufferEntrada.add(new EstadoEntradaTeclado(presionadas, mantenidas, soltadas));
     }
 
-    private void registrarTecla(KeyEvent e) { 
+    private void presionarTecla(KeyEvent e) { 
         if (!(this.mantenidas.contains(e.getCode()))) { this.presionadas.add(e.getCode()); }
         this.mantenidas.add(e.getCode());
     }
