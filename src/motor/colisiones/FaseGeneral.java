@@ -1,7 +1,8 @@
 package motor.colisiones;
-import java.util.Collection;
+import java.util.List;
+
 import modelo.Entidad;
 
 public interface FaseGeneral {
-    public Collection<ParEntidades> calcularPares(Collection<Entidad> entidades);
+    public List<ParEntidades> calcularPares(List<Entidad> entidades);
 }

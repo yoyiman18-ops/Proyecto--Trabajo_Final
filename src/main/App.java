@@ -42,7 +42,6 @@ public class App extends Application {
     List<ProyectilControlador> proyectiles = new ArrayList<>();
     List<ExperienciaControlador> experiencias = new ArrayList<>();
     List<VidaControlador> recuperaciones = new ArrayList<>();
-    ControladorColisiones colisiones = new ControladorColisiones(64);
     private int siguienteTipoEnemigo;
     private static final int MAX_ENEMIGOS_ACTIVOS = 40;
     private Observador<EstadoAcciones> parlante;
