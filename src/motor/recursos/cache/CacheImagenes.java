@@ -4,7 +4,7 @@ import java.util.logging.Level;
 import javafx.scene.image.Image;
 import motor.recursos.Extension;
 
-public class CacheImagenes extends CacheRecursos<String,Image> {
+public class CacheImagenes extends CacheRecursos<Image> {
 
     public CacheImagenes(String carpeta) { super(CacheImagenes.class.getName(), carpeta); }
 
