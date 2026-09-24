@@ -5,7 +5,7 @@ import motor.recursos.Extension;
 
 public class CacheMusica extends CacheRecursos<Media> {
 
-    public CacheMusica(String carpeta) { super(CacheMusica.class.getName(), carpeta); }
+    public CacheMusica(String carpeta) { super(carpeta); }
 
     @Override
     public Media getRecurso(String nombre, Extension.IExtension ext) {
@@ -14,7 +14,9 @@ public class CacheMusica extends CacheRecursos<Media> {
             resolverPathRecurso(nombre, ext),
             k -> { try {
                 Media musica = new Media(k); 
-                musica.getError(); return musica;
+                musica.getError(); 
+                loggearCarga(k);
+                return musica;
             } catch (MediaException e) { throw new RuntimeException(e.getMessage()); }}
         );
     }
