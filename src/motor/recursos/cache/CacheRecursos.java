@@ -4,8 +4,8 @@ import java.util.logging.Logger;
 import motor.recursos.Extension;
 
 import java.util.logging.Level;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CacheRecursos<K,V> {
     protected final Map<K,V> cache;
@@ -14,7 +14,7 @@ public abstract class CacheRecursos<K,V> {
 
     protected CacheRecursos(String nombre, String carpeta) {
         this.logger = Logger.getLogger(nombre);
-        this.cache = new HashMap<>();
+        this.cache = new ConcurrentHashMap<>();
         this.carpeta = carpeta;
         logger.log(Level.INFO, "Creado cache: " + nombre);
         
