@@ -1,33 +1,48 @@
 package motor.entrada;
-
 import java.util.EnumSet;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-import javafx.scene.input.KeyCode;
-import motor.util.Notificador;
+import javafx.scene.Scene;
+import motor.util.Observer.NotificadorDebil;
 
 public class GestorEntradaTeclado {
     private final CapturadorEntradaTeclado capturador;
+    private final List<MapeoTeclado> mapeos;
     private final EnumSet<Accion> acciones;
+    private final NotificadorDebil<EstadoAcciones> notificador;
 
-    private final Notificador<EnumSet<Accion>> notificador;
-
-    public GestorEntradaTeclado() {
-        this.capturador = new CapturadorEntradaTeclado();
+    public GestorEntradaTeclado(Scene root) {
+        this.mapeos = new CopyOnWriteArrayList<>();
         this.acciones = EnumSet.noneOf(Accion.class);
-        this.notificador = new Notificador<EnumSet<Accion>>();
+        this.capturador = new CapturadorEntradaTeclado();
+        capturador.registrar(root);
+        this.notificador = new NotificadorDebil<EstadoAcciones>();
     }
 
     public void tick() {
-        acciones.clear();
-        mapearAcciones(capturador.getEstado());
-        notificador.notificar(acciones);
         capturador.iniciarFrame();
+        EstadoEntradaTeclado estado = capturador.getEstado();
+        mapear(estado);
+        notificador.notificar(new EstadoAcciones(acciones));
     }
 
-    private void mapearAcciones(EstadoEntradaTeclado entrada) {
-        if (entrada.esPresionada(KeyCode.SPACE)) { acciones.add(Accion.TEST); 
-        if (entrada.esMantenida(KeyCode.A)) { acciones.add(Accion.MOVER_IZQUIERDA); }
-        else if (entrada.esMantenida(KeyCode.D)) { acciones.add(Accion.MOVER_DERECHA); }
+    public void añadirMapeo(MapeoTeclado mapeo) { 
+        if (!this.mapeos.contains(mapeo)) { this.mapeos.add(mapeo); }
+    }
+
+    public void eliminarMapeo(MapeoTeclado mapeo) { this.mapeos.remove(mapeo); }
+
+    public NotificadorDebil<EstadoAcciones> getNotificador() { return this.notificador; }
+    
+    private void mapear(EstadoEntradaTeclado estadoEntrada) {
+        this.acciones.clear();
+        for (MapeoTeclado m : this.mapeos) {
+            switch (m.getTipoEntrada()) {
+                case TipoEntrada.MANTENER -> { if (estadoEntrada.esMantenida(m.getTecla())) { acciones.add(m.getAccion()); }}
+                case TipoEntrada.PRESIONAR -> { if (estadoEntrada.esPresionada(m.getTecla())) { acciones.add(m.getAccion()); }}
+                case TipoEntrada.SOLTAR -> { if (estadoEntrada.esSoltada(m.getTecla())) { acciones.add(m.getAccion()); }}
+            }
 
         }
     }
