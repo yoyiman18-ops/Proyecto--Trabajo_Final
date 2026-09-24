@@ -1,5 +1,6 @@
 package main;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.animation.AnimationTimer;
@@ -70,6 +71,7 @@ public class App extends Application {
         Scene escena = new Scene(escenario, 400, 400);
         stage.setTitle("Test");
         stage.setScene(escena);
+        stage.setOnCloseRequest(e -> Platform.exit());
         stage.show();
 
         GestorEntradaTeclado gestor = new GestorEntradaTeclado(escena);
@@ -87,7 +89,6 @@ public class App extends Application {
             Accion.TEST_SOLTAR));
         
         Timer temporizador = new Timer(16, e -> gestor.tick());
-        temporizador.start();
 
         this.parlante = new Observador<EstadoAcciones>() {
             @Override 
@@ -98,10 +99,9 @@ public class App extends Application {
             };
         };
 
-
-        gestor.getNotificador().suscribir(e -> {
-            if (e.activa(Accion.TEST_MANTENER)) { System.out.print(e.toString()); }
-        });
+        gestor.getNotificador().suscribir(parlante);
+        // gestor.getNotificador().suscribir(e -> { System.out.print(e.toString()); });
+        parlante = null;
     }
 
         /*
