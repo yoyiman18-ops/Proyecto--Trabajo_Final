@@ -5,18 +5,17 @@ entonces solo se toman en cuenta para las colisiones los objetos "adyacentes" qu
 Sino, se deberían comparar absolutamente todas la entidades con cada otra entidad.
 */
 
-package motor.util;
+package motor.colisiones;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.awt.Shape;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import javafx.geometry.Rectangle2D;
-import modelo.Colisionable;
 
-public class SpatialHashGrid<T extends Colisionable> {
+public class SpatialHashGrid {
 
     private final int tamañoCelda; // aproximadamente debería ser el doble del tamaño de una hitbox promedio
-    private final Long2ObjectOpenHashMap<ArrayList<T>> cuadricula;
+    private final Long2ObjectOpenHashMap<ArrayList<Colisionable>> cuadricula;
 
     public SpatialHashGrid(int tamañoCelda) {
         if (tamañoCelda < 1) { throw new IllegalArgumentException("Tamaño de celda no puede ser < 1"); }
@@ -40,12 +39,11 @@ public class SpatialHashGrid<T extends Colisionable> {
      * @param objeto El objeto con hitbox a insertar.
      * @return {@code true} si completó la inserción, {@code false} si falló porque el objeto no tiene hitbox activa.
      */
-    public boolean insertar(T objeto) {
-        if (!objeto.colisionesActivas()) { return false; }
+    public boolean insertar(Colisionable c) {
+        if (!c.colisionesActivas()) { return false; }
 
-        Rectangle2D poligonoColision = objeto.getPoligonoColision();
-
-        int celdaMinX = calcularIndiceCelda(poligonoColision.getMinX());
+        Shape formaColision = c.getHitbox().getFormaColision();
+        int celdaMinX = calcularIndiceCelda(formaColision.getBounds2D().getMinX());
         int celdaMaxX = calcularIndiceCelda(poligonoColision.getMaxX());
         int celdaMinY = calcularIndiceCelda(poligonoColision.getMinY());
         int celdaMaxY = calcularIndiceCelda(poligonoColision.getMaxY());
@@ -61,12 +59,12 @@ public class SpatialHashGrid<T extends Colisionable> {
         return true;
     }
 
-    public ArrayList<T> getCeldaEn(int x, int y) { return cuadricula.get(calcularClaveCelda(x, y)); }
+    public ArrayList<Colisionable> getCeldaEn(int x, int y) { return cuadricula.get(calcularClaveCelda(x, y)); }
     public Collection<ArrayList<T>> getCeldas() { return cuadricula.values(); } 
     public void suprimirCeldaEn(int x, int y) { cuadricula.remove(calcularClaveCelda(x, y)); }
     public void limpiar() { cuadricula.clear(); }
     public boolean vacia() { return cuadricula.isEmpty(); }
     private int calcularIndiceCelda(double valor) { return (int) Math.floor(valor / tamañoCelda); }
-    private long calcularClaveCelda(int x, int y) { return ((long) x << 32) ^ (y & 0xffffffffL); }
+    private long calcularClaveCelda(int x, int y) { return ((long) x << 32) | (y & 0xffffffffL); }
 
 }

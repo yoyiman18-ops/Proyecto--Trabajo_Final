@@ -1,6 +1,5 @@
 package motor.colisiones.hitboxes;
 
-import java.awt.Shape;
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 /**
@@ -25,10 +24,12 @@ public class HitboxRectangular extends Hitbox {
         };
     } 
     
-    public Rectangle2D getRectanguloColision() { return (Rectangle2D) getFormaColision(); }
+    public Rectangle2D getRectanguloColision() { 
+        return (Rectangle2D) getTransformacion().createTransformedShape(getFormaColision()); 
+    }
 
     private boolean rectangularConRectangular(HitboxRectangular otra) {
-        return getRectanguloColision().intersects(otra.getRectanguloColision());
+        return this.getRectanguloColision().intersects(otra.getRectanguloColision());
     }
 
     private boolean rectangularConGenerico(Hitbox otra) {

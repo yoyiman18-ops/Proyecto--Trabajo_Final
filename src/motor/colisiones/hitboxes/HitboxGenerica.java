@@ -1,5 +1,4 @@
 package motor.colisiones.hitboxes;
-
 import java.awt.Shape;
 import java.awt.geom.Area;
 

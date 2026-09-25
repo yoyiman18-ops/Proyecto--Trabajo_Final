@@ -1,12 +1,10 @@
-package motor.colisiones;
+package motor.colisiones.sistema;
 
 import java.util.Collection;
 
-public class FaseEspecifica {
-    
-    public void procesarColisiones(Collection<ParEntidades> pares) {
-        for (ParEntidades par : pares) {
-            if (par.getPrimera().intersecta(par.getSegunda())) { par.colisionar(); }
-        }
-    }
+import motor.colisiones.ParColision;
+
+@FunctionalInterface 
+public interface FaseEspecifica {
+    public void procesarColisiones(Collection<ParColision> pares);
 }

@@ -6,21 +6,23 @@
  * 
  */
 
-package motor.colisiones;
+package motor.colisiones.sistema;
 import java.util.logging.Logger;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import modelo.Colisionable;
+
 import java.util.logging.Level;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import modelo.Entidad;
+import motor.colisiones.ParColision;
 import motor.util.SpatialHashGrid;
 
 public class FaseGeneralSpatialHashGrid implements FaseGeneral {
 
-    private final SpatialHashGrid<Entidad> cuadricula;
+    private final SpatialHashGrid<Colisionable> cuadricula;
     private final Logger logger;
     private final List<ParEntidades> pares;
     private final LongSet idsVisitados;
