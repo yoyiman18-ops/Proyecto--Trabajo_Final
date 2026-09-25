@@ -1,6 +1,4 @@
 package motor.recursos.cache;
-import java.util.logging.Level;
-
 import javafx.scene.image.Image;
 import motor.recursos.Extension;
 
