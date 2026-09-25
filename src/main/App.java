@@ -1,26 +1,19 @@
 package main;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import javafx.animation.AnimationTimer;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.layout.Pane;
-import javafx.scene.control.Label;
-import modelo.*;
-import vista.SpriteVista;
-import motor.colisiones.*;
-import motor.recursos.GestorRecursos;
-import motor.recursos.cache.CacheImagenes;
+import vista.JuegoVista;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import controlador.SpriteControlador;
-import controlador.JugadorControlador;
+import modelo.Entidad;
+import modelo.EntidadViva;
+import motor.colisiones.ControladorColisiones;
 import controlador.EnemigoControlador;
-import controlador.ProyectilControlador;
 import controlador.ExperienciaControlador;
+import controlador.ProyectilControlador;
 import controlador.VidaControlador;
 
 public class App extends Application {
@@ -35,28 +28,11 @@ public class App extends Application {
     private static final int MAX_ENEMIGOS_ACTIVOS = 40;
 
     @Override
-    public void start(Stage stage) {      
-        /*     
-        EntidadViva e1 = new EntidadViva.Builder()
-                        .nombre("Brotato")
-                        .posicion(126,126)
-                        .direccion(0.45, 0.55)
-                        .velocidadMax(1)
-                        .aceleracion(10)
-                        .hitbox(10, 10, 0, 0,true)
-                        .build();
-        entidades.add(e1);
-        */
+    public void start(Stage stage) {
+        JuegoVista juegoVista = new JuegoVista();
 
-        SpriteVista vista1 = new SpriteVista(
-                "Brotato", new Rectangle2D(0, 0, 300, 300), 48, 48
-        );
-        //new SpriteControlador(e1, vista1);
-        Pane escenario = new Pane();
-        escenario.getChildren().add(vista1);
-        
-        Scene escena = new Scene(escenario, 400, 400);
-        stage.setTitle("Test");
+        Scene escena = new Scene(juegoVista, 800, 600);
+        stage.setTitle("Waves 2D");
         stage.setScene(escena);
         stage.show();
     }

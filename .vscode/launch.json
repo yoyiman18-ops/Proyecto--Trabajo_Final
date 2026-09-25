@@ -6,8 +6,10 @@
             "name": "App",
             "request": "launch",
             "mainClass": "main.App",
-            "projectName": "Proyecto--Trabajo_Final_5ff23185",
+            "projectName": "Proyecto--Trabajo_Final_4f55b4bc",
             "vmArgs": "--module-path \"${workspaceFolder}/lib/javafx-sdk-26.0.2/lib/\" --add-modules javafx.controls,javafx.fxml,javafx.media,javafx.swing"
-        }
+
+        },
+        
     ]
 }
