@@ -18,6 +18,8 @@ public abstract class Hitbox {
     private final Rectangle2D bounds;
     private final Area area;
     private final TipoHitbox tipo;
+    private final MascaraColision categoriasColision;
+    private final MascaraColision capasColision;
 
     private final AffineTransform transformacion;
     private boolean activa;
@@ -25,11 +27,11 @@ public abstract class Hitbox {
     private Rectangle2D boundsTransformados;
     private Area areaTransformada;
 
-    public Hitbox(Shape formaColision, TipoHitbox tipo) {
-        this(formaColision, tipo, true);
+    public Hitbox(Shape formaColision, TipoHitbox tipo, MascaraColision categoriasColision, MascaraColision capasColision) {
+        this(formaColision, tipo, true, categoriasColision, capasColision);
     }
 
-    public Hitbox(Shape formaColision, TipoHitbox tipo, boolean activa) {
+    public Hitbox(Shape formaColision, TipoHitbox tipo, boolean activa, MascaraColision categoriaColision, MascaraColision capasColision) {
         this.id = contadorId.getAndIncrement();
         this.formaColision = formaColision;
         this.formaColisionTransformada = formaColision;
@@ -40,10 +42,15 @@ public abstract class Hitbox {
         this.tipo = tipo;
         this.activa = activa;
         this.transformacion = new AffineTransform();
+        this.categoriasColision = categoriaColision;
+        this.capasColision = capasColision;
     }
 
     public abstract boolean intersecta(Hitbox otra);
-
+    
+    public boolean capasCompatibles(Hitbox otra) {
+        return (otra.get)
+    }
     public int getId() { return this.id; }
     public boolean estaActiva() { return this.activa; }
     public void setActiva(boolean activa) { this.activa = activa; }
@@ -57,6 +64,8 @@ public abstract class Hitbox {
         this.boundsTransformados = transformacion.createTransformedShape(bounds).getBounds2D();
         this.areaTransformada = area.createTransformedArea(transformacion);
     }
+    public MascaraColision getCategoriasColision() { return this.categoriasColision; }
+    public MascaraColision getCapasColision() { return this.capasColision; }
 
     protected AffineTransform getTransformacion() { return this.transformacion; }
 

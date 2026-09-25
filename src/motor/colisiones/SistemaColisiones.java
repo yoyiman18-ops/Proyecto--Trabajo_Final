@@ -14,7 +14,7 @@ public class SistemaColisiones {
         }
         this.faseGeneral = faseGeneral;
         this.faseEspecifica = faseEspecifica;
-    }
+    };
 
     public void resolverColisiones(Collection<Colisionable> colisionables) {
         faseEspecifica.procesarColisiones(

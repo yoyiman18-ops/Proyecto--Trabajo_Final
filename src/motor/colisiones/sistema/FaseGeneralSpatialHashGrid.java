@@ -49,7 +49,9 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
                 for (int j = i+1; j < celda.size(); j++) {
                     Colisionable b = celda.get(j);
                     // si no estaba ya el id combinado, agrega el par a la lista de pares
-                    if (idsVisitados.add(combinarIds(a, b))) { pares.add(new ParColision(a, b)); }
+                    if (idsVisitados.add(combinarIds(a, b))) { 
+                    // si no tienen capas compatibles, los descarta. en otro caso los añade a la lista de pares
+                    if (!capasCompatibles(a, b)) { continue; } else { pares.add(new ParColision(a, b)); }}
                 }
             }
         }
@@ -61,6 +63,10 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
         pares.clear();
         colisionablesActuales.clear();
         idsVisitados.clear();
+    }
+
+    private boolean capasCompatibles(Colisionable a, Colisionable b) {
+        return a.getHitbox().capasCompatibles(b.getHitbox());
     }
 
     private long combinarIds(Colisionable a, Colisionable b) {

@@ -2,18 +2,19 @@ package motor.colisiones.hitboxes;
 
 import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
+
 /**
  * 
  * Hitbox optimizada para una forma rectangular contra formas genéricas y contra rectángulos.
  */
 public class HitboxRectangular extends Hitbox {
 
-    public HitboxRectangular(Rectangle2D rectanguloColision, TipoHitbox tipo) {
-        super(rectanguloColision, tipo, true);
+    public HitboxRectangular(Rectangle2D rectanguloColision, TipoHitbox tipo, MascaraColision categoriasColision, MascaraColision capasColision) {
+        super(rectanguloColision, tipo, true, categoriasColision, capasColision);
     }
 
-    public HitboxRectangular(Rectangle2D rectanguloColision, TipoHitbox tipo, boolean activa) {
-        super(rectanguloColision, tipo, activa);
+    public HitboxRectangular(Rectangle2D rectanguloColision, TipoHitbox tipo, boolean activa, MascaraColision categoriasColision, MascaraColision capasColision) {
+        super(rectanguloColision, tipo, activa, categoriasColision, capasColision);
     }
 
     @Override 
