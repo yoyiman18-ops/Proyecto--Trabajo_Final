@@ -110,16 +110,18 @@ public class App extends Application {
         gestor.getNotificador().suscribirObservador(parlante);
         llamadorRecolector.start();
 
-        Hitbox a = new Hitbox(new java.awt.geom.Rectangle2D.Double(0,0,100,100)) {
+        Hitbox a = new Hitbox(new java.awt.geom.Rectangle2D.Double(0,0,500,500)) {
             @Override 
             public boolean intersecta(Hitbox otra) {
                 return genericoConGenerico(otra);
             }
         };
+        
 
-        Hitbox b = new HitboxGenerica(new java.awt.geom.Rectangle2D.Double(99,0,100,100));
+        Hitbox b = new HitboxGenerica(new java.awt.geom.Ellipse2D.Double(0,0,100,100));
 
         if (b.intersecta(a)) { System.out.println("Se tocan las hitboxes"); }
+        if (a.intersecta(b)) { System.out.println("Se tocan las hitboxes"); }
     }
 
     @Override

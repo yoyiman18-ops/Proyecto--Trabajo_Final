@@ -7,7 +7,7 @@ public class RelojDelta extends NotificadorDebil<Double> {
     private final AnimationTimer temporizador;
     private long ultimoTiempo;   
 
-    private RelojDelta() {
+    public RelojDelta() {
         this.ultimoTiempo = 0;
         this.temporizador = new AnimationTimer() {
         @Override
@@ -19,4 +19,7 @@ public class RelojDelta extends NotificadorDebil<Double> {
             }
         };
     }
+
+    public void iniciar() { this.temporizador.start(); }
+    public void detener() { this.temporizador.stop(); ultimoTiempo = 0; }
 }
