@@ -23,17 +23,13 @@ public class HitboxRectangular extends Hitbox {
             default -> rectangularConGenerico(otra);
         };
     } 
-    
-    public Rectangle2D getRectanguloColision() { 
-        return (Rectangle2D) getTransformacion().createTransformedShape(getFormaColision()); 
-    }
 
     private boolean rectangularConRectangular(HitboxRectangular otra) {
-        return this.getRectanguloColision().intersects(otra.getRectanguloColision());
+        return this.getBounds().intersects(otra.getBounds());
     }
 
     private boolean rectangularConGenerico(Hitbox otra) {
-        if (!(otra.getFormaColision().getBounds2D().intersects(this.getRectanguloColision()))) { return false; }
+        if (!otra.getBounds().intersects(this.getBounds())) { return false; }
         else {
             Area interseccion = otra.getArea();
             interseccion.intersect(getArea());

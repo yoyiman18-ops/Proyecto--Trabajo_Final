@@ -22,6 +22,7 @@ import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
 import motor.recursos.GestorRecursos;
 import motor.recursos.cache.CacheImagenes;
+import motor.util.VecDouble2D;
 import motor.util.Observer.Observador;
 
 import java.util.ArrayList;
@@ -110,7 +111,7 @@ public class App extends Application {
         gestor.getNotificador().suscribirObservador(parlante);
         llamadorRecolector.start();
 
-        Hitbox a = new Hitbox(new java.awt.geom.Rectangle2D.Double(0,0,500,500)) {
+        Hitbox a = new Hitbox(new java.awt.geom.Rectangle2D.Double(0,0,100,100)) {
             @Override 
             public boolean intersecta(Hitbox otra) {
                 return genericoConGenerico(otra);
@@ -118,10 +119,14 @@ public class App extends Application {
         };
         
 
-        Hitbox b = new HitboxGenerica(new java.awt.geom.Ellipse2D.Double(0,0,100,100));
+        Hitbox b = new HitboxGenerica(new java.awt.geom.Ellipse2D.Double(500,0,100,100));
 
         if (b.intersecta(a)) { System.out.println("Se tocan las hitboxes"); }
-        if (a.intersecta(b)) { System.out.println("Se tocan las hitboxes"); }
+
+        a.actualizarTransformacion(new VecDouble2D(500, 0));
+
+        if (b.intersecta(a)) { System.out.println("Ahora que se han movido, se tocan"); }
+        
     }
 
     @Override

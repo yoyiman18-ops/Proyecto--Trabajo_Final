@@ -10,6 +10,8 @@ package motor.colisiones;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.awt.Shape;
+import java.awt.geom.Rectangle2D;
+
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 public class SpatialHashGrid {
@@ -42,25 +44,25 @@ public class SpatialHashGrid {
     public boolean insertar(Colisionable c) {
         if (!c.colisionesActivas()) { return false; }
 
-        Shape formaColision = c.getHitbox().getFormaColision();
-        int celdaMinX = calcularIndiceCelda(formaColision.getBounds2D().getMinX());
-        int celdaMaxX = calcularIndiceCelda(poligonoColision.getMaxX());
-        int celdaMinY = calcularIndiceCelda(poligonoColision.getMinY());
-        int celdaMaxY = calcularIndiceCelda(poligonoColision.getMaxY());
+        Rectangle2D bounds = c.getHitbox().getBounds();
+        int celdaMinX = calcularIndiceCelda(bounds.getMinX());
+        int celdaMaxX = calcularIndiceCelda(bounds.getMaxX());
+        int celdaMinY = calcularIndiceCelda(bounds.getMinY());
+        int celdaMaxY = calcularIndiceCelda(bounds.getMaxY());
 
         for (int celdaX = celdaMinX; celdaX <= celdaMaxX; celdaX++) {
             for (int celdaY = celdaMinY; celdaY <= celdaMaxY; celdaY++) {
                 cuadricula.computeIfAbsent(
                     calcularClaveCelda(celdaX, celdaY),
                     claveCelda -> new ArrayList<>()
-                    ).add(objeto);
+                    ).add(c);
             }
         }
         return true;
     }
 
-    public ArrayList<Colisionable> getCeldaEn(int x, int y) { return cuadricula.get(calcularClaveCelda(x, y)); }
-    public Collection<ArrayList<T>> getCeldas() { return cuadricula.values(); } 
+    public Iterable<Colisionable> getCeldaEn(int x, int y) { return cuadricula.get(calcularClaveCelda(x, y)); }
+    public Iterable<ArrayList<Colisionable>> getCeldas() { return cuadricula.values(); } 
     public void suprimirCeldaEn(int x, int y) { cuadricula.remove(calcularClaveCelda(x, y)); }
     public void limpiar() { cuadricula.clear(); }
     public boolean vacia() { return cuadricula.isEmpty(); }

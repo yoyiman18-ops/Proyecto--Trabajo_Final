@@ -18,13 +18,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import motor.colisiones.ParColision;
-import motor.util.SpatialHashGrid;
+import motor.colisiones.SpatialHashGrid;
 
 public class FaseGeneralSpatialHashGrid implements FaseGeneral {
 
-    private final SpatialHashGrid<Colisionable> cuadricula;
+    private final SpatialHashGrid cuadricula;
     private final Logger logger;
-    private final List<ParEntidades> pares;
+    private final List<ParColision> pares;
     private final LongSet idsVisitados;
 
     public FaseGeneralSpatialHashGrid(int tamañoCelda) {

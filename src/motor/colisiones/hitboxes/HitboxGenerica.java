@@ -25,10 +25,10 @@ public class HitboxGenerica extends Hitbox {
     }
 
     private boolean genericoConRectangular(HitboxRectangular otra) {
-        if (!(getFormaColision().getBounds2D().intersects(otra.getRectanguloColision()))) { return false; }
+        if (!this.getBounds().intersects(otra.getBounds())) { return false; }
         else {
             Area interseccion = getArea();
-            interseccion.intersect(new Area(otra.getRectanguloColision()));
+            interseccion.intersect(new Area(otra.getBounds()));
             if (interseccion.isEmpty()) { return false; }
             else { return true; }
         }
