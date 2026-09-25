@@ -6,13 +6,10 @@ Sino, se deberían comparar absolutamente todas la entidades con cada otra entid
 */
 
 package motor.colisiones;
-
 import java.util.ArrayList;
-import java.util.Collection;
-import java.awt.Shape;
 import java.awt.geom.Rectangle2D;
-
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import motor.util.Codificacion;
 
 public class SpatialHashGrid {
 
@@ -63,10 +60,11 @@ public class SpatialHashGrid {
 
     public Iterable<Colisionable> getCeldaEn(int x, int y) { return cuadricula.get(calcularClaveCelda(x, y)); }
     public Iterable<ArrayList<Colisionable>> getCeldas() { return cuadricula.values(); } 
-    public void suprimirCeldaEn(int x, int y) { cuadricula.remove(calcularClaveCelda(x, y)); }
+    public void suprimirCelda(int x, int y) { cuadricula.remove(calcularClaveCelda(x, y)); }
     public void limpiar() { cuadricula.clear(); }
     public boolean vacia() { return cuadricula.isEmpty(); }
+
     private int calcularIndiceCelda(double valor) { return (int) Math.floor(valor / tamañoCelda); }
-    private long calcularClaveCelda(int x, int y) { return ((long) x << 32) | (y & 0xffffffffL); }
+    private long calcularClaveCelda(int x, int y) { return Codificacion.combinarInt(x, y); }
 
 }

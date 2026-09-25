@@ -1,16 +1,7 @@
-/**
- * La fase general (Broad Phase) de este modelo de colisiones básicamente consiste en analizar
- * una división del espacio ya existente, y por cada división generar los pares de entidades que 
- * pertenecen a ella. Si dos entidades están en una misma división (en este caso una misma celda),
- * significa que están cerca y tienen una alta probabilidad de colisionar.
- * 
- */
-
 package motor.colisiones.sistema;
+
 import java.util.logging.Logger;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import modelo.Colisionable;
-
 import java.util.logging.Level;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -19,37 +10,46 @@ import java.util.List;
 import java.util.Set;
 import motor.colisiones.ParColision;
 import motor.colisiones.SpatialHashGrid;
+import motor.colisiones.Colisionable;
 
+/**
+ * 
+ * Fase general que evalúa los pares de colisión a partir
+ * de una estructura auxiliar <code>SpatialHashGrid</code>.
+ */
 public class FaseGeneralSpatialHashGrid implements FaseGeneral {
+    private static final Logger logger = Logger.getLogger(FaseGeneralSpatialHashGrid.class.getName());
 
     private final SpatialHashGrid cuadricula;
-    private final Logger logger;
-    private final List<ParColision> pares;
+    private final ArrayList<ParColision> pares;
+    private final ArrayList<Colisionable> colisionablesActuales;
     private final LongSet idsVisitados;
 
     public FaseGeneralSpatialHashGrid(int tamañoCelda) {
         if (tamañoCelda < 1) { throw new IllegalArgumentException("Tamaño de celda debe ser igual o mayor a 1"); }
-        this.cuadricula = new SpatialHashGrid<>(tamañoCelda);
-        this.logger = Logger.getLogger(getClass().getName());
-        this.pares = new ArrayList<ParEntidades>();
+        this.cuadricula = new SpatialHashGrid(tamañoCelda);
+        this.pares = new ArrayList<ParColision>();
+        this.colisionablesActuales = new ArrayList<>();
         this.idsVisitados = LongSet.of();
     }
 
     @Override
-    public List<ParEntidades> calcularPares(List<Entidad> entidades) {
-        List<Entidad> entidadesActuales = new ArrayList<>(entidades);
+    public Iterable<ParColision> calcularPares(Iterable<Colisionable> colisionables) {
+        colisionablesActuales.clear();
+        colisionablesActuales.trimToSize();
+        colisionables.forEach(c -> colisionablesActuales.add(c));
         cuadricula.limpiar();
         pares.clear();
-        for (Entidad entidad : entidadesActuales) { cuadricula.insertar(entidad); }
+        for (Colisionable c : colisionablesActuales) { cuadricula.insertar(c); }
         if (cuadricula.vacia()) { return pares; }
 
         idsVisitados.clear();
-        for (ArrayList<Entidad> celda : cuadricula.getCeldas() ) { 
+        for (ArrayList<Colisionable> celda : cuadricula.getCeldas() ) { 
             if (celda == null || celda.isEmpty() || celda.size() <= 1 ) { continue; }
             for (int i = 0; i < celda.size() - 1; i++) {
-                Entidad a = celda.get(i);
+                Colisionable a = celda.get(i);
                 for (int j = i+1; j < celda.size(); j++) {
-                    Entidad b = celda.get(j);
+                    Colisionable b = celda.get(j);
                     // si no estaba ya el id combinado, agrega el par a la lista de pares
                     if (idsVisitados.add(a.combinarIds(b))) { pares.add(new ParEntidades(a, b)); }
                 }
@@ -59,6 +59,8 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
     }
     
     public void limpiarCuadricula() { cuadricula.limpiar(); }
+    
+    private long combinarIds
 
 
 

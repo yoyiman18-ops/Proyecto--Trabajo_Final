@@ -1,10 +1,10 @@
 package motor.colisiones.sistema;
-
-import java.util.Collection;
-
 import motor.colisiones.ParColision;
 
-@FunctionalInterface 
+/**
+ * 
+ * Fase del sistema de colisiones donde se efectúan las colisiones de los pares de colisión calculados.
+ */
 public interface FaseEspecifica {
-    public void procesarColisiones(Collection<ParColision> pares);
+    public void procesarColisiones(Iterable<ParColision> pares);
 }
