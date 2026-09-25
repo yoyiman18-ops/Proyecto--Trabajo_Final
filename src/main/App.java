@@ -11,6 +11,8 @@ import javafx.scene.input.KeyCode;
 import modelo.*;
 import vista.SpriteVista;
 import motor.colisiones.*;
+import motor.colisiones.hitboxes.Hitbox;
+import motor.colisiones.hitboxes.HitboxRectangular;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
 import motor.entrada.EstadoEntradaTeclado;
@@ -102,9 +104,11 @@ public class App extends Application {
 
         temporizador.start();
         gestor.getNotificador().suscribirObservador(parlante);
-
-
         llamadorRecolector.start();
+
+        Hitbox a = new HitboxRectangular(
+            new Rectangle2D.Double();
+        );
     }
 
     @Override
