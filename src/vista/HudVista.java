@@ -4,6 +4,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 
 public class HudVista extends VBox {
     private final Label vida = new Label();
@@ -18,6 +19,11 @@ public class HudVista extends VBox {
         setPadding(new Insets(10));
         setAlignment(Pos.TOP_LEFT);
         setStyle("-fx-background-color: rgba(0,0,0,0.35); -fx-background-radius: 8;");
+
+        vida.setTextFill(Color.RED);
+        danio.setTextFill(Color.WHITE);
+        puntos.setTextFill(Color.WHITE);
+        oleada.setTextFill(Color.WHITE);
 
         getChildren().addAll(vida, danio, puntos, oleada);
     }

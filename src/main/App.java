@@ -1,12 +1,22 @@
 package main;
 
+
+import vista.SpriteVista;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
+import vista.HudVista;
 import vista.JuegoVista;
+
+import controlador.JugadorControlador;
+import javafx.animation.AnimationTimer;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.layout.Pane;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import modelo.Entidad;
 import modelo.EntidadViva;
@@ -30,11 +40,49 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
         JuegoVista juegoVista = new JuegoVista();
+        Pane escenario = juegoVista.getEscenario();
+        HudVista hud = juegoVista.getHud();
+
+        EntidadViva jugador = new EntidadViva.Builder()
+            .nombre("Brotato")
+                .posicion(400, 300)
+                .velocidadMax(3)
+                .aceleracion(0.15)
+                .vidaMax(30)
+                .hitbox(11, 10, 0, 0, true)
+                .build();
+        SpriteVista vistaJugador = new SpriteVista(
+            "Brotato", new Rectangle2D(0, 0, 300, 300), 42, 42
+        );
+        escenario.getChildren().add(vistaJugador);
+
+        JugadorControlador jugadorControlador = new JugadorControlador(
+                jugador, vistaJugador, enemigos, proyectiles,
+                escenario, experiencias, null
+        );
+        AtomicInteger bajas = new AtomicInteger();
+        Label contadorBajas = new Label("Bajas: 0");
+        agregarEnemigo(120, 300, new Rectangle2D(18, 18, 45, 45),
+            jugador, escenario, bajas, contadorBajas);
 
         Scene escena = new Scene(juegoVista, 800, 600);
         stage.setTitle("Waves 2D");
         stage.setScene(escena);
         stage.show();
+        jugadorControlador.iniciar(escena);
+        vistaJugador.requestFocus();
+
+        AnimationTimer cicloJuego = new AnimationTimer() {
+            @Override
+            public void handle(long ahora) {
+                jugadorControlador.actualizar();
+                for (EnemigoControlador enemigo : enemigos) {
+                    enemigo.actualizar();
+                }
+                hud.actualizarVida(jugador.getVida(), jugador.getVidaMax());
+            }
+        };
+        cicloJuego.start();
     }
 
         /*
