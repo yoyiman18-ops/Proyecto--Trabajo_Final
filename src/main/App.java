@@ -9,6 +9,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import modelo.*;
+import modelo.Colisionable;
 import vista.SpriteVista;
 import motor.colisiones.*;
 import motor.colisiones.hitboxes.Hitbox;
@@ -32,8 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.Timer;
 
-import controlador.SpriteControlador;
-import controlador.JugadorControlador;
 import controlador.EnemigoControlador;
 import controlador.ProyectilControlador;
 import controlador.ExperienciaControlador;
@@ -120,13 +119,13 @@ public class App extends Application {
         
 
         Hitbox b = new HitboxGenerica(new java.awt.geom.Ellipse2D.Double(500,0,100,100));
+        Hitbox rectangulo1 = new HitboxRectangular(
+            new java.awt.geom.Rectangle2D.Double(0,0,100,100)
+        );
+        Hitbox rectangulo2 = new HitboxRectangular(
+            new java.awt.geom.Rectangle2D.Double(0,0,10,10)
+        );
 
-        if (b.intersecta(a)) { System.out.println("Se tocan las hitboxes"); }
-
-        a.actualizarTransformacion(new VecDouble2D(500, 0));
-
-        if (b.intersecta(a)) { System.out.println("Ahora que se han movido, se tocan"); }
-        
     }
 
     @Override

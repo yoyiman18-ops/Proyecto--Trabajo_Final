@@ -8,29 +8,19 @@ import java.awt.geom.Area;
 */
 public class HitboxGenerica extends Hitbox {
 
-    public HitboxGenerica(Shape formaColision) {
-        super(formaColision, true);
+    public HitboxGenerica(Shape formaColision, TipoHitbox tipo) {
+        super(formaColision, tipo, true);
     }
 
-    public HitboxGenerica(Shape formaColision, boolean activa) {
-        super(formaColision, activa);
+    public HitboxGenerica(Shape formaColision, TipoHitbox tipo, boolean activa) {
+        super(formaColision, tipo, activa);
     }
 
     @Override 
     public boolean intersecta(Hitbox otra) {
         return switch (otra) {
-            case HitboxRectangular rectangular -> genericoConRectangular(rectangular);
+            case HitboxRectangular rectangular -> rectangular.intersecta(this);
             default -> genericoConGenerico(otra);
         };
-    }
-
-    private boolean genericoConRectangular(HitboxRectangular otra) {
-        if (!this.getBounds().intersects(otra.getBounds())) { return false; }
-        else {
-            Area interseccion = getArea();
-            interseccion.intersect(new Area(otra.getBounds()));
-            if (interseccion.isEmpty()) { return false; }
-            else { return true; }
-        }
     }
 }

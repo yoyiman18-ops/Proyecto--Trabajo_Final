@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 import motor.colisiones.ParColision;
 import motor.colisiones.SpatialHashGrid;
+import motor.util.Codificacion;
 import motor.colisiones.Colisionable;
 
 /**
@@ -21,8 +22,8 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
     private static final Logger logger = Logger.getLogger(FaseGeneralSpatialHashGrid.class.getName());
 
     private final SpatialHashGrid cuadricula;
-    private final ArrayList<ParColision> pares;
-    private final ArrayList<Colisionable> colisionablesActuales;
+    private final Collection<ParColision> pares;
+    private final Collection<Colisionable> colisionablesActuales;
     private final LongSet idsVisitados;
 
     public FaseGeneralSpatialHashGrid(int tamañoCelda) {
@@ -35,15 +36,12 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
 
     @Override
     public Iterable<ParColision> calcularPares(Iterable<Colisionable> colisionables) {
-        colisionablesActuales.clear();
-        colisionablesActuales.trimToSize();
+        limpiar();
+        if (colisionables == null || !colisionables.iterator().hasNext()) { return pares; }
         colisionables.forEach(c -> colisionablesActuales.add(c));
-        cuadricula.limpiar();
-        pares.clear();
         for (Colisionable c : colisionablesActuales) { cuadricula.insertar(c); }
         if (cuadricula.vacia()) { return pares; }
 
-        idsVisitados.clear();
         for (ArrayList<Colisionable> celda : cuadricula.getCeldas() ) { 
             if (celda == null || celda.isEmpty() || celda.size() <= 1 ) { continue; }
             for (int i = 0; i < celda.size() - 1; i++) {
@@ -51,16 +49,23 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
                 for (int j = i+1; j < celda.size(); j++) {
                     Colisionable b = celda.get(j);
                     // si no estaba ya el id combinado, agrega el par a la lista de pares
-                    if (idsVisitados.add(a.combinarIds(b))) { pares.add(new ParEntidades(a, b)); }
+                    if (idsVisitados.add(combinarIds(a, b))) { pares.add(new ParColision(a, b)); }
                 }
             }
         }
         return pares;
     }
     
-    public void limpiarCuadricula() { cuadricula.limpiar(); }
-    
-    private long combinarIds
+    public void limpiar() { 
+        cuadricula.limpiar();
+        pares.clear();
+        colisionablesActuales.clear();
+        idsVisitados.clear();
+    }
+
+    private long combinarIds(Colisionable a, Colisionable b) {
+        return Codificacion.combinarInt(a.getHitbox().getId(), b.getHitbox().getId());
+    }
 
 
 

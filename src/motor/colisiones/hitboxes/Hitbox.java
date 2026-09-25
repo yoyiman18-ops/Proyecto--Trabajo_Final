@@ -17,6 +17,7 @@ public abstract class Hitbox {
     private final Shape formaColision;
     private final Rectangle2D bounds;
     private final Area area;
+    private final TipoHitbox tipo;
 
     private final AffineTransform transformacion;
     private boolean activa;
@@ -24,11 +25,11 @@ public abstract class Hitbox {
     private Rectangle2D boundsTransformados;
     private Area areaTransformada;
 
-    public Hitbox(Shape formaColision) {
-        this(formaColision, true);
+    public Hitbox(Shape formaColision, TipoHitbox tipo) {
+        this(formaColision, tipo, true);
     }
 
-    public Hitbox(Shape formaColision, boolean activa) {
+    public Hitbox(Shape formaColision, TipoHitbox tipo, boolean activa) {
         this.id = contadorId.getAndIncrement();
         this.formaColision = formaColision;
         this.formaColisionTransformada = formaColision;
@@ -36,9 +37,9 @@ public abstract class Hitbox {
         this.boundsTransformados = this.bounds;
         this.area = new Area(formaColision);
         this.areaTransformada = this.area;
+        this.tipo = tipo;
         this.activa = activa;
         this.transformacion = new AffineTransform();
-
     }
 
     public abstract boolean intersecta(Hitbox otra);
@@ -49,6 +50,7 @@ public abstract class Hitbox {
     public Shape getFormaColision() { return this.formaColisionTransformada; }
     public Area getArea() { return this.areaTransformada; }
     public Rectangle2D getBounds() { return this.boundsTransformados; }
+    public TipoHitbox getTipo() { return this.tipo; }
     public void actualizarTransformacion(VecDouble2D posicion) {
         this.transformacion.setToTranslation(posicion.getX(),posicion.getY());
         this.formaColisionTransformada = transformacion.createTransformedShape(formaColision);
