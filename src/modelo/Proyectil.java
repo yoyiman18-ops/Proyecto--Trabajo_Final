@@ -1,16 +1,18 @@
 package modelo;
 
+import motor.util.VecDouble2D;
+
 /** Modelo de un proyectil disparado por el jugador. */
 public class Proyectil implements SpriteModelo {
 
-    private final Vec2 posicion;
+    private final VecDouble2D posicion;
 
     public Proyectil(double x, double y) {
-        posicion = new Vec2(x, y);
+        posicion = new VecDouble2D(x, y);
     }
 
     @Override
-    public Vec2 getPosicion() {
+    public VecDouble2D getPosicion() {
         return posicion.clone();
     }
 

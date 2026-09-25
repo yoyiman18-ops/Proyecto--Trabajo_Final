@@ -5,42 +5,40 @@ import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 /**
  * 
- * Hitbox optimizada para una forma rectangular.
+ * Hitbox optimizada para una forma rectangular contra formas genéricas y contra rectángulos.
  */
-public class HitboxRectangular implements Hitbox {
-    private final Rectangle2D rectanguloColision;
-    private boolean activa;
-    private final Area area;
+public class HitboxRectangular extends Hitbox {
 
     public HitboxRectangular(Rectangle2D rectanguloColision) {
-        this(rectanguloColision, true);
+        super(rectanguloColision, true);
     }
 
     public HitboxRectangular(Rectangle2D rectanguloColision, boolean activa) {
-        this.rectanguloColision = rectanguloColision;
-        this.activa = activa;
-        this.area = new Area(rectanguloColision);
+        super(rectanguloColision, activa);
     }
 
-    @Override public Area getArea() { return this.area; }
-    @Override public Shape getFormaColision() { return this.rectanguloColision; }
-    @Override public boolean estaActiva() { return this.activa; }
-    @Override public void setActiva(boolean activa) { this.activa = activa; }
-    @Override 
-    public boolean intersecta(HitboxRectangular otra) {
-        return this.rectanguloColision.intersects(otra.getRectanguloColision());
-    } 
     @Override 
     public boolean intersecta(Hitbox otra) {
-        if (!(otra.getFormaColision().getBounds2D().intersects(this.rectanguloColision))) { return false; }
+        return switch (otra) {
+            case HitboxRectangular rectangular -> rectangularConRectangular(rectangular);
+            default -> rectangularConGenerico(otra);
+        };
+    } 
+    
+    public Rectangle2D getRectanguloColision() { return (Rectangle2D) getFormaColision(); }
+
+    private boolean rectangularConRectangular(HitboxRectangular otra) {
+        return getRectanguloColision().intersects(otra.getRectanguloColision());
+    }
+
+    private boolean rectangularConGenerico(Hitbox otra) {
+        if (!(otra.getFormaColision().getBounds2D().intersects(this.getRectanguloColision()))) { return false; }
         else {
             Area interseccion = otra.getArea();
-            interseccion.intersect(this.area);
+            interseccion.intersect(getArea());
             if (interseccion.isEmpty()) { return false; }
             else { return true; }
         }
     }
-    
-    public Rectangle2D getRectanguloColision() { return this.rectanguloColision; }
 
 }

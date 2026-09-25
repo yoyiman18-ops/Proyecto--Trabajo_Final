@@ -1,5 +1,7 @@
 package modelo;
 import javafx.geometry.Rectangle2D;
+import motor.colisiones.hitboxes.Hitbox;
+import motor.util.VecDouble2D;
 
 public abstract class Entidad implements 
     SpriteModelo,
@@ -10,7 +12,7 @@ public abstract class Entidad implements
 
     private final int id;
     private final String nombre;
-    protected final Vec2 posicion;
+    protected final VecDouble2D posicion;
     private final Hitbox hitbox;
 
     protected Entidad(Builder<?, ?> builder) {
@@ -22,7 +24,7 @@ public abstract class Entidad implements
 
     public abstract static class Builder<B extends Builder<B,T>,T extends Entidad> {
         private String nombre;
-        private final Vec2 posicion = new Vec2();
+        private final VecDouble2D posicion = new VecDouble2D();
         private Hitbox hitbox = new Hitbox();
         
         public abstract B self(); // debe devolver un builder B que herede de este propio builder
@@ -51,9 +53,9 @@ public abstract class Entidad implements
 
     public int getId() { return id; }
     public void setPosicion(double x, double y) { posicion.setX(x); posicion.setY(y); }
-    @Override public Vec2 getPosicion() { return posicion.clone(); }
+    @Override public VecDouble2D getPosicion() { return posicion.clone(); }
     @Override public String getNombre() { return nombre; }
-    @Override public boolean colisionesActivas() { return (hitbox.estaActiva() && !hitbox.getDimension().equals(Vec2.ORIGEN)); }
+    @Override public boolean colisionesActivas() { return (hitbox.estaActiva() && !hitbox.getDimension().equals(VecDouble2D.ORIGEN)); }
     @Override public boolean intersecta(Colisionable otro) { return getPoligonoColision().intersects(otro.getPoligonoColision()); }
     @Override public Rectangle2D getPoligonoColision() {
         return new Rectangle2D(

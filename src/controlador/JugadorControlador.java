@@ -12,8 +12,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import modelo.EntidadMovil;
-import modelo.Vec2;
 import motor.recursos.cache.CacheImagenes;
+import motor.util.VecDouble2D;
 import vista.SpriteVista;
 import javafx.stage.Window;
 import javafx.scene.layout.Pane;
@@ -178,8 +178,8 @@ public class JugadorControlador {
         }
 
         if (objetivo != null) {
-            Vec2 jugador = modelo.getPosicion();
-            Vec2 enemigo = objetivo.getModelo().getPosicion();
+            VecDouble2D jugador = modelo.getPosicion();
+            VecDouble2D enemigo = objetivo.getModelo().getPosicion();
             Point2D direccion = new Point2D(
                     enemigo.getX() - jugador.getX(),
                     enemigo.getY() - jugador.getY()

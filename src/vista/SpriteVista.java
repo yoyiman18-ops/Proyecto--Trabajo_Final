@@ -1,9 +1,9 @@
 package vista;
 
 import modelo.SpriteModelo;
-import modelo.Vec2;
 import motor.recursos.Extension;
 import motor.recursos.GestorRecursos;
+import motor.util.VecDouble2D;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.geometry.Rectangle2D;
@@ -34,7 +34,7 @@ public class SpriteVista extends Pane {
     }
 
     public void actualizar(SpriteModelo modelo) {
-        Vec2 posicion = modelo.getPosicion();
+        VecDouble2D posicion = modelo.getPosicion();
         String nombreImagen = imagen == null ? modelo.getNombre() : imagen;
         imageView.setImage(
         GestorRecursos.getInstancia().getImagen(nombreImagen, Extension.Imagen.JPG));

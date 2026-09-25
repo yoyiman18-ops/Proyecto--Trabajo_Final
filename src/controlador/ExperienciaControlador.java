@@ -4,7 +4,7 @@ import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import modelo.EntidadMovil;
-import modelo.Vec2;
+import motor.util.VecDouble2D;
 
 /** Representa la experiencia que deja un enemigo y permite recogerla. */
 public class ExperienciaControlador {
@@ -12,11 +12,11 @@ public class ExperienciaControlador {
     private static final double RADIO_RECOGIDA = 42;
 
     private final Circle vista = new Circle(6, Color.GOLD);
-    private final Vec2 posicion;
+    private final VecDouble2D posicion;
     private final int cantidad;
     private boolean recogida;
 
-    public ExperienciaControlador(Vec2 posicion, int cantidad) {
+    public ExperienciaControlador(VecDouble2D posicion, int cantidad) {
         if (posicion == null || cantidad <= 0) {
             throw new IllegalArgumentException("La experiencia debe tener posición y cantidad positiva");
         }
@@ -29,7 +29,7 @@ public class ExperienciaControlador {
         if (recogida) {
             return false;
         }
-        Vec2 jugadorPosicion = jugador.getPosicion();
+        VecDouble2D jugadorPosicion = jugador.getPosicion();
         double dx = jugadorPosicion.getX() - posicion.getX();
         double dy = jugadorPosicion.getY() - posicion.getY();
         if (Math.sqrt(dx * dx + dy * dy) <= RADIO_RECOGIDA) {

@@ -12,6 +12,7 @@ import modelo.*;
 import vista.SpriteVista;
 import motor.colisiones.*;
 import motor.colisiones.hitboxes.Hitbox;
+import motor.colisiones.hitboxes.HitboxGenerica;
 import motor.colisiones.hitboxes.HitboxRectangular;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
@@ -36,6 +37,9 @@ import controlador.EnemigoControlador;
 import controlador.ProyectilControlador;
 import controlador.ExperienciaControlador;
 import controlador.VidaControlador;
+
+
+// nota: en esta clase se prueban de forma arbitraria las características añadidas.
 
 public class App extends Application {
 
@@ -106,9 +110,16 @@ public class App extends Application {
         gestor.getNotificador().suscribirObservador(parlante);
         llamadorRecolector.start();
 
-        Hitbox a = new HitboxRectangular(
-            new Rectangle2D.Double();
-        );
+        Hitbox a = new Hitbox(new java.awt.geom.Rectangle2D.Double(0,0,100,100)) {
+            @Override 
+            public boolean intersecta(Hitbox otra) {
+                return genericoConGenerico(otra);
+            }
+        };
+
+        Hitbox b = new HitboxGenerica(new java.awt.geom.Rectangle2D.Double(99,0,100,100));
+
+        if (b.intersecta(a)) { System.out.println("Se tocan las hitboxes"); }
     }
 
     @Override

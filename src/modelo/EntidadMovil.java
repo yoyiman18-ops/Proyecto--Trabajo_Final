@@ -1,12 +1,13 @@
 package modelo;
 
+import motor.util.VecDouble2D;
 
 public abstract class EntidadMovil extends Entidad {
 
     private final double velocidadMax;
     private double velocidad; // tasa de cambio de posicion en el tiempo en base a la direccion
     private double aceleracion; // tasa de cambio de velocidad en el tiempo
-    private final Vec2 direccion; // precondicion para todo lo que use direccion: direccion es un vec2 normalizado
+    private final VecDouble2D direccion; // precondicion para todo lo que use direccion: direccion es un vec2 normalizado
 
     // ej: velocidad = velocidad + aceleracion
     // ej: posicion x = posicion x + direccion.x * velocidad
@@ -21,7 +22,7 @@ public abstract class EntidadMovil extends Entidad {
         }
 
     public abstract static class Builder<B extends Builder<B,T>,T extends EntidadMovil> extends Entidad.Builder<B,T> {
-        private final Vec2 direccion = new Vec2();
+        private final VecDouble2D direccion = new VecDouble2D();
         private double aceleracion;
         private double velocidad;
         private double velocidadMax = 0;
@@ -61,7 +62,7 @@ public abstract class EntidadMovil extends Entidad {
     public double getVelocidad() { return velocidad; }
     public double getVelocidadMax() { return velocidadMax; }
     public double getAceleracion() { return aceleracion; }
-    public Vec2 direccion() { return direccion; }
+    public VecDouble2D direccion() { return direccion; }
 
     public void acelerar() {
         velocidad += aceleracion;
