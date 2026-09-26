@@ -2,8 +2,8 @@ package controlador;
 
 import javafx.geometry.Point2D;
 import modelo.EntidadViva;
+import motor.util.VecDouble2D;
 import modelo.EntidadMovil;
-import modelo.Vec2;
 import vista.SpriteVista;
 
 /** Controla el comportamiento básico de un enemigo que persigue al jugador. */
@@ -38,7 +38,7 @@ public class EnemigoControlador {
         this.objetivo = objetivo;
         this.vista = vista;
         this.alMorir = alMorir;
-        Vec2 posicionInicial = modelo.getPosicion();
+        VecDouble2D posicionInicial = modelo.getPosicion();
         this.posicionInicialX = posicionInicial.getX();
         this.posicionInicialY = posicionInicial.getY();
         vista.actualizar(modelo);
@@ -57,8 +57,8 @@ public class EnemigoControlador {
             return;
         }
 
-        Vec2 posicionEnemigo = modelo.getPosicion();
-        Vec2 posicionObjetivo = objetivo.getPosicion();
+        VecDouble2D posicionEnemigo = modelo.getPosicion();
+        VecDouble2D posicionObjetivo = objetivo.getPosicion();
         Point2D diferencia = new Point2D(
                 posicionObjetivo.getX() - posicionEnemigo.getX(),
                 posicionObjetivo.getY() - posicionEnemigo.getY()
@@ -103,8 +103,8 @@ public class EnemigoControlador {
     }
 
     public double distanciaAl(EntidadMovil entidad) {
-        Vec2 posicion = modelo.getPosicion();
-        Vec2 objetivo = entidad.getPosicion();
+        VecDouble2D posicion = modelo.getPosicion();
+        VecDouble2D objetivo = entidad.getPosicion();
         double dx = objetivo.getX() - posicion.getX();
         double dy = objetivo.getY() - posicion.getY();
         return Math.sqrt(dx * dx + dy * dy);

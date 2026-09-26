@@ -3,7 +3,8 @@ import java.util.ArrayDeque;
 import java.util.EnumSet;
 import java.util.Queue;
 import java.util.Set;
-import javafx.scene.Scene;
+
+import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
@@ -23,27 +24,28 @@ public class CapturadorEntradaTeclado {
 
     public void iniciarFrame() { 
         encolarEstado();
+        System.out.println(new EstadoEntradaTeclado(presionadas, mantenidas, soltadas).getInfo(KeyCode.SPACE));
         this.presionadas.clear(); 
         this.soltadas.clear(); 
     }
 
-    public void registrar(Scene escena) {
-        escena.addEventHandler(
+    public void registrar(Node nodo) {
+        nodo.addEventHandler(
             KeyEvent.KEY_PRESSED, 
             this::presionarTecla
         );
-        escena.addEventHandler(
+        nodo.addEventHandler(
             KeyEvent.KEY_RELEASED, 
             this::soltarTecla
         );
     }
 
-    public void deregistrar(Scene escena) {
-        escena.removeEventHandler(
+    public void deregistrar(Node nodo) {
+        nodo.removeEventHandler(
             KeyEvent.KEY_PRESSED,
             this::presionarTecla
         );
-        escena.removeEventHandler(
+        nodo.removeEventHandler(
             KeyEvent.KEY_RELEASED,
             this::soltarTecla
         );

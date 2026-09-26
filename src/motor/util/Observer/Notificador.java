@@ -1,4 +1,4 @@
-package motor.util.Observer;
+package motor.util.observer;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -9,7 +9,7 @@ tiene el constructor protegido para diferenciar claramente el notificador con un
 al notificador con referencias débiles
 */
 
-public class Notificador<T> {
+public abstract class Notificador<T> {
     private final Set<Observador<T>> observadores;
     private final Queue<Runnable> colaModificaciones;
 

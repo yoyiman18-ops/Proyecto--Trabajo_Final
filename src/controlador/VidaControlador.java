@@ -4,7 +4,7 @@ import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import modelo.EntidadViva;
-import modelo.Vec2;
+import motor.util.VecDouble2D;
 
 /** Representa una recuperación de vida que el jugador puede recoger. */
 public class VidaControlador {
@@ -12,11 +12,11 @@ public class VidaControlador {
     private static final double RADIO_RECOGIDA = 42;
 
     private final Circle vista = new Circle(6, Color.CRIMSON);
-    private final Vec2 posicion;
+    private final VecDouble2D posicion;
     private final int cantidad;
     private boolean recogida;
 
-    public VidaControlador(Vec2 posicion, int cantidad) {
+    public VidaControlador(VecDouble2D posicion, int cantidad) {
         if (posicion == null || cantidad <= 0) {
             throw new IllegalArgumentException("La recuperación debe tener posición y cantidad positiva");
         }
@@ -32,7 +32,7 @@ public class VidaControlador {
             return false;
         }
 
-        Vec2 jugadorPosicion = jugador.getPosicion();
+        VecDouble2D jugadorPosicion = jugador.getPosicion();
         double dx = jugadorPosicion.getX() - posicion.getX();
         double dy = jugadorPosicion.getY() - posicion.getY();
         if (Math.sqrt(dx * dx + dy * dy) <= RADIO_RECOGIDA) {

@@ -8,19 +8,30 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
-import modelo.*;
 import vista.SpriteVista;
+import motor.Motor;
 import motor.colisiones.*;
+import motor.colisiones.hitboxes.CategoriaColision;
+import motor.colisiones.hitboxes.Hitbox;
+import motor.colisiones.hitboxes.HitboxGenerica;
+import motor.colisiones.hitboxes.HitboxRectangular;
+import motor.colisiones.hitboxes.MascaraColision;
+import motor.colisiones.hitboxes.TipoHitbox;
+import motor.colisiones.sistema.FaseEspecificaSimple;
+import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
 import motor.entrada.EstadoEntradaTeclado;
 import motor.entrada.GestorEntradaTeclado;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
+import motor.modelo.Entidad;
 import motor.recursos.GestorRecursos;
 import motor.recursos.cache.CacheImagenes;
-import motor.util.Observer.Observador;
-
+import motor.util.VecDouble2D;
+import motor.util.observer.Observador;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -28,89 +39,45 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.Timer;
 
-import controlador.SpriteControlador;
-import controlador.JugadorControlador;
 import controlador.EnemigoControlador;
 import controlador.ProyectilControlador;
 import controlador.ExperienciaControlador;
 import controlador.VidaControlador;
 
-public class App extends Application {
 
-    ArrayList<Entidad> entidades = new ArrayList<>();
-    List<EnemigoControlador> enemigos = new ArrayList<>();
-    List<ProyectilControlador> proyectiles = new ArrayList<>();
-    List<ExperienciaControlador> experiencias = new ArrayList<>();
-    List<VidaControlador> recuperaciones = new ArrayList<>();
-    private int siguienteTipoEnemigo;
-    private static final int MAX_ENEMIGOS_ACTIVOS = 40;
+
+// nota: en esta clase se prueban de forma arbitraria las características añadidas.
+
+public class App extends Application {
     private Observador<EstadoAcciones> parlante;
-    private final Timer llamadorRecolector = new Timer(1000, e -> { System.gc(); }); // eventualmente debería liberar el parlante
-    private Timer temporizador;
+    private Motor motor;
 
     @Override
     public void start(Stage stage) {      
-        /*     
-        EntidadViva e1 = new EntidadViva.Builder()
-                        .nombre("Brotato")
-                        .posicion(126,126)
-                        .direccion(0.45, 0.55)
-                        .velocidadMax(1)
-                        .aceleracion(10)
-                        .hitbox(10, 10, 0, 0,true)
-                        .build();
-        entidades.add(e1);
-        */
-
-        SpriteVista vista1 = new SpriteVista(
-                "Brotato", new Rectangle2D(0, 0, 300, 300), 48, 48
-        );
-        //new SpriteControlador(e1, vista1);
-        Pane escenario = new Pane();
-        escenario.getChildren().add(vista1);
-        
-        Scene escena = new Scene(escenario, 400, 400);
-        stage.setTitle("Test");
-        stage.setScene(escena);
-        stage.setOnCloseRequest(e -> Platform.exit());
-        stage.show();
-
-        GestorEntradaTeclado gestor = new GestorEntradaTeclado(escena);
-        gestor.añadirMapeo(new MapeoTeclado(
-            KeyCode.A,
-            TipoEntrada.PRESIONAR,
-            Accion.TEST_PRESIONAR));
-        gestor.añadirMapeo(new MapeoTeclado(
-            KeyCode.A,
-            TipoEntrada.MANTENER,
-            Accion.TEST_MANTENER));
-        gestor.añadirMapeo(new MapeoTeclado(
-            KeyCode.A,
-            TipoEntrada.SOLTAR,
-            Accion.TEST_SOLTAR));
-        
-        this.temporizador = new Timer(16, e -> gestor.tick());
-
-        this.parlante = new Observador<EstadoAcciones>() {
-            @Override 
-            public void cambio(EstadoAcciones acciones) {
-                if (acciones.activa(Accion.TEST_PRESIONAR)) { System.out.println("-- INICIO INPUT --"); }
-                if (acciones.activa(Accion.TEST_MANTENER)) { System.out.println("++ MANTIENE INPUT ++"); }
-                if (acciones.activa(Accion.TEST_SOLTAR)) { System.out.println("-- FIN INPUT --"); }               
-            };
+        parlante = new Observador<EstadoAcciones>() {
+            @Override
+            public void cambio(EstadoAcciones e) {
+                if (e.activa(Accion.DASH)) { System.out.println("hola"); }
+            }
         };
 
-        temporizador.start();
-        gestor.getNotificador().suscribirObservador(parlante);
+        motor = new Motor();
+
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.DASH));
+        motor.teclado().suscribir(parlante);
+        motor.iniciar();
+
+        Scene escena = new Scene(motor.root(), 300, 300);
+        stage.setScene(escena);
+        stage.setTitle("ejemplo del motor");
+        stage.show();
 
 
-        llamadorRecolector.start();
     }
 
     @Override
     public void stop() throws Exception {
-        temporizador.stop();
-        llamadorRecolector.stop();
+        motor.detener();
     }
 
         /*
@@ -213,47 +180,6 @@ public class App extends Application {
 
     }
     */
-
-    private void agregarEnemigo(double x, double y, Rectangle2D recorte,
-                                EntidadViva jugador, Pane escenario,
-                                AtomicInteger bajas, Label contadorBajas) {
-        EntidadViva modelo = new EntidadViva.Builder()
-                .nombre("images")
-                .posicion(x, y)
-                .velocidadMax(0.5)
-                .aceleracion(0.02)
-                .vidaMax(10)
-                .hitbox(11, 10, 0, 0, true)
-                .build();
-        SpriteVista vista = new SpriteVista("images", recorte, 42, 42);
-        escenario.getChildren().add(vista);
-        entidades.add(modelo);
-        enemigos.add(new EnemigoControlador(modelo, jugador, vista, () -> {
-            int total = bajas.incrementAndGet();
-            contadorBajas.setText("Bajas: " + total);
-            ExperienciaControlador experiencia = new ExperienciaControlador(
-                    modelo.getPosicion(), 10
-            );
-            experiencias.add(experiencia);
-            escenario.getChildren().add(experiencia.getVista());
-            if (total % 20 == 0) {
-                VidaControlador recuperacion = new VidaControlador(
-                        modelo.getPosicion(), 5
-                );
-                recuperaciones.add(recuperacion);
-                escenario.getChildren().add(recuperacion.getVista());
-            }
-        }));
-        
-    }
-
-    private Rectangle2D recorteEnemigo(int numero) {
-        return switch (numero % 3) {
-            case 1 -> new Rectangle2D(18, 18, 45, 45);
-            case 2 -> new Rectangle2D(83, 82, 55, 55);
-            default -> new Rectangle2D(145, 80, 55, 60);
-        };
-    }
 
     public static void main(String[] args) throws Exception {
 

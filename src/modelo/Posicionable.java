@@ -1,5 +1,7 @@
 package modelo;
 
+import motor.util.VecDouble2D;
+
 public interface Posicionable {
-    public Vec2 getPosicion();
+    public VecDouble2D getPosicion();
 }

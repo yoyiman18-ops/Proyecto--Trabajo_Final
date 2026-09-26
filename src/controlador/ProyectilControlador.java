@@ -1,7 +1,7 @@
 package controlador;
 
 import modelo.Proyectil;
-import modelo.Vec2;
+import motor.util.VecDouble2D;
 import vista.SpriteVista;
 
 /** Mueve un proyectil y comprueba su impacto contra los enemigos. */
@@ -34,7 +34,7 @@ public class ProyectilControlador {
             return;
         }
 
-        Vec2 posicion = modelo.getPosicion();
+        VecDouble2D posicion = modelo.getPosicion();
         modelo.setPosicion(
                 posicion.getX() + direccionX * VELOCIDAD,
                 posicion.getY() + direccionY * VELOCIDAD
@@ -59,8 +59,8 @@ public class ProyectilControlador {
     }
 
     private double distanciaA(EnemigoControlador enemigo) {
-        Vec2 proyectil = modelo.getPosicion();
-        Vec2 enemigoPosicion = enemigo.getModelo().getPosicion();
+        VecDouble2D proyectil = modelo.getPosicion();
+        VecDouble2D enemigoPosicion = enemigo.getModelo().getPosicion();
         double dx = proyectil.getX() - enemigoPosicion.getX();
         double dy = proyectil.getY() - enemigoPosicion.getY();
         return Math.sqrt(dx * dx + dy * dy);
