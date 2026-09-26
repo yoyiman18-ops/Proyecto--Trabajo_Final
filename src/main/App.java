@@ -8,14 +8,15 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
-import modelo.*;
-import modelo.Colisionable;
 import vista.SpriteVista;
 import motor.Motor;
 import motor.colisiones.*;
+import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.colisiones.hitboxes.HitboxGenerica;
 import motor.colisiones.hitboxes.HitboxRectangular;
+import motor.colisiones.hitboxes.MascaraColision;
+import motor.colisiones.hitboxes.TipoHitbox;
 import motor.colisiones.sistema.FaseEspecificaSimple;
 import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.Accion;
@@ -24,11 +25,13 @@ import motor.entrada.EstadoEntradaTeclado;
 import motor.entrada.GestorEntradaTeclado;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
+import motor.modelo.Entidad;
 import motor.recursos.GestorRecursos;
 import motor.recursos.cache.CacheImagenes;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
-
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -42,58 +45,23 @@ import controlador.ExperienciaControlador;
 import controlador.VidaControlador;
 
 
+
 // nota: en esta clase se prueban de forma arbitraria las características añadidas.
 
 public class App extends Application {
-
     private Observador<EstadoAcciones> parlante;
     private final Timer llamadorRecolector = new Timer(1000, e -> { System.gc(); }); // eventualmente debería liberar el parlante
     private Timer temporizador;
+    private Motor motor;
 
     @Override
     public void start(Stage stage) {      
-        Pane escenario = new Pane();
-        Scene escena = new Scene(escenario, 400, 400);
-        stage.setTitle("Test");
-        stage.setScene(escena);
-        stage.setOnCloseRequest(e -> Platform.exit());
+
+        motor = new Motor();
+        stage.setScene(motor.getVentanaRoot());
+        stage.setTitle("ejemplo del motor");
         stage.show();
 
-        GestorEntradaTeclado gestor = new GestorEntradaTeclado(escena);
-        gestor.añadirMapeo(new MapeoTeclado(
-            KeyCode.A,
-            TipoEntrada.PRESIONAR,
-            Accion.TEST_PRESIONAR));
-        gestor.añadirMapeo(new MapeoTeclado(
-            KeyCode.A,
-            TipoEntrada.MANTENER,
-            Accion.TEST_MANTENER));
-        gestor.añadirMapeo(new MapeoTeclado(
-            KeyCode.A,
-            TipoEntrada.SOLTAR,
-            Accion.TEST_SOLTAR));
-        
-        this.temporizador = new Timer(16, e -> gestor.tick());
-
-        this.parlante = new Observador<EstadoAcciones>() {
-            @Override 
-            public void cambio(EstadoAcciones acciones) {
-                if (acciones.activa(Accion.TEST_PRESIONAR)) { System.out.println("-- INICIO INPUT --"); }
-                if (acciones.activa(Accion.TEST_MANTENER)) { System.out.println("++ MANTIENE INPUT ++"); }
-                if (acciones.activa(Accion.TEST_SOLTAR)) { System.out.println("-- FIN INPUT --"); }               
-            };
-        };
-
-        temporizador.start();
-        gestor.getNotificador().suscribirObservador(parlante);
-        
-        Motor motor = new Motor(
-            new SistemaColisiones(
-                new FaseGeneralSpatialHashGrid(100),
-                new FaseEspecificaSimple()
-            ),
-            new GestorRecursos()
-        );
 
     }
 

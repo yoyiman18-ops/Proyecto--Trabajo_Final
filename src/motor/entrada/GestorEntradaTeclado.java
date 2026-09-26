@@ -3,6 +3,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import motor.util.observer.NotificadorDebil;
 
@@ -12,7 +13,7 @@ public class GestorEntradaTeclado {
     private final EnumSet<Accion> acciones;
     private final NotificadorDebil<EstadoAcciones> notificador;
 
-    public GestorEntradaTeclado(Scene root) {
+    public GestorEntradaTeclado(Parent root) {
         this.mapeos = new CopyOnWriteArrayList<>();
         this.acciones = EnumSet.noneOf(Accion.class);
         this.capturador = new CapturadorEntradaTeclado();

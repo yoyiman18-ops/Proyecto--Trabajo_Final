@@ -1,4 +1,5 @@
 package motor.modelo;
+
 import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.recursos.GestorRecursos;

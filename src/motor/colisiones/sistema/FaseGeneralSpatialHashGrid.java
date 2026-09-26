@@ -1,13 +1,12 @@
 package motor.colisiones.sistema;
 
 import java.util.logging.Logger;
+
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import java.util.logging.Level;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import motor.colisiones.ParColision;
 import motor.colisiones.SpatialHashGrid;
 import motor.util.Codificacion;
@@ -24,14 +23,14 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
     private final SpatialHashGrid cuadricula;
     private final Collection<ParColision> pares;
     private final ArrayList<Colisionable> colisionablesActuales;
-    private final LongSet idsVisitados;
+    private final LongOpenHashSet idsVisitados;
 
     public FaseGeneralSpatialHashGrid(int tamañoCelda) {
         if (tamañoCelda < 1) { throw new IllegalArgumentException("Tamaño de celda debe ser igual o mayor a 1"); }
         this.cuadricula = new SpatialHashGrid(tamañoCelda);
         this.pares = new ArrayList<>();
         this.colisionablesActuales = new ArrayList<>();
-        this.idsVisitados = LongSet.of();
+        this.idsVisitados = new LongOpenHashSet();
     }
 
     @Override
@@ -46,8 +45,10 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
             if (celda == null || celda.isEmpty() || celda.size() <= 1 ) { continue; }
             for (int i = 0; i < celda.size() - 1; i++) {
                 Colisionable a = celda.get(i);
+                System.out.println(a.getHitbox().getId());
                 for (int j = i+1; j < celda.size(); j++) {
                     Colisionable b = celda.get(j);
+                    System.out.println(b.getHitbox().getId());
                     // si no estaba ya el id combinado, agrega el par a la lista de pares
                     if (idsVisitados.add(combinarIds(a, b))) { 
                     // si no tienen capas compatibles, los descarta. en otro caso los añade a la lista de pares

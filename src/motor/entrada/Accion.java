@@ -7,5 +7,6 @@ public enum Accion {
     MOVER_DERECHA,
     MOVER_ARRIBA,
     MOVER_IZQUIERDA,
+    DASH,
     MOVER_ABAJO;
 }
