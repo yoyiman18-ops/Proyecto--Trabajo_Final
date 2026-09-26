@@ -17,4 +17,5 @@
         "lib\\javafx-sdk-26.0.2\\lib\\jfx.incubator.input.jar",
         "lib/fastutil/fastutil-8.5.19.jar"
     ],
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable",
 }
