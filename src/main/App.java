@@ -14,6 +14,21 @@ import controlador.JugadorControlador;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
+import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
+import modelo.*;
+import vista.SpriteVista;
+import vista.VistaJuego;
+import motor.colisiones.*;
+import motor.entrada.Accion;
+import motor.entrada.EstadoAcciones;
+import motor.entrada.EstadoEntradaTeclado;
+import motor.entrada.GestorEntradaTeclado;
+import motor.entrada.MapeoTeclado;
+import motor.entrada.TipoEntrada;
+import motor.recursos.GestorRecursos;
+import motor.recursos.cache.CacheImagenes;
+import motor.util.Observer.Observador;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,63 +50,73 @@ public class App extends Application {
     List<VidaControlador> recuperaciones = new ArrayList<>();
     private int siguienteTipoEnemigo;
     private static final int MAX_ENEMIGOS_ACTIVOS = 40;
+    private Observador<EstadoAcciones> parlante;
+    private final Timer llamadorRecolector = new Timer(1000, e -> { System.gc(); }); // eventualmente debería liberar el parlante
+    private Timer temporizador;
 
     @Override
-    public void start(Stage stage) {
-        MenuVista menuVista = new MenuVista();
-        Scene escena = new Scene(menuVista, 800, 600);
-        stage.setTitle("Waves 2D");
+    public void start(Stage stage) {      
+        /*     
+        EntidadViva e1 = new EntidadViva.Builder()
+                        .nombre("Brotato")
+                        .posicion(126,126)
+                        .direccion(0.45, 0.55)
+                        .velocidadMax(1)
+                        .aceleracion(10)
+                        .hitbox(10, 10, 0, 0,true)
+                        .build();
+        entidades.add(e1);
+        */
+
+        SpriteVista vista1 = new SpriteVista(
+                "Brotato", new Rectangle2D(0, 0, 300, 300), 48, 48
+        );
+        //new SpriteControlador(e1, vista1);
+        Pane escenario = new Pane();
+        escenario.getChildren().add(vista1);
+        
+        Scene escena = new Scene(escenario, 400, 400);
+        stage.setTitle("Test");
         stage.setScene(escena);
+        stage.setOnCloseRequest(e -> Platform.exit());
         stage.show();
 
-        menuVista.getBotonJugar().setOnAction(event -> iniciarPartida(stage));
+        GestorEntradaTeclado gestor = new GestorEntradaTeclado(escena);
+        gestor.añadirMapeo(new MapeoTeclado(
+            KeyCode.A,
+            TipoEntrada.PRESIONAR,
+            Accion.TEST_PRESIONAR));
+        gestor.añadirMapeo(new MapeoTeclado(
+            KeyCode.A,
+            TipoEntrada.MANTENER,
+            Accion.TEST_MANTENER));
+        gestor.añadirMapeo(new MapeoTeclado(
+            KeyCode.A,
+            TipoEntrada.SOLTAR,
+            Accion.TEST_SOLTAR));
+        
+        this.temporizador = new Timer(16, e -> gestor.tick());
+
+        this.parlante = new Observador<EstadoAcciones>() {
+            @Override 
+            public void cambio(EstadoAcciones acciones) {
+                if (acciones.activa(Accion.TEST_PRESIONAR)) { System.out.println("-- INICIO INPUT --"); }
+                if (acciones.activa(Accion.TEST_MANTENER)) { System.out.println("++ MANTIENE INPUT ++"); }
+                if (acciones.activa(Accion.TEST_SOLTAR)) { System.out.println("-- FIN INPUT --"); }               
+            };
+        };
+
+        temporizador.start();
+        gestor.getNotificador().suscribirObservador(parlante);
+
+
+        llamadorRecolector.start();
     }
 
-    private void iniciarPartida(Stage stage) {
-        JuegoVista juegoVista = new JuegoVista();
-        Pane escenario = juegoVista.getEscenario();
-        HudVista hud = juegoVista.getHud();
-
-        EntidadViva jugador = new EntidadViva.Builder()
-            .nombre("Brotato")
-                .posicion(400, 300)
-                .velocidadMax(3)
-                .aceleracion(0.15)
-                .vidaMax(30)
-                .hitbox(11, 10, 0, 0, true)
-                .build();
-        SpriteVista vistaJugador = new SpriteVista(
-            "Brotato", new Rectangle2D(0, 0, 300, 300), 42, 42
-        );
-        escenario.getChildren().add(vistaJugador);
-
-        JugadorControlador jugadorControlador = new JugadorControlador(
-                jugador, vistaJugador, enemigos, proyectiles,
-                escenario, experiencias, null
-        );
-        AtomicInteger bajas = new AtomicInteger();
-        Label contadorBajas = new Label("Bajas: 0");
-        agregarEnemigo(120, 300, new Rectangle2D(18, 18, 45, 45),
-            jugador, escenario, bajas, contadorBajas);
-
-        Scene escena = new Scene(juegoVista, 800, 600);
-        stage.setTitle("Waves 2D");
-        stage.setScene(escena);
-        stage.show();
-        jugadorControlador.iniciar(escena);
-        vistaJugador.requestFocus();
-
-        AnimationTimer cicloJuego = new AnimationTimer() {
-            @Override
-            public void handle(long ahora) {
-                jugadorControlador.actualizar();
-                for (EnemigoControlador enemigo : enemigos) {
-                    enemigo.actualizar();
-                }
-                hud.actualizarVida(jugador.getVida(), jugador.getVidaMax());
-            }
-        };
-        cicloJuego.start();
+    @Override
+    public void stop() throws Exception {
+        temporizador.stop();
+        llamadorRecolector.stop();
     }
 
         /*

@@ -8,6 +8,7 @@
 
 package motor.colisiones;
 import java.util.logging.Logger;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import java.util.logging.Level;
 import java.util.ArrayList;
@@ -25,12 +26,16 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
     private final List<ParEntidades> pares;
     private final LongSet idsVisitados;
 
+    public FaseGeneralSpatialHashGrid() {
+        this(64);
+    }
+
     public FaseGeneralSpatialHashGrid(int tamañoCelda) {
         if (tamañoCelda < 1) { throw new IllegalArgumentException("Tamaño de celda debe ser igual o mayor a 1"); }
         this.cuadricula = new SpatialHashGrid<>(tamañoCelda);
         this.logger = Logger.getLogger(getClass().getName());
         this.pares = new ArrayList<ParEntidades>();
-        this.idsVisitados = LongSet.of();
+        this.idsVisitados = new LongOpenHashSet();
     }
 
     @Override
