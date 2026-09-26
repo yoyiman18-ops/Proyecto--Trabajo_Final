@@ -152,7 +152,8 @@ public class JugadorControlador {
         }
 
         modelo.mover();
-        vista.actualizar(modelo);
+        vista.actualizarAnimacion(modelo, direccionX, direccionY,
+                modelo.getVelocidad() > 0);
     }
 
     private void atacar() {

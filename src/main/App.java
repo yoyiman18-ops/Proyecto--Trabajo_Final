@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
 import modelo.*;
 import vista.SpriteVista;
+import vista.VistaJuego;
 import motor.colisiones.*;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
@@ -47,6 +48,8 @@ public class App extends Application {
     private Observador<EstadoAcciones> parlante;
     private final Timer llamadorRecolector = new Timer(1000, e -> { System.gc(); }); // eventualmente debería liberar el parlante
     private Timer temporizador;
+    private AnimationTimer cicloJuego;
+    private JugadorControlador jugadorControlador;
 
     @Override
     public void start(Stage stage) {      
@@ -62,18 +65,28 @@ public class App extends Application {
         entidades.add(e1);
         */
 
-        SpriteVista vista1 = new SpriteVista(
-                "Brotato", new Rectangle2D(0, 0, 300, 300), 48, 48
-        );
-        //new SpriteControlador(e1, vista1);
-        Pane escenario = new Pane();
-        escenario.getChildren().add(vista1);
+        EntidadViva jugador = new EntidadViva.Builder()
+                .nombre("zorro")
+                .posicion(456, 230)
+                .velocidadMax(1)
+                .aceleracion(0.02)
+                .vidaMax(100)
+                .hitbox(40, 38, 4, 5, true)
+                .build();
+        SpriteVista vista1 = new SpriteVista("zorro", 55, 51);
+        VistaJuego vistaJuego = new VistaJuego();
+        vistaJuego.getAreaJuego().getChildren().add(vista1);
         
-        Scene escena = new Scene(escenario, 400, 400);
-        stage.setTitle("Test");
+        Scene escena = new Scene(vistaJuego, 960, 640);
+        stage.setTitle("Waves 2D");
         stage.setScene(escena);
+        stage.setMinWidth(640);
+        stage.setMinHeight(480);
         stage.setOnCloseRequest(e -> Platform.exit());
         stage.show();
+
+        jugadorControlador = new JugadorControlador(jugador, vista1);
+        jugadorControlador.iniciar(escena);
 
         GestorEntradaTeclado gestor = new GestorEntradaTeclado(escena);
         gestor.añadirMapeo(new MapeoTeclado(
@@ -103,12 +116,25 @@ public class App extends Application {
         temporizador.start();
         gestor.getNotificador().suscribirObservador(parlante);
 
+        cicloJuego = new AnimationTimer() {
+            @Override
+            public void handle(long ahora) {
+                jugadorControlador.actualizar();
+            }
+        };
+        cicloJuego.start();
 
         llamadorRecolector.start();
     }
 
     @Override
     public void stop() throws Exception {
+        if (cicloJuego != null) {
+            cicloJuego.stop();
+        }
+        if (jugadorControlador != null) {
+            jugadorControlador.detener();
+        }
         temporizador.stop();
         llamadorRecolector.stop();
     }
