@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import vista.HudVista;
 import vista.JuegoVista;
+import vista.MenuVista;
 
 import controlador.JugadorControlador;
 import javafx.animation.AnimationTimer;
@@ -20,7 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import modelo.Entidad;
 import modelo.EntidadViva;
-import motor.colisiones.ControladorColisiones;
 import controlador.EnemigoControlador;
 import controlador.ExperienciaControlador;
 import controlador.ProyectilControlador;
@@ -33,12 +33,21 @@ public class App extends Application {
     List<ProyectilControlador> proyectiles = new ArrayList<>();
     List<ExperienciaControlador> experiencias = new ArrayList<>();
     List<VidaControlador> recuperaciones = new ArrayList<>();
-    ControladorColisiones colisiones = new ControladorColisiones(64);
     private int siguienteTipoEnemigo;
     private static final int MAX_ENEMIGOS_ACTIVOS = 40;
 
     @Override
     public void start(Stage stage) {
+        MenuVista menuVista = new MenuVista();
+        Scene escena = new Scene(menuVista, 800, 600);
+        stage.setTitle("Waves 2D");
+        stage.setScene(escena);
+        stage.show();
+
+        menuVista.getBotonJugar().setOnAction(event -> iniciarPartida(stage));
+    }
+
+    private void iniciarPartida(Stage stage) {
         JuegoVista juegoVista = new JuegoVista();
         Pane escenario = juegoVista.getEscenario();
         HudVista hud = juegoVista.getHud();

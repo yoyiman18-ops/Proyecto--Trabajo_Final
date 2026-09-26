@@ -1,4 +1,6 @@
 
+# Launch
+.vscode/launch.json
 
 # Compilado
 bin/
