@@ -49,6 +49,10 @@ public class JugadorControlador {
     private long ultimoAtaque;
     private long cooldownAtaqueNs = 300_000_000L;
     private static final double ALCANCE_ATAQUE = 75.0;
+    private static final double ANCHO_MAPA = 800.0;
+    private static final double ALTO_MAPA = 600.0;
+    private static final double ANCHO_JUGADOR = 42.0;
+    private static final double ALTO_JUGADOR = 42.0;
     private int daño = 5;
     private int nivel = 1;
     private int experiencia;
@@ -152,7 +156,15 @@ public class JugadorControlador {
         }
 
         modelo.mover();
+        limitarPosicion();
         vista.actualizar(modelo);
+    }
+
+    private void limitarPosicion() {
+        Vec2 posicion = modelo.getPosicion();
+        double x = Math.max(0, Math.min(posicion.getX(), ANCHO_MAPA - ANCHO_JUGADOR));
+        double y = Math.max(0, Math.min(posicion.getY(), ALTO_MAPA - ALTO_JUGADOR));
+        modelo.setPosicion(x, y);
     }
 
     private void atacar() {

@@ -1,0 +1,43 @@
+.game-root {
+    -fx-background-color: #10161b;
+}
+
+.game-hud {
+    -fx-background-color: linear-gradient(to bottom, #26343a, #1b272d);
+    -fx-border-color: #45575a;
+    -fx-border-width: 0 0 1 0;
+}
+
+.game-title {
+    -fx-text-fill: #f1e7cd;
+    -fx-font-family: "System";
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.hud-card {
+    -fx-background-color: #111a1f;
+    -fx-background-radius: 6px;
+    -fx-border-color: #3c5052;
+    -fx-border-radius: 6px;
+    -fx-padding: 8px 12px;
+}
+
+.hud-label {
+    -fx-text-fill: #9eada7;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.hud-value {
+    -fx-text-fill: #f1e7cd;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.game-area {
+    -fx-background-color:
+        radial-gradient(radius 100%, #27352f, #18221f 75%, #111816);
+    -fx-border-color: #34433d;
+    -fx-border-width: 1px;
+}
