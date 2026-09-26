@@ -1,4 +1,4 @@
-package motor.util.Observer;
+package motor.util.observer;
 import java.util.Collections;
 import java.util.WeakHashMap;
 

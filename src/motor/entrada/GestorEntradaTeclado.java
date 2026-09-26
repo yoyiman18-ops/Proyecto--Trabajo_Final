@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javafx.scene.Scene;
-import motor.util.Observer.NotificadorDebil;
+import motor.util.observer.NotificadorDebil;
 
 public class GestorEntradaTeclado {
     private final CapturadorEntradaTeclado capturador;

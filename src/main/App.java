@@ -11,10 +11,13 @@ import javafx.scene.input.KeyCode;
 import modelo.*;
 import modelo.Colisionable;
 import vista.SpriteVista;
+import motor.Motor;
 import motor.colisiones.*;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.colisiones.hitboxes.HitboxGenerica;
 import motor.colisiones.hitboxes.HitboxRectangular;
+import motor.colisiones.sistema.FaseEspecificaSimple;
+import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
 import motor.entrada.EstadoEntradaTeclado;
@@ -24,7 +27,7 @@ import motor.entrada.TipoEntrada;
 import motor.recursos.GestorRecursos;
 import motor.recursos.cache.CacheImagenes;
 import motor.util.VecDouble2D;
-import motor.util.Observer.Observador;
+import motor.util.observer.Observador;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -43,38 +46,13 @@ import controlador.VidaControlador;
 
 public class App extends Application {
 
-    ArrayList<Entidad> entidades = new ArrayList<>();
-    List<EnemigoControlador> enemigos = new ArrayList<>();
-    List<ProyectilControlador> proyectiles = new ArrayList<>();
-    List<ExperienciaControlador> experiencias = new ArrayList<>();
-    List<VidaControlador> recuperaciones = new ArrayList<>();
-    private int siguienteTipoEnemigo;
-    private static final int MAX_ENEMIGOS_ACTIVOS = 40;
     private Observador<EstadoAcciones> parlante;
     private final Timer llamadorRecolector = new Timer(1000, e -> { System.gc(); }); // eventualmente debería liberar el parlante
     private Timer temporizador;
 
     @Override
     public void start(Stage stage) {      
-        /*     
-        EntidadViva e1 = new EntidadViva.Builder()
-                        .nombre("Brotato")
-                        .posicion(126,126)
-                        .direccion(0.45, 0.55)
-                        .velocidadMax(1)
-                        .aceleracion(10)
-                        .hitbox(10, 10, 0, 0,true)
-                        .build();
-        entidades.add(e1);
-        */
-
-        SpriteVista vista1 = new SpriteVista(
-                "Brotato", new Rectangle2D(0, 0, 300, 300), 48, 48
-        );
-        //new SpriteControlador(e1, vista1);
         Pane escenario = new Pane();
-        escenario.getChildren().add(vista1);
-        
         Scene escena = new Scene(escenario, 400, 400);
         stage.setTitle("Test");
         stage.setScene(escena);
@@ -108,22 +86,13 @@ public class App extends Application {
 
         temporizador.start();
         gestor.getNotificador().suscribirObservador(parlante);
-        llamadorRecolector.start();
-
-        Hitbox a = new Hitbox(new java.awt.geom.Rectangle2D.Double(0,0,100,100)) {
-            @Override 
-            public boolean intersecta(Hitbox otra) {
-                return genericoConGenerico(otra);
-            }
-        };
         
-
-        Hitbox b = new HitboxGenerica(new java.awt.geom.Ellipse2D.Double(500,0,100,100));
-        Hitbox rectangulo1 = new HitboxRectangular(
-            new java.awt.geom.Rectangle2D.Double(0,0,100,100)
-        );
-        Hitbox rectangulo2 = new HitboxRectangular(
-            new java.awt.geom.Rectangle2D.Double(0,0,10,10)
+        Motor motor = new Motor(
+            new SistemaColisiones(
+                new FaseGeneralSpatialHashGrid(100),
+                new FaseEspecificaSimple()
+            ),
+            new GestorRecursos()
         );
 
     }
@@ -234,47 +203,6 @@ public class App extends Application {
 
     }
     */
-
-    private void agregarEnemigo(double x, double y, Rectangle2D recorte,
-                                EntidadViva jugador, Pane escenario,
-                                AtomicInteger bajas, Label contadorBajas) {
-        EntidadViva modelo = new EntidadViva.Builder()
-                .nombre("images")
-                .posicion(x, y)
-                .velocidadMax(0.5)
-                .aceleracion(0.02)
-                .vidaMax(10)
-                .hitbox(11, 10, 0, 0, true)
-                .build();
-        SpriteVista vista = new SpriteVista("images", recorte, 42, 42);
-        escenario.getChildren().add(vista);
-        entidades.add(modelo);
-        enemigos.add(new EnemigoControlador(modelo, jugador, vista, () -> {
-            int total = bajas.incrementAndGet();
-            contadorBajas.setText("Bajas: " + total);
-            ExperienciaControlador experiencia = new ExperienciaControlador(
-                    modelo.getPosicion(), 10
-            );
-            experiencias.add(experiencia);
-            escenario.getChildren().add(experiencia.getVista());
-            if (total % 20 == 0) {
-                VidaControlador recuperacion = new VidaControlador(
-                        modelo.getPosicion(), 5
-                );
-                recuperaciones.add(recuperacion);
-                escenario.getChildren().add(recuperacion.getVista());
-            }
-        }));
-        
-    }
-
-    private Rectangle2D recorteEnemigo(int numero) {
-        return switch (numero % 3) {
-            case 1 -> new Rectangle2D(18, 18, 45, 45);
-            case 2 -> new Rectangle2D(83, 82, 55, 55);
-            default -> new Rectangle2D(145, 80, 55, 60);
-        };
-    }
 
     public static void main(String[] args) throws Exception {
 

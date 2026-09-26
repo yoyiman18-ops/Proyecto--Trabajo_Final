@@ -32,6 +32,10 @@ public abstract class Hitbox {
     }
 
     public Hitbox(Shape formaColision, TipoHitbox tipo, boolean activa, MascaraColision categoriaColision, MascaraColision capasColision) {
+        if (formaColision == null || tipo == null || categoriaColision == null || capasColision == null) {
+            throw new IllegalArgumentException("Parámetros nulos en constructor de hitbox.");
+        }
+
         this.id = contadorId.getAndIncrement();
         this.formaColision = formaColision;
         this.formaColisionTransformada = formaColision;
@@ -49,7 +53,10 @@ public abstract class Hitbox {
     public abstract boolean intersecta(Hitbox otra);
     
     public boolean capasCompatibles(Hitbox otra) {
-        return (otra.get)
+        return (
+            this.getCategoriasColision().interseccion(otra.getCapasColision()) != 0 &&
+            this.getCapasColision().interseccion(otra.getCategoriasColision()) != 0
+        );
     }
     public int getId() { return this.id; }
     public boolean estaActiva() { return this.activa; }

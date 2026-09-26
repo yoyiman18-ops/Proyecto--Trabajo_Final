@@ -23,13 +23,13 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
 
     private final SpatialHashGrid cuadricula;
     private final Collection<ParColision> pares;
-    private final Collection<Colisionable> colisionablesActuales;
+    private final ArrayList<Colisionable> colisionablesActuales;
     private final LongSet idsVisitados;
 
     public FaseGeneralSpatialHashGrid(int tamañoCelda) {
         if (tamañoCelda < 1) { throw new IllegalArgumentException("Tamaño de celda debe ser igual o mayor a 1"); }
         this.cuadricula = new SpatialHashGrid(tamañoCelda);
-        this.pares = new ArrayList<ParColision>();
+        this.pares = new ArrayList<>();
         this.colisionablesActuales = new ArrayList<>();
         this.idsVisitados = LongSet.of();
     }
@@ -42,7 +42,7 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
         for (Colisionable c : colisionablesActuales) { cuadricula.insertar(c); }
         if (cuadricula.vacia()) { return pares; }
 
-        for (ArrayList<Colisionable> celda : cuadricula.getCeldas() ) { 
+        for (ArrayList<Colisionable> celda : cuadricula.getCeldas()) { 
             if (celda == null || celda.isEmpty() || celda.size() <= 1 ) { continue; }
             for (int i = 0; i < celda.size() - 1; i++) {
                 Colisionable a = celda.get(i);

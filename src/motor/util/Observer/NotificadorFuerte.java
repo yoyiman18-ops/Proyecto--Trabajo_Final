@@ -1,4 +1,4 @@
-package motor.util.Observer;
+package motor.util.observer;
 import java.util.HashSet;
 
 // este notificador guarda referencias fuertes, impidiendo
