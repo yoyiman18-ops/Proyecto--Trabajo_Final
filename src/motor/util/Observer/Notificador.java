@@ -9,7 +9,7 @@ tiene el constructor protegido para diferenciar claramente el notificador con un
 al notificador con referencias débiles
 */
 
-public class Notificador<T> {
+public abstract class Notificador<T> {
     private final Set<Observador<T>> observadores;
     private final Queue<Runnable> colaModificaciones;
 

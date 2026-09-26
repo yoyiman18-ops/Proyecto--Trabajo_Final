@@ -5,6 +5,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Rectangle2D;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import motor.util.Codificacion;
 import motor.util.VecDouble2D;
 
 /**
@@ -51,13 +52,7 @@ public abstract class Hitbox {
     }
 
     public abstract boolean intersecta(Hitbox otra);
-    
-    public boolean capasCompatibles(Hitbox otra) {
-        return (
-            this.getCategoriasColision().interseccion(otra.getCapasColision()) != 0 &&
-            this.getCapasColision().interseccion(otra.getCategoriasColision()) != 0
-        );
-    }
+
     public int getId() { return this.id; }
     public boolean estaActiva() { return this.activa; }
     public void setActiva(boolean activa) { this.activa = activa; }
@@ -73,6 +68,15 @@ public abstract class Hitbox {
     }
     public MascaraColision getCategoriasColision() { return this.categoriasColision; }
     public MascaraColision getCapasColision() { return this.capasColision; }
+    public boolean esCompatible(Hitbox otra) {
+        if (this == otra) { return false; }
+        if (this.getTipo() == TipoHitbox.INAMOVIBLE && otra.getTipo() == TipoHitbox.INAMOVIBLE) { return false; }
+        return (
+            this.getCategoriasColision().interseccion(otra.getCapasColision()) != 0 &&
+            this.getCapasColision().interseccion(otra.getCategoriasColision()) != 0
+        );
+    }
+    public long combinarIds(Hitbox otra) { return Codificacion.combinarInt(this.getId(), otra.getId()); }
 
     protected AffineTransform getTransformacion() { return this.transformacion; }
 

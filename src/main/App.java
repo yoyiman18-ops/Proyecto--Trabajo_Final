@@ -50,15 +50,25 @@ import controlador.VidaControlador;
 
 public class App extends Application {
     private Observador<EstadoAcciones> parlante;
-    private final Timer llamadorRecolector = new Timer(1000, e -> { System.gc(); }); // eventualmente debería liberar el parlante
-    private Timer temporizador;
     private Motor motor;
 
     @Override
     public void start(Stage stage) {      
+        parlante = new Observador<EstadoAcciones>() {
+            @Override
+            public void cambio(EstadoAcciones e) {
+                if (e.activa(Accion.DASH)) { System.out.println("hola"); }
+            }
+        };
 
         motor = new Motor();
-        stage.setScene(motor.getVentanaRoot());
+
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.DASH));
+        motor.teclado().suscribir(parlante);
+        motor.iniciar();
+
+        Scene escena = new Scene(motor.root(), 300, 300);
+        stage.setScene(escena);
         stage.setTitle("ejemplo del motor");
         stage.show();
 
@@ -67,8 +77,7 @@ public class App extends Application {
 
     @Override
     public void stop() throws Exception {
-        temporizador.stop();
-        llamadorRecolector.stop();
+        motor.detener();
     }
 
         /*

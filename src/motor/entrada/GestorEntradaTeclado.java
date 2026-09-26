@@ -3,9 +3,9 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javafx.scene.Parent;
-import javafx.scene.Scene;
+import javafx.scene.Node;
 import motor.util.observer.NotificadorDebil;
+import motor.util.observer.Observador;
 
 public class GestorEntradaTeclado {
     private final CapturadorEntradaTeclado capturador;
@@ -13,7 +13,7 @@ public class GestorEntradaTeclado {
     private final EnumSet<Accion> acciones;
     private final NotificadorDebil<EstadoAcciones> notificador;
 
-    public GestorEntradaTeclado(Parent root) {
+    public GestorEntradaTeclado(Node root) {
         this.mapeos = new CopyOnWriteArrayList<>();
         this.acciones = EnumSet.noneOf(Accion.class);
         this.capturador = new CapturadorEntradaTeclado();
@@ -21,6 +21,10 @@ public class GestorEntradaTeclado {
         this.notificador = new NotificadorDebil<EstadoAcciones>();
     }
 
+    public void añadirMapeo(MapeoTeclado mapeo) { if (!this.mapeos.contains(mapeo)) { this.mapeos.add(mapeo); }}
+    public void eliminarMapeo(MapeoTeclado mapeo) { this.mapeos.remove(mapeo); }
+    public void suscribir(Observador<EstadoAcciones> o) { this.notificador.suscribirObservador(o); }
+    public void desuscribir(Observador<EstadoAcciones> o) { this.notificador.desuscribirObservador(o); }
     public void tick() {
         capturador.iniciarFrame();
         EstadoEntradaTeclado estado = capturador.getEstado();
@@ -28,14 +32,6 @@ public class GestorEntradaTeclado {
         notificador.notificar(new EstadoAcciones(acciones));
     }
 
-    public void añadirMapeo(MapeoTeclado mapeo) { 
-        if (!this.mapeos.contains(mapeo)) { this.mapeos.add(mapeo); }
-    }
-
-    public void eliminarMapeo(MapeoTeclado mapeo) { this.mapeos.remove(mapeo); }
-
-    public NotificadorDebil<EstadoAcciones> getNotificador() { return this.notificador; }
-    
     private void mapear(EstadoEntradaTeclado estadoEntrada) {
         this.acciones.clear();
         for (MapeoTeclado m : this.mapeos) {

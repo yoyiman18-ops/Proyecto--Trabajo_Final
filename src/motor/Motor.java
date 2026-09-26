@@ -2,8 +2,8 @@ package motor;
 
 import java.util.ArrayList;
 
+import javafx.application.Platform;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import motor.colisiones.Colisionable;
 import motor.colisiones.SistemaColisiones;
@@ -46,6 +46,7 @@ public class Motor {
         this.colisionables = new ArrayList<>();
         
         relojDelta.suscribirObservador(e -> {
+            this.gestorEntradaTeclado.tick();
             this.sistemaColisiones.resolverColisiones(colisionables);
         });
     }
@@ -57,8 +58,8 @@ public class Motor {
 
     public GestorRecursos recursos() { return this.gestorRecursos; }
     public GestorEntradaTeclado teclado() { return this.gestorEntradaTeclado; }
-    public Parent ventana() { return this.root; }
-    public void iniciar() { this.relojDelta.iniciar(); }
+    public Parent root() { return this.root; }
+    public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }
 }
 

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import motor.colisiones.ParColision;
 import motor.colisiones.SpatialHashGrid;
+import motor.colisiones.hitboxes.Hitbox;
 import motor.util.Codificacion;
 import motor.colisiones.Colisionable;
 
@@ -45,14 +46,15 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
             if (celda == null || celda.isEmpty() || celda.size() <= 1 ) { continue; }
             for (int i = 0; i < celda.size() - 1; i++) {
                 Colisionable a = celda.get(i);
-                System.out.println(a.getHitbox().getId());
+                Hitbox colliderA = a.getHitbox();
+                System.out.println(colliderA.getId());
                 for (int j = i+1; j < celda.size(); j++) {
                     Colisionable b = celda.get(j);
-                    System.out.println(b.getHitbox().getId());
-                    // si no estaba ya el id combinado, agrega el par a la lista de pares
-                    if (idsVisitados.add(combinarIds(a, b))) { 
-                    // si no tienen capas compatibles, los descarta. en otro caso los añade a la lista de pares
-                    if (!capasCompatibles(a, b)) { continue; } else { pares.add(new ParColision(a, b)); }}
+                    Hitbox colliderB = b.getHitbox();
+                    // si no estaba ya el id combinado, agrega el par a la lista de pares y avanza
+                    if (idsVisitados.add(colliderA.combinarIds(colliderB))) { 
+                    // si no son compatibles, los descarta. en otro caso los añade a la lista de pares
+                    if (colliderA.esCompatible(colliderB)) { continue; } else { pares.add(new ParColision(a, b)); }}
                 }
             }
         }
@@ -65,15 +67,5 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
         colisionablesActuales.clear();
         idsVisitados.clear();
     }
-
-    private boolean capasCompatibles(Colisionable a, Colisionable b) {
-        return a.getHitbox().capasCompatibles(b.getHitbox());
-    }
-
-    private long combinarIds(Colisionable a, Colisionable b) {
-        return Codificacion.combinarInt(a.getHitbox().getId(), b.getHitbox().getId());
-    }
-
-
 
 }

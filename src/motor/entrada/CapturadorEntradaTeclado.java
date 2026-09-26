@@ -24,6 +24,7 @@ public class CapturadorEntradaTeclado {
 
     public void iniciarFrame() { 
         encolarEstado();
+        System.out.println(new EstadoEntradaTeclado(presionadas, mantenidas, soltadas).getInfo(KeyCode.SPACE));
         this.presionadas.clear(); 
         this.soltadas.clear(); 
     }
