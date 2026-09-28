@@ -4,7 +4,6 @@ package main;
  * Imports del prototipo anterior, conservados para futuras implementaciones:
  * import vista.SpriteVista;
  * import javafx.scene.control.Label;
- * import vista.HudVista;
  * import vista.JuegoVista;
  * import vista.MenuVista;
  * import javafx.scene.control.Label;

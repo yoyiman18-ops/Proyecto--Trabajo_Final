@@ -18,7 +18,7 @@ import javafx.scene.Node;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class VistaJuego extends BorderPane {
+public class VistaJuego extends BorderPane {
 
     private final Pane areaJuego = new Pane();
     private final Label vida = crearValor("Sin jugador");
@@ -32,7 +32,10 @@ public final class VistaJuego extends BorderPane {
     private final Label valorExperiencia = crearValor("-- / -- XP");
     private final ProgressBar barraExperiencia = new ProgressBar(0);
     private final Label tiempo = crearValor("--:--");
+    private final Label oleada = crearValor("--");
     private final Label enemigos = crearValor("--");
+    private final Label danio = crearValor("--");
+    private final Label puntos = crearValor("--/--");
 
     public VistaJuego() {
         Label titulo = new Label("WAVES 2D");
@@ -42,7 +45,10 @@ public final class VistaJuego extends BorderPane {
             crearTarjeta("VIDA", new HBox(8, corazones, vida), 280, 320),
                 crearPanelExperiencia(),
                 crearTarjeta("TIEMPO", tiempo),
-                crearTarjeta("ENEMIGOS", enemigos));
+                crearTarjeta("OLEADA", oleada, 110, 120),
+                crearTarjeta("ENEMIGOS", enemigos),
+                crearTarjeta("DAÑO", danio),
+                crearTarjeta("PUNTOS", puntos));
         indicadores.setAlignment(Pos.CENTER_LEFT);
         indicadores.setPadding(new Insets(12, 0, 0, 0));
         indicadores.setMaxWidth(Double.MAX_VALUE);
@@ -106,6 +112,18 @@ public final class VistaJuego extends BorderPane {
 
     public void actualizarEnemigos(int cantidad) {
         enemigos.setText(Integer.toString(cantidad));
+    }
+
+    public void actualizarOleada(int numero) {
+        oleada.setText(Integer.toString(numero));
+    }
+
+    public void actualizarDanio(int valor) {
+        danio.setText(Integer.toString(valor));
+    }
+
+    public void actualizarPuntos(int actual, int siguiente) {
+        puntos.setText(actual + "/" + siguiente);
     }
 
     private static Label crearValor(String valorInicial) {
