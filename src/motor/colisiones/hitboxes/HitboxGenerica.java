@@ -8,11 +8,11 @@ import java.awt.Shape;
 public class HitboxGenerica extends Hitbox {
 
     public HitboxGenerica(Shape formaColision, TipoHitbox tipo, MascaraColision categoriasColision, MascaraColision capasColision) {
-        super(formaColision, tipo, true, categoriasColision, capasColision);
+        super(formaColision, tipo, categoriasColision, capasColision, true);
     }
 
-    public HitboxGenerica(Shape formaColision, TipoHitbox tipo, boolean activa, MascaraColision categoriasColision, MascaraColision capasColision) {
-        super(formaColision, tipo, activa, categoriasColision, capasColision);
+    public HitboxGenerica(Shape formaColision, TipoHitbox tipo, MascaraColision categoriasColision, MascaraColision capasColision, boolean activa) {
+        super(formaColision, tipo, categoriasColision, capasColision, activa);
     }
 
     @Override 
