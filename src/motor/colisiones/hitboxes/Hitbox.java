@@ -29,10 +29,10 @@ public abstract class Hitbox {
     private Area areaTransformada;
 
     public Hitbox(Shape formaColision, TipoHitbox tipo, MascaraColision categoriasColision, MascaraColision capasColision) {
-        this(formaColision, tipo, true, categoriasColision, capasColision);
+        this(formaColision, tipo, categoriasColision, capasColision, true);
     }
 
-    public Hitbox(Shape formaColision, TipoHitbox tipo, boolean activa, MascaraColision categoriaColision, MascaraColision capasColision) {
+    public Hitbox(Shape formaColision, TipoHitbox tipo, MascaraColision categoriaColision, MascaraColision capasColision, boolean activa) {
         if (formaColision == null || tipo == null || categoriaColision == null || capasColision == null) {
             throw new IllegalArgumentException("Parámetros nulos en constructor de hitbox.");
         }
