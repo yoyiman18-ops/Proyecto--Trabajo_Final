@@ -26,10 +26,14 @@ public class Motor {
      * Crear motor default.
      */
     public Motor() {
+        this(new Pane());
+    }
+
+    public Motor(Parent root) {
         this(
             new SistemaColisiones(new FaseGeneralSpatialHashGrid(100), new FaseEspecificaSimple()),
             new GestorRecursos(),
-            new Pane()
+            root
         );
     }
 
