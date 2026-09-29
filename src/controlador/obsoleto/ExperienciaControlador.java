@@ -1,4 +1,4 @@
-package controlador;
+package controlador.obsoleto;
 
 import javafx.scene.Node;
 import javafx.scene.paint.Color;

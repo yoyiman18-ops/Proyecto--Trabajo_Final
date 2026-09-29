@@ -1,4 +1,4 @@
-package motor.modelo;
+package motor.util;
 
 public enum Eje {
     X,

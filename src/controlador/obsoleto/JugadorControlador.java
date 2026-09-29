@@ -1,4 +1,4 @@
-package controlador;
+package controlador.obsoleto;
 
 import java.util.EnumSet;
 import java.util.Set;

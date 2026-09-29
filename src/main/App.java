@@ -61,25 +61,20 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {      
-        parlante = new Observador<EstadoAcciones>() {
-            @Override
-            public void cambio(EstadoAcciones e) {
-                if (e.activa(Accion.DASH)) { System.out.println("hola"); }
-            }
-        };
 
         motor = new Motor();
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.A, TipoEntrada.MANTENER, Accion.MOVER_IZQUIERDA));
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.W, TipoEntrada.MANTENER, Accion.MOVER_ARRIBA));
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
 
-        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.DASH));
-        motor.teclado().suscribir(parlante);
         motor.iniciar();
+        motor.instanciarJugador("zorro/zorro_abajo_0");
 
         Scene escena = new Scene(motor.root(), 300, 300);
         stage.setScene(escena);
         stage.setTitle("ejemplo del motor");
         stage.show();
-
-
     }
 
     @Override
@@ -188,6 +183,7 @@ public class App extends Application {
     }
     */
 
+    /*
     private void agregarEnemigo(double x, double y, Rectangle2D recorte,
                                 EntidadViva jugador, Pane escenario,
                                 AtomicInteger bajas, Label contadorBajas) {
@@ -227,6 +223,7 @@ public class App extends Application {
             default -> new Rectangle2D(145, 80, 55, 60);
         };
     }
+    */
 
     public static void main(String[] args) throws Exception {
 

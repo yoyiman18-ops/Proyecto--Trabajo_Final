@@ -61,6 +61,11 @@ public class VecDouble2D implements Cloneable {
         }
     }
 
+    public void producto(double x) {
+        this.x *= x;
+        this.y *= x;
+    }
+
     public VecDouble2D normalizado() {
         if (x != 0 || y != 0) {
             double magnitud = Math.sqrt(x * x + y * y);

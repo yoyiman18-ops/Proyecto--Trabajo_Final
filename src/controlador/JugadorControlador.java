@@ -7,6 +7,7 @@ import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
+import motor.entrada.EstadoEntradaTeclado;
 import motor.modelo.Direccion;
 import motor.modelo.Entidad;
 import motor.recursos.GestorRecursos;
@@ -17,14 +18,17 @@ import vista.SpriteVista;
 
 import javafx.scene.Node;
 
-public class JugadorControlador 
-implements Observador<EstadoAcciones>, Controlador {
+public class JugadorControlador implements Controlador {
     private final String nombre;
     private final SpriteVista vista;
     private final Personaje modelo;
+    private EstadoAcciones estadoAcciones;
+    private final Observador<EstadoAcciones> observadorAcciones;
 
     public JugadorControlador(String nombre, GestorRecursos recursos) {
         this.nombre = nombre;
+        this.observadorAcciones = e -> { this.estadoAcciones = e; };
+
         this.vista = new SpriteVista(
             recursos.getImagen(nombre, Imagen.PNG),
             new javafx.geometry.Rectangle2D(0, 0, 30, 30),
@@ -40,26 +44,29 @@ implements Observador<EstadoAcciones>, Controlador {
                 MascaraColision.of(CategoriaColision.JUGADOR),
                 MascaraColision.of(CategoriaColision.ENEMIGO, CategoriaColision.EXP, CategoriaColision.ITEM, CategoriaColision.MURO)
             ))
+            .friccion(0.2)
+            .aceleracion(3)
+            .velocidadMax(30)
             .build();
         
         modelo.getNotificador().suscribirObservador(vista);
     }
 
-    @Override 
     public void tick(Double dt) {
-        modelo.mover();
+        if (estadoAcciones.activa(Accion.MOVER_ARRIBA)) { modelo.acelerar(Direccion.ARRIBA); }
+        else if (estadoAcciones.activa(Accion.MOVER_ABAJO)) { modelo.acelerar(Direccion.ABAJO); }
+        else { modelo.frenar(Eje.Y); }
+
+        if (estadoAcciones.activa(Accion.MOVER_DERECHA)) { modelo.acelerar(Direccion.DERECHA); }
+        else if (estadoAcciones.activa(Accion.MOVER_IZQUIERDA)) { modelo.acelerar(Direccion.IZQUIERDA); }
+        else { modelo.frenar(Eje.X); }
+        modelo.mover(dt);
+        //System.out.println(modelo.getVelocidad().toString());
     }
+
+    public Observador<EstadoAcciones> getObservadorAcciones() { return this.observadorAcciones; }
 
     @Override public Entidad getModelo() { return this.modelo; }
     @Override public Node getVista() { return this.vista; }
 
-    @Override
-    public void cambio(EstadoAcciones e) {
-        if (e.activa(Accion.MOVER_ARRIBA)) { modelo.acelerar(Direccion.ARRIBA); }
-        else if (e.activa(Accion.MOVER_ABAJO)) { modelo.acelerar(Direccion.ABAJO); }
-        else { modelo.frenar(Eje.Y); }
-        if (e.activa(Accion.MOVER_DERECHA)) { modelo.acelerar(Direccion.DERECHA); }
-        else if (e.activa((Accion.MOVER_IZQUIERDA))) { modelo.acelerar(Direccion.IZQUIERDA); }
-        else { modelo.frenar(Eje.X); }
-    }
 }

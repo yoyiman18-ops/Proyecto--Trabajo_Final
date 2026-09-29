@@ -35,8 +35,9 @@ public class Entidad implements Colisionable {
         this.notificador = new NotificadorDebil<>();
     }
 
-    public void mover() {
-        if (velocidad.getX() != 0 && velocidad.getY() != 0) {
+    public void mover(double dt) {
+        if (velocidad.getX() != 0 || velocidad.getY() != 0) {
+            velocidad.producto(dt);
             posicion.sumar(velocidad);
             hitbox.actualizarTransformacion(posicion);
             notificador.notificar(this);
@@ -46,7 +47,7 @@ public class Entidad implements Colisionable {
     public void acelerar(Direccion direccion) {
         switch (direccion) {
             case Direccion.ARRIBA -> velocidad.setY(Math.max(velocidad.getY() - aceleracion, -velocidadMax));
-            case Direccion.ABAJO -> velocidad.setY(Math.min(velocidad.getY() + aceleracion, velocidadMax));
+            case Direccion.ABAJO -> { velocidad.setY(Math.min(velocidad.getY() + aceleracion, velocidadMax));}
             case Direccion.IZQUIERDA -> velocidad.setX(Math.max(velocidad.getX() - aceleracion, -velocidadMax));
             case Direccion.DERECHA -> velocidad.setX(Math.min(velocidad.getX() + aceleracion, velocidadMax));
         }
@@ -57,16 +58,16 @@ public class Entidad implements Colisionable {
             case Eje.X -> {
                 if (velocidad.getX() == 0) { return; }
                 if (velocidad.getX() > 0) {
-                    velocidad.setX(Math.max(posicion.getX() - friccion, 0));
+                    velocidad.setX(Math.max(velocidad.getX() - friccion, 0));
                 } else {
-                    velocidad.setX(Math.min(posicion.getX() + friccion, 0));
+                    velocidad.setX(Math.min(velocidad.getX() + friccion, 0));
                 }
             }
             case Eje.Y -> {
                 if (velocidad.getY() > 0) {
-                    velocidad.setY(Math.max(posicion.getY() - friccion, 0));
+                    velocidad.setY(Math.max(velocidad.getY() - friccion, 0));
                 } else {
-                    velocidad.setY(Math.min(posicion.getY() + friccion, 0));
+                    velocidad.setY(Math.min(velocidad.getY() + friccion, 0));
                 }
             }
         }

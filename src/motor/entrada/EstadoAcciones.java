@@ -7,9 +7,6 @@ public record EstadoAcciones(EnumSet<Accion> estado) {
         this.estado = EnumSet.copyOf(estado);
     }
 
-    public boolean seMueve() { 
-        return (estado.contains(Accion.MOVER_ARRIBA)) 
-    }
     public boolean activa(Accion accion) { return estado.contains(accion); }
     public String getInfo(Accion accion) {
         return String.format(
