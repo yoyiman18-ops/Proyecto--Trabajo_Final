@@ -30,9 +30,9 @@ public class App extends Application {
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
 
         motor.iniciar();
-        motor.instanciarJugador("zorro/zorro_sheet");
+        motor.instanciarJugador("zorro/zorro");
 
-        Scene escena = new Scene(motor.root(), 300, 300);
+        Scene escena = new Scene(motor.root(), 1200, 600);
         stage.setScene(escena);
         stage.setTitle("ejemplo del motor");
         stage.show();

@@ -26,13 +26,14 @@ public class JugadorControlador implements Controlador {
 
     public JugadorControlador(String nombre, GestorRecursos recursos) {
         this.nombre = nombre;
-        this.observadorAcciones = e -> { this.estadoAcciones = e; };
+        this.observadorAcciones = e -> this.estadoAcciones = e;
 
         this.vista = new SpriteVista(
-            recursos.getImagen(nombre, Imagen.PNG),
-            new javafx.geometry.Rectangle2D(0, 0, 30, 30),
-            30,
-            30
+            recursos.getImagen("zorro_sheet", Imagen.PNG),
+            4,
+            4,
+            50,
+            50
         );
 
         this.modelo = new Personaje.Builder(
@@ -43,7 +44,7 @@ public class JugadorControlador implements Controlador {
                 MascaraColision.of(CategoriaColision.JUGADOR),
                 MascaraColision.of(CategoriaColision.ENEMIGO, CategoriaColision.EXP, CategoriaColision.ITEM, CategoriaColision.MURO)
             ))
-            .friccion(3000)
+            .friccion(2500)
             .aceleracion(3000)
             .velocidadMax(240)
             .build();
@@ -60,9 +61,28 @@ public class JugadorControlador implements Controlador {
         else if (estadoAcciones.activa(Accion.MOVER_IZQUIERDA)) { modelo.acelerar(Direccion.IZQUIERDA, dt); }
         else { modelo.frenar(Eje.X, dt); }
         modelo.mover(dt);
-        //System.out.println(modelo.getVelocidad().toString());
+        double vx = modelo.getVelocidad().getX();
+        double vy = modelo.getVelocidad().getY();
+        // implementación preliminar para lógica de animación, queda poder volverla
+        // más genérica y abstracta 
+        int fila;
+        if (Math.abs(vx) > Math.abs(vy)) {
+            if (vx > 0) {
+                fila = 2;
+            } else {
+                fila = 3;
+            }
+        } else {
+            if (vy > 0) {
+                fila = 0;
+            } else {
+                fila = 1;
+            }
+        }
+        vista.actualizarAnimacion(fila, (vx != 0 || vy != 0), dt);
     }
 
+    @Override 
     public Observador<EstadoAcciones> getObservadorAcciones() { return this.observadorAcciones; }
 
     @Override public Entidad getModelo() { return this.modelo; }
