@@ -1,6 +1,6 @@
 package vista;
 
-
+import motor.modelo.Entidad;
 import motor.recursos.Extension;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
@@ -9,7 +9,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.geometry.Rectangle2D;
 
-public class SpriteVista extends ImageView {
+public class SpriteVista extends ImageView implements Observador<Entidad> {
 
     private final Image imagen;
     private int cuadroActual;

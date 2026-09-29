@@ -51,10 +51,6 @@ public class Motor {
         });
     }
 
-    public void instanciarEntidad(Entidad.Builder entidadBuilder) {
-        Entidad entidad = entidadBuilder.build(gestorRecursos);
-        colisionables.add(entidad);
-    }
 
     public GestorRecursos recursos() { return this.gestorRecursos; }
     public GestorEntradaTeclado teclado() { return this.gestorEntradaTeclado; }

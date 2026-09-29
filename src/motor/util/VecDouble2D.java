@@ -37,6 +37,30 @@ public class VecDouble2D implements Cloneable {
         }
     }
 
+    public void sumar(VecDouble2D otro) {
+        this.x += otro.getX();
+        this.y += otro.getY();
+    }
+
+    public void sumar(double x, Eje eje) {
+        switch (eje) {
+            case Eje.X -> this.x += x;
+            case Eje.Y -> this.y += x;
+        }
+    }
+
+    public void restar(VecDouble2D otro) {
+        this.x -= otro.getX();
+        this.y -= otro.getY();
+    }
+
+    public void restar(double x, Eje eje) {
+        switch (eje) {
+            case Eje.X -> this.x -= x;
+            case Eje.Y -> this.y -= x;
+        }
+    }
+
     public VecDouble2D normalizado() {
         if (x != 0 || y != 0) {
             double magnitud = Math.sqrt(x * x + y * y);
