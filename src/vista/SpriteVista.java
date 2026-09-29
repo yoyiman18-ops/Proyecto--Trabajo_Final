@@ -9,43 +9,20 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.geometry.Rectangle2D;
 
-public class SpriteVista extends Pane {
+public class SpriteVista extends ImageView {
 
-    private static final int CANTIDAD_CUADROS = 4;
-
-    private final ImageView imageView;
     private final Image imagen;
     private int cuadroActual;
-    private long ultimoCambioCuadro;
 
-    public SpriteVista() {
-        imageView = new ImageView();
-        getChildren().add(imageView);
+    public SpriteVista(Image imagen) {
     }
 
-    public SpriteVista(String imagen, Rectangle2D recorte, double ancho, double alto) {
+    public SpriteVista(Image imagen, Rectangle2D recorte, double ancho, double alto) {
         this.imagen = imagen;
-        this.imageView = new ImageView();
-        imageView.setViewport(recorte);
-        imageView.setFitWidth(ancho);
-        imageView.setFitHeight(alto);
-        imageView.setPreserveRatio(true);
-        mostrarImagen(imagen, Extension.Imagen.JPG);
-        getChildren().add(imageView);
-    }
-
-    public SpriteVista(String carpetaAnimacion, double ancho, double alto) {
-        if (carpetaAnimacion == null || carpetaAnimacion.isBlank()) {
-            throw new IllegalArgumentException("La carpeta de animación no puede estar vacía");
-        }
-        this.imageView = new ImageView();
-        this.carpetaAnimacion = carpetaAnimacion;
-        imageView.setFitWidth(ancho);
-        imageView.setFitHeight(alto);
-        imageView.setPreserveRatio(true);
-        setPrefSize(ancho, alto);
-        mostrarCuadroAnimacion();
-        getChildren().add(imageView);
+        this.setViewport(recorte);
+        this.setFitWidth(ancho);
+        this.setFitHeight(alto);
+        this.setPreserveRatio(true);
     }
 
     public void actualizar(SpriteModelo modelo) {
@@ -84,12 +61,6 @@ public class SpriteVista extends Pane {
             return;
         }
 
-        long ahora = System.nanoTime();
-        if (ahora - ultimoCambioCuadro >= INTERVALO_CUADRO_NS) {
-            cuadroActual = (cuadroActual + 1) % CANTIDAD_CUADROS;
-            ultimoCambioCuadro = ahora;
-            mostrarCuadroAnimacion();
-        }
     }
 
     private String obtenerDireccion(double x, double y) {
@@ -102,8 +73,4 @@ public class SpriteVista extends Pane {
         return y > 0 ? "abajo" : "arriba";
     }
 
-    private void mostrarCuadroAnimacion() {
-        mostrarImagen(carpetaAnimacion + "/zorro_" + direccionAnimacion
-                + "_" + cuadroActual, Extension.Imagen.PNG);
-    }
 }
