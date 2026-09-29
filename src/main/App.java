@@ -1,62 +1,23 @@
 package main;
 
-
-import vista.SpriteVista;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 import javafx.stage.Stage;
-import vista.HudVista;
-import vista.JuegoVista;
-import vista.MenuVista;
-import javafx.animation.AnimationTimer;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.layout.Pane;
-import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
-import vista.SpriteVista;
 import motor.Motor;
-import vista.VistaJuego;
-import motor.colisiones.*;
-import motor.colisiones.hitboxes.CategoriaColision;
-import motor.colisiones.hitboxes.Hitbox;
-import motor.colisiones.hitboxes.HitboxGenerica;
-import motor.colisiones.hitboxes.HitboxRectangular;
-import motor.colisiones.hitboxes.MascaraColision;
-import motor.colisiones.hitboxes.TipoHitbox;
-import motor.colisiones.sistema.FaseEspecificaSimple;
-import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
-import motor.entrada.EstadoEntradaTeclado;
-import motor.entrada.GestorEntradaTeclado;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
-import motor.modelo.Entidad;
-import motor.recursos.GestorRecursos;
-import motor.recursos.cache.CacheImagenes;
-import motor.util.VecDouble2D;
+import motor.recursos.Extension.Imagen;
 import motor.util.observer.Observador;
-import java.awt.Shape;
-import java.awt.geom.Ellipse2D;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.swing.Timer;
-
-import controlador.obsoleto.EnemigoControlador;
-import controlador.obsoleto.ExperienciaControlador;
-import controlador.obsoleto.JugadorControlador;
-import controlador.obsoleto.ProyectilControlador;
-import controlador.obsoleto.VidaControlador;
-
+import vista.SpriteVista;
 
 
 // nota: en esta clase se prueban de forma arbitraria las características añadidas.
 
 public class App extends Application {
-    private Observador<EstadoAcciones> parlante;
     private Motor motor;
 
     @Override
@@ -69,12 +30,13 @@ public class App extends Application {
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
 
         motor.iniciar();
-        motor.instanciarJugador("zorro/zorro_abajo_0");
+        motor.instanciarJugador("zorro/zorro_sheet");
 
         Scene escena = new Scene(motor.root(), 300, 300);
         stage.setScene(escena);
         stage.setTitle("ejemplo del motor");
         stage.show();
+
     }
 
     @Override

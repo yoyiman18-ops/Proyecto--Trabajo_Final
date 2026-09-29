@@ -22,7 +22,7 @@ public class Motor {
     private final GestorRecursos gestorRecursos;
     private final GestorEntradaTeclado gestorEntradaTeclado;
     private final RelojDelta relojDelta;
-    private final Parent root;
+    private final Pane root;
     private final CopyOnWriteArrayList<Controlador> controladores;
     private final CopyOnWriteArrayList<Colisionable> colisionables;
 
@@ -40,7 +40,7 @@ public class Motor {
     public Motor(
         SistemaColisiones sistemaColisiones,
         GestorRecursos gestorRecursos,
-        Parent root
+        Pane root
         ) {
         this.sistemaColisiones = sistemaColisiones;
         this.gestorRecursos = gestorRecursos;
@@ -61,6 +61,7 @@ public class Motor {
         JugadorControlador c = new JugadorControlador(nombre, gestorRecursos);
         this.gestorEntradaTeclado.suscribir(c.getObservadorAcciones());
         this.controladores.add(c);   
+        Platform.runLater(() -> {root.getChildren().add(c.getVista());});
     }
 
 
@@ -68,7 +69,7 @@ public class Motor {
 
     public GestorRecursos recursos() { return this.gestorRecursos; }
     public GestorEntradaTeclado teclado() { return this.gestorEntradaTeclado; }
-    public Parent root() { return this.root; }
+    public Pane root() { return this.root; }
     public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }
 }

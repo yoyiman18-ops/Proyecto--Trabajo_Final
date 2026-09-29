@@ -7,7 +7,6 @@ import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
-import motor.entrada.EstadoEntradaTeclado;
 import motor.modelo.Direccion;
 import motor.modelo.Entidad;
 import motor.recursos.GestorRecursos;
@@ -44,22 +43,22 @@ public class JugadorControlador implements Controlador {
                 MascaraColision.of(CategoriaColision.JUGADOR),
                 MascaraColision.of(CategoriaColision.ENEMIGO, CategoriaColision.EXP, CategoriaColision.ITEM, CategoriaColision.MURO)
             ))
-            .friccion(0.2)
-            .aceleracion(3)
-            .velocidadMax(30)
+            .friccion(3000)
+            .aceleracion(3000)
+            .velocidadMax(240)
             .build();
         
         modelo.getNotificador().suscribirObservador(vista);
     }
 
     public void tick(Double dt) {
-        if (estadoAcciones.activa(Accion.MOVER_ARRIBA)) { modelo.acelerar(Direccion.ARRIBA); }
-        else if (estadoAcciones.activa(Accion.MOVER_ABAJO)) { modelo.acelerar(Direccion.ABAJO); }
-        else { modelo.frenar(Eje.Y); }
+        if (estadoAcciones.activa(Accion.MOVER_ARRIBA)) { modelo.acelerar(Direccion.ARRIBA, dt); }
+        else if (estadoAcciones.activa(Accion.MOVER_ABAJO)) { modelo.acelerar(Direccion.ABAJO, dt); }
+        else { modelo.frenar(Eje.Y, dt); }
 
-        if (estadoAcciones.activa(Accion.MOVER_DERECHA)) { modelo.acelerar(Direccion.DERECHA); }
-        else if (estadoAcciones.activa(Accion.MOVER_IZQUIERDA)) { modelo.acelerar(Direccion.IZQUIERDA); }
-        else { modelo.frenar(Eje.X); }
+        if (estadoAcciones.activa(Accion.MOVER_DERECHA)) { modelo.acelerar(Direccion.DERECHA, dt); }
+        else if (estadoAcciones.activa(Accion.MOVER_IZQUIERDA)) { modelo.acelerar(Direccion.IZQUIERDA, dt); }
+        else { modelo.frenar(Eje.X, dt); }
         modelo.mover(dt);
         //System.out.println(modelo.getVelocidad().toString());
     }
