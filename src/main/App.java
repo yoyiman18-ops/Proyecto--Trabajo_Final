@@ -9,8 +9,6 @@ import javafx.stage.Stage;
 import vista.HudVista;
 import vista.JuegoVista;
 import vista.MenuVista;
-
-import controlador.JugadorControlador;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
@@ -47,12 +45,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.Timer;
 
-import modelo.Entidad;
-import modelo.EntidadViva;
-import controlador.EnemigoControlador;
-import controlador.ExperienciaControlador;
-import controlador.ProyectilControlador;
-import controlador.VidaControlador;
+import controlador.obsoleto.EnemigoControlador;
+import controlador.obsoleto.ExperienciaControlador;
+import controlador.obsoleto.JugadorControlador;
+import controlador.obsoleto.ProyectilControlador;
+import controlador.obsoleto.VidaControlador;
 
 
 

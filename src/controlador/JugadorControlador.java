@@ -14,7 +14,6 @@ import motor.util.Eje;
 import motor.util.observer.Observador;
 import motor.recursos.Extension.Imagen;
 import vista.SpriteVista;
-import java.awt.geom.Rectangle2D;
 
 import javafx.scene.Node;
 
@@ -26,19 +25,28 @@ implements Observador<EstadoAcciones>, Controlador {
 
     public JugadorControlador(String nombre, GestorRecursos recursos) {
         this.nombre = nombre;
-        this.vista = new SpriteVista(recursos.getImagen(nombre, Imagen.PNG));
+        this.vista = new SpriteVista(
+            recursos.getImagen(nombre, Imagen.PNG),
+            new javafx.geometry.Rectangle2D(0, 0, 30, 30),
+            30,
+            30
+        );
+
         this.modelo = new Personaje.Builder(
             nombre,
             new HitboxRectangular(
-                new Rectangle2D.Double(0,0,30,20),
+                new java.awt.geom.Rectangle2D.Double(0,0,30,20),
                 TipoHitbox.SOLIDA,
                 MascaraColision.of(CategoriaColision.JUGADOR),
                 MascaraColision.of(CategoriaColision.ENEMIGO, CategoriaColision.EXP, CategoriaColision.ITEM, CategoriaColision.MURO)
             ))
             .build();
+        
+        modelo.getNotificador().suscribirObservador(vista);
     }
 
-    public void tick() {
+    @Override 
+    public void tick(Double dt) {
         modelo.mover();
     }
 

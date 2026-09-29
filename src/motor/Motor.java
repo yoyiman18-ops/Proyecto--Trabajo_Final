@@ -2,6 +2,7 @@ package motor;
 
 import java.util.ArrayList;
 
+import controlador.Controlador;
 import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.layout.Pane;
@@ -20,6 +21,7 @@ public class Motor {
     private final GestorEntradaTeclado gestorEntradaTeclado;
     private final RelojDelta relojDelta;
     private final Parent root;
+    private final ArrayList<Controlador> controladores;
     private final ArrayList<Colisionable> colisionables;
 
     /**
@@ -44,12 +46,16 @@ public class Motor {
         this.root = root;
         this.gestorEntradaTeclado = new GestorEntradaTeclado(root);
         this.colisionables = new ArrayList<>();
+        this.controladores = new ArrayList<>();
         
         relojDelta.suscribirObservador(e -> {
             this.gestorEntradaTeclado.tick();
             this.sistemaColisiones.resolverColisiones(colisionables);
+            for (Controlador c : controladores) { c.tick(e); }
         });
     }
+
+
 
 
     public GestorRecursos recursos() { return this.gestorRecursos; }

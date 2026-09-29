@@ -15,7 +15,7 @@ public class Entidad implements Colisionable {
     private double aceleracion;
     private double friccion;
     private double velocidadMax;
-    private final Notificador<VecDouble2D> notificadorPosicion;
+    private final Notificador<Entidad> notificador;
 
     public Entidad(
         String nombre,
@@ -32,14 +32,14 @@ public class Entidad implements Colisionable {
         this.aceleracion = aceleracion;
         this.friccion = friccion;
         this.velocidadMax = velocidadMax;
-        this.notificadorPosicion = new NotificadorDebil<>();
+        this.notificador = new NotificadorDebil<>();
     }
 
     public void mover() {
         if (velocidad.getX() != 0 && velocidad.getY() != 0) {
             posicion.sumar(velocidad);
             hitbox.actualizarTransformacion(posicion);
-            notificadorPosicion.notificar(posicion);
+            notificador.notificar(this);
         }
     }
 
@@ -76,6 +76,7 @@ public class Entidad implements Colisionable {
     public VecDouble2D getPosicion() { return this.posicion; }
     public double getAceleracion() { return this.aceleracion; }
     public double getFriccion() { return this.friccion; }
+    public Notificador<Entidad> getNotificador() { return this.notificador; }
 
     @Override public Hitbox getHitbox() { return this.hitbox; }
     @Override public boolean colisionesActivas() { return this.hitbox.estaActiva(); }
