@@ -3,8 +3,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javafx.scene.Node;
-import javafx.scene.input.KeyCode;
+import javafx.scene.Scene;
 import motor.util.observer.NotificadorDebil;
 import motor.util.observer.Observador;
 
@@ -13,20 +12,21 @@ public class GestorEntradaTeclado {
     private final List<MapeoTeclado> mapeos;
     private final EnumSet<Accion> acciones;
     private final NotificadorDebil<EstadoAcciones> notificador;
+    private Scene escenaRoot;
 
-    public GestorEntradaTeclado(Node root) {
+    public GestorEntradaTeclado() {
         this.mapeos = new CopyOnWriteArrayList<>();
         this.acciones = EnumSet.noneOf(Accion.class);
         this.capturador = new CapturadorEntradaTeclado();
-        capturador.registrar(root);
         this.notificador = new NotificadorDebil<EstadoAcciones>();
     }
-
+    public void setEscenaRoot(Scene escenaRoot) { this.escenaRoot = escenaRoot; capturador.registrar(escenaRoot); }
     public void añadirMapeo(MapeoTeclado mapeo) { if (!this.mapeos.contains(mapeo)) { this.mapeos.add(mapeo); }}
     public void eliminarMapeo(MapeoTeclado mapeo) { this.mapeos.remove(mapeo); }
     public void suscribir(Observador<EstadoAcciones> o) { this.notificador.suscribirObservador(o); }
     public void desuscribir(Observador<EstadoAcciones> o) { this.notificador.desuscribirObservador(o); }
     public void tick() {
+        if (this.escenaRoot == null) { return; }
         capturador.iniciarFrame();
         EstadoEntradaTeclado estado = capturador.getEstado();
         mapear(estado);

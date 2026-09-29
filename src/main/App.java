@@ -34,6 +34,7 @@ public class App extends Application {
 
         Scene escena = new Scene(motor.root(), 1200, 600);
         stage.setScene(escena);
+        motor.teclado().setEscenaRoot(escena);
         stage.setTitle("ejemplo del motor");
         stage.show();
 

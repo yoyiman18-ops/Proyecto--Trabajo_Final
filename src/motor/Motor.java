@@ -43,7 +43,7 @@ public class Motor {
         this.relojDelta = new RelojDelta();
         this.root = root;
         this.root.setFocusTraversable(true);
-        this.gestorEntradaTeclado = new GestorEntradaTeclado(root);
+        this.gestorEntradaTeclado = new GestorEntradaTeclado();
         this.colisionables = new CopyOnWriteArrayList<>();
         this.controladores = new CopyOnWriteArrayList<>();
         
