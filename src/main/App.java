@@ -44,10 +44,9 @@ package main;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import vista.JuegoVista;
-import vista.MenuVista;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
@@ -69,18 +68,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.Timer;
 
-import controlador.obsoleto.EnemigoControlador;
-import controlador.obsoleto.ExperienciaControlador;
-import controlador.obsoleto.JugadorControlador;
-import controlador.obsoleto.ProyectilControlador;
-import controlador.obsoleto.VidaControlador;
 
 
 
 // nota: en esta clase se prueban de forma arbitraria las características añadidas.
 
 public class App extends Application {
-    private Observador<EstadoAcciones> parlante;
     private Motor motor;
 
     @Override
@@ -92,12 +85,13 @@ public class App extends Application {
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.W, TipoEntrada.MANTENER, Accion.MOVER_ARRIBA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
-        motor.instanciarJugador("zorro/zorro_abajo_0");
+        motor.instanciarJugador("zorro/zorro");
 
         Scene escena = new Scene(vista, 960, 720);
         stage.setScene(escena);
-        stage.setTitle("Waves 2D");
+        stage.setTitle("Waves 2D | debug");
         stage.show();
+        motor.teclado().setEscenaRoot(escena);
         motor.iniciar();
     }
 

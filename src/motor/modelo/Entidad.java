@@ -37,39 +37,52 @@ public class Entidad implements Colisionable {
 
     public void mover(double dt) {
         if (velocidad.getX() != 0 || velocidad.getY() != 0) {
-            velocidad.producto(dt);
-            posicion.sumar(velocidad);
+            VecDouble2D desplazamiento = velocidad.clone();
+            desplazamiento.producto(dt);
+            posicion.sumar(desplazamiento);
             hitbox.actualizarTransformacion(posicion);
             notificador.notificar(this);
         }
     }
 
-    public void acelerar(Direccion direccion) {
+    public void acelerar(Direccion direccion, double dt) {
+        double cambioVelocidad = aceleracion * dt;
         switch (direccion) {
-            case Direccion.ARRIBA -> velocidad.setY(Math.max(velocidad.getY() - aceleracion, -velocidadMax));
-            case Direccion.ABAJO -> { velocidad.setY(Math.min(velocidad.getY() + aceleracion, velocidadMax));}
-            case Direccion.IZQUIERDA -> velocidad.setX(Math.max(velocidad.getX() - aceleracion, -velocidadMax));
-            case Direccion.DERECHA -> velocidad.setX(Math.min(velocidad.getX() + aceleracion, velocidadMax));
+            case Direccion.ARRIBA -> velocidad.setY(velocidad.getY() - cambioVelocidad);
+            case Direccion.ABAJO -> velocidad.setY(velocidad.getY() + cambioVelocidad);
+            case Direccion.IZQUIERDA -> velocidad.setX(velocidad.getX() - cambioVelocidad);
+            case Direccion.DERECHA -> velocidad.setX(velocidad.getX() + cambioVelocidad);
         }
+        limitarVelocidad();
     }
 
-    public void frenar(Eje eje) {
+    public void frenar(Eje eje, double dt) {
+        double cambioVelocidad = friccion * dt;
         switch (eje) {
             case Eje.X -> {
                 if (velocidad.getX() == 0) { return; }
                 if (velocidad.getX() > 0) {
-                    velocidad.setX(Math.max(velocidad.getX() - friccion, 0));
+                    velocidad.setX(Math.max(velocidad.getX() - cambioVelocidad, 0));
                 } else {
-                    velocidad.setX(Math.min(velocidad.getX() + friccion, 0));
+                    velocidad.setX(Math.min(velocidad.getX() + cambioVelocidad, 0));
                 }
             }
             case Eje.Y -> {
                 if (velocidad.getY() > 0) {
-                    velocidad.setY(Math.max(velocidad.getY() - friccion, 0));
+                    velocidad.setY(Math.max(velocidad.getY() - cambioVelocidad, 0));
                 } else {
-                    velocidad.setY(Math.min(velocidad.getY() + friccion, 0));
+                    velocidad.setY(Math.min(velocidad.getY() + cambioVelocidad, 0));
                 }
             }
+        }
+    }
+
+    private void limitarVelocidad() {
+        double magnitud = Math.hypot(velocidad.getX(), velocidad.getY());
+        if (magnitud > velocidadMax) {
+            double factor = velocidadMax / magnitud;
+            velocidad.setX(velocidad.getX() * factor);
+            velocidad.setY(velocidad.getY() * factor);
         }
     }
 
