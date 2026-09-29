@@ -1,9 +1,10 @@
 package vista;
 
-import modelo.SpriteModelo;
+
 import motor.recursos.Extension;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.geometry.Rectangle2D;
@@ -11,13 +12,9 @@ import javafx.geometry.Rectangle2D;
 public class SpriteVista extends Pane {
 
     private static final int CANTIDAD_CUADROS = 4;
-    private static final long INTERVALO_CUADRO_NS = 125_000_000L;
 
     private final ImageView imageView;
-    private String imagen;
-    private String carpetaAnimacion;
-    private String direccionAnimacion = "abajo";
-    private String recursoActual;
+    private final Image imagen;
     private int cuadroActual;
     private long ultimoCambioCuadro;
 
@@ -109,12 +106,4 @@ public class SpriteVista extends Pane {
         mostrarImagen(carpetaAnimacion + "/zorro_" + direccionAnimacion
                 + "_" + cuadroActual, Extension.Imagen.PNG);
     }
-
-    private void mostrarImagen(String nombre, Extension.Imagen extension) {
-        if (!nombre.equals(recursoActual)) {
-            imageView.setImage(GestorRecursos.getInstancia().getImagen(nombre, extension));
-            recursoActual = nombre;
-        }
-    }
-
 }
