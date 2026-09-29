@@ -7,13 +7,19 @@ import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
+import motor.modelo.Direccion;
+import motor.modelo.Entidad;
 import motor.recursos.GestorRecursos;
+import motor.util.Eje;
 import motor.util.observer.Observador;
 import motor.recursos.Extension.Imagen;
 import vista.SpriteVista;
 import java.awt.geom.Rectangle2D;
 
-public class JugadorControlador implements Observador<EstadoAcciones> {
+import javafx.scene.Node;
+
+public class JugadorControlador 
+implements Observador<EstadoAcciones>, Controlador {
     private final String nombre;
     private final SpriteVista vista;
     private final Personaje modelo;
@@ -32,18 +38,20 @@ public class JugadorControlador implements Observador<EstadoAcciones> {
             .build();
     }
 
+    public void tick() {
+        modelo.mover();
+    }
+
+    @Override public Entidad getModelo() { return this.modelo; }
+    @Override public Node getVista() { return this.vista; }
+
     @Override
     public void cambio(EstadoAcciones e) {
-        if (!(
-            e.activa(Accion.MOVER_ARRIBA) || 
-            e.activa(Accion.MOVER_ABAJO) || 
-            e.activa(Accion.MOVER_DERECHA) || 
-            e.activa(Accion.MOVER_IZQUIERDA)
-        )) {} else {
-            if (e.activa(Accion.MOVER_ARRIBA)) {}
-            else if (e.activa(Accion.MOVER_ABAJO)) {}
-            if (e.activa(Accion.MOVER_DERECHA)) {}
-            else if (e.activa((Accion.MOVER_IZQUIERDA))) {}
-        }
+        if (e.activa(Accion.MOVER_ARRIBA)) { modelo.acelerar(Direccion.ARRIBA); }
+        else if (e.activa(Accion.MOVER_ABAJO)) { modelo.acelerar(Direccion.ABAJO); }
+        else { modelo.frenar(Eje.Y); }
+        if (e.activa(Accion.MOVER_DERECHA)) { modelo.acelerar(Direccion.DERECHA); }
+        else if (e.activa((Accion.MOVER_IZQUIERDA))) { modelo.acelerar(Direccion.IZQUIERDA); }
+        else { modelo.frenar(Eje.X); }
     }
 }

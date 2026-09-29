@@ -14,6 +14,7 @@ public class Entidad implements Colisionable {
     private VecDouble2D velocidad;
     private double aceleracion;
     private double friccion;
+    private double velocidadMax;
     private final Notificador<VecDouble2D> notificadorPosicion;
 
     public Entidad(
@@ -22,28 +23,32 @@ public class Entidad implements Colisionable {
         VecDouble2D posicion,
         VecDouble2D velocidad,
         double aceleracion,
-        double friccion) {
+        double friccion,
+        double velocidadMax) {
         this.nombre = nombre;
         this.hitbox = hitbox;
         this.posicion = posicion;
         this.velocidad = velocidad;
         this.aceleracion = aceleracion;
         this.friccion = friccion;
+        this.velocidadMax = velocidadMax;
         this.notificadorPosicion = new NotificadorDebil<>();
     }
 
     public void mover() {
-        posicion.sumar(velocidad);
-        hitbox.actualizarTransformacion(posicion);
-        notificadorPosicion.notificar(posicion);
+        if (velocidad.getX() != 0 && velocidad.getY() != 0) {
+            posicion.sumar(velocidad);
+            hitbox.actualizarTransformacion(posicion);
+            notificadorPosicion.notificar(posicion);
+        }
     }
 
     public void acelerar(Direccion direccion) {
         switch (direccion) {
-            case Direccion.ARRIBA -> velocidad.restar(aceleracion, Eje.Y);
-            case Direccion.ABAJO -> velocidad.sumar(aceleracion, Eje.Y);
-            case Direccion.IZQUIERDA -> velocidad.restar(aceleracion, Eje.X);
-            case Direccion.DERECHA -> velocidad.sumar(aceleracion, Eje.X);
+            case Direccion.ARRIBA -> velocidad.setY(Math.max(velocidad.getY() - aceleracion, -velocidadMax));
+            case Direccion.ABAJO -> velocidad.setY(Math.min(velocidad.getY() + aceleracion, velocidadMax));
+            case Direccion.IZQUIERDA -> velocidad.setX(Math.max(velocidad.getX() - aceleracion, -velocidadMax));
+            case Direccion.DERECHA -> velocidad.setX(Math.min(velocidad.getX() + aceleracion, velocidadMax));
         }
     }
 
@@ -67,6 +72,8 @@ public class Entidad implements Colisionable {
         }
     }
 
+    public VecDouble2D getVelocidad() { return this.velocidad; }
+    public VecDouble2D getPosicion() { return this.posicion; }
     public double getAceleracion() { return this.aceleracion; }
     public double getFriccion() { return this.friccion; }
 

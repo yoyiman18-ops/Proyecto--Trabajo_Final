@@ -5,18 +5,10 @@ import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
 
 public class Personaje extends Entidad {
-    private final VecDouble2D posicion;
-    private final VecDouble2D velocidad;
-    private double aceleracion;
-    private double friccion;
     private double vida,vidaMax;
     
     private Personaje(Builder b) {
-        super(b.nombre, b.hitbox);
-        this.posicion = b.posicion;
-        this.velocidad = b.velocidad;
-        this.aceleracion = b.aceleracion;
-        this.friccion = b.friccion;
+        super(b.nombre, b.hitbox, b.posicion, b.velocidad, b.aceleracion, b.friccion, b.velocidadMax);
         this.vida = b.vida;
         this.vidaMax = b.vidaMax;
     }
@@ -24,6 +16,11 @@ public class Personaje extends Entidad {
     public static class Builder {
         private final String nombre;
         private final Hitbox hitbox;
+        private VecDouble2D posicion;
+        private VecDouble2D velocidad;
+        private double aceleracion;
+        private double friccion;
+        private double velocidadMax;
         private double vida,vidaMax;
 
         public Builder(String nombre, Hitbox hitbox) {
@@ -34,6 +31,7 @@ public class Personaje extends Entidad {
             this.aceleracion = 1;
             this.friccion = 0.75;
             this.vidaMax = 100;
+            this.velocidadMax = aceleracion * 2;
             this.vida = vidaMax;
         }
 
@@ -56,6 +54,11 @@ public class Personaje extends Entidad {
         public Builder friccion(double friccion) {
             if (friccion < 0) { throw new IllegalArgumentException("Friccion negativa no es valida"); }
             this.friccion = friccion;
+            return this;
+        }
+
+        public Builder velocidadMax(double velocidadMax) {
+            this.velocidadMax = velocidadMax;
             return this;
         }
 
