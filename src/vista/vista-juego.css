@@ -35,6 +35,36 @@
     -fx-font-weight: bold;
 }
 
+.xp-level {
+    -fx-text-fill: #fff0c8;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+}
+
+.xp-value {
+    -fx-text-fill: #fff0c8;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.xp-progress {
+    -fx-pref-height: 10px;
+    -fx-min-height: 10px;
+    -fx-max-height: 10px;
+}
+
+.xp-progress .track {
+    -fx-background-color: rgba(35, 24, 14, 0.9);
+    -fx-background-insets: 0;
+    -fx-background-radius: 3px;
+}
+
+.xp-progress .bar {
+    -fx-background-color: linear-gradient(to right, #8db84b, #e5c95c);
+    -fx-background-insets: 1px;
+    -fx-background-radius: 2px;
+}
+
 .game-area {
     -fx-background-color:
         radial-gradient(radius 100%, #27352f, #18221f 75%, #111816);
