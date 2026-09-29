@@ -1,7 +1,10 @@
 package motor;
 
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
+import controlador.Controlador;
+import controlador.JugadorControlador;
 import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.layout.Pane;
@@ -20,7 +23,8 @@ public class Motor {
     private final GestorEntradaTeclado gestorEntradaTeclado;
     private final RelojDelta relojDelta;
     private final Parent root;
-    private final ArrayList<Colisionable> colisionables;
+    private final CopyOnWriteArrayList<Controlador> controladores;
+    private final CopyOnWriteArrayList<Colisionable> colisionables;
 
     /**
      * Crear motor default.
@@ -43,18 +47,24 @@ public class Motor {
         this.relojDelta = new RelojDelta();
         this.root = root;
         this.gestorEntradaTeclado = new GestorEntradaTeclado(root);
-        this.colisionables = new ArrayList<>();
+        this.colisionables = new CopyOnWriteArrayList<>();
+        this.controladores = new CopyOnWriteArrayList<>();
         
         relojDelta.suscribirObservador(e -> {
             this.gestorEntradaTeclado.tick();
             this.sistemaColisiones.resolverColisiones(colisionables);
+            for (Controlador c : controladores) { c.tick(e); }
         });
     }
 
-    public void instanciarEntidad(Entidad.Builder entidadBuilder) {
-        Entidad entidad = entidadBuilder.build(gestorRecursos);
-        colisionables.add(entidad);
+    public void instanciarJugador(String nombre) {
+        JugadorControlador c = new JugadorControlador(nombre, gestorRecursos);
+        this.gestorEntradaTeclado.suscribir(c.getObservadorAcciones());
+        this.controladores.add(c);   
     }
+
+
+
 
     public GestorRecursos recursos() { return this.gestorRecursos; }
     public GestorEntradaTeclado teclado() { return this.gestorEntradaTeclado; }

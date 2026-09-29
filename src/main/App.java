@@ -9,8 +9,6 @@ import javafx.stage.Stage;
 import vista.HudVista;
 import vista.JuegoVista;
 import vista.MenuVista;
-
-import controlador.JugadorControlador;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.Pane;
@@ -47,12 +45,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.Timer;
 
-import modelo.Entidad;
-import modelo.EntidadViva;
-import controlador.EnemigoControlador;
-import controlador.ExperienciaControlador;
-import controlador.ProyectilControlador;
-import controlador.VidaControlador;
+import controlador.obsoleto.EnemigoControlador;
+import controlador.obsoleto.ExperienciaControlador;
+import controlador.obsoleto.JugadorControlador;
+import controlador.obsoleto.ProyectilControlador;
+import controlador.obsoleto.VidaControlador;
 
 
 
@@ -64,25 +61,20 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {      
-        parlante = new Observador<EstadoAcciones>() {
-            @Override
-            public void cambio(EstadoAcciones e) {
-                if (e.activa(Accion.DASH)) { System.out.println("hola"); }
-            }
-        };
 
         motor = new Motor();
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.A, TipoEntrada.MANTENER, Accion.MOVER_IZQUIERDA));
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.W, TipoEntrada.MANTENER, Accion.MOVER_ARRIBA));
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
 
-        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.DASH));
-        motor.teclado().suscribir(parlante);
         motor.iniciar();
+        motor.instanciarJugador("zorro/zorro_abajo_0");
 
         Scene escena = new Scene(motor.root(), 300, 300);
         stage.setScene(escena);
         stage.setTitle("ejemplo del motor");
         stage.show();
-
-
     }
 
     @Override
@@ -191,6 +183,7 @@ public class App extends Application {
     }
     */
 
+    /*
     private void agregarEnemigo(double x, double y, Rectangle2D recorte,
                                 EntidadViva jugador, Pane escenario,
                                 AtomicInteger bajas, Label contadorBajas) {
@@ -230,6 +223,7 @@ public class App extends Application {
             default -> new Rectangle2D(145, 80, 55, 60);
         };
     }
+    */
 
     public static void main(String[] args) throws Exception {
 

@@ -1,4 +1,4 @@
-package controlador;
+package controlador.obsoleto;
 
 import modelo.Proyectil;
 import motor.util.VecDouble2D;

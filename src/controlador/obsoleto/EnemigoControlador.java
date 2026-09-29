@@ -1,4 +1,4 @@
-package controlador;
+package controlador.obsoleto;
 
 import javafx.geometry.Point2D;
 import modelo.EntidadViva;

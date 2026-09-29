@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javafx.scene.Node;
+import javafx.scene.input.KeyCode;
 import motor.util.observer.NotificadorDebil;
 import motor.util.observer.Observador;
 
