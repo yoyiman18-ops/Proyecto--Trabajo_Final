@@ -3,10 +3,8 @@ package vista;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
@@ -20,6 +18,7 @@ import java.util.List;
 
 public class VistaJuego extends StackPane {
     private static final int VIDA_POR_CORAZON = 10;
+    private static final int CANTIDAD_GEMAS_EXPERIENCIA = 10;
 
     private final Pane areaJuego = new Pane();
     private final Label vida = crearValor("100/100");
@@ -28,10 +27,12 @@ public class VistaJuego extends StackPane {
     private final Image corazonLleno = cargarImagen("led-heart-red.png");
     private final Image corazonVacio = cargarImagen("led-heart.png");
     private final Image iconoExperiencia = cargarImagen("hud_xp.png");
-    private final Image placaExperiencia = cargarImagen("hud_placa_madera.png");
+    private final Image gemaExperienciaVacia = cargarImagen("hud_gema_gris.png");
+    private final Image gemaExperienciaLlena = cargarImagen("hud_gema_verde.png");
     private final Label nivelExperiencia = new Label("NIVEL --");
     private final Label valorExperiencia = crearValor("-- / -- XP");
-    private final ProgressBar barraExperiencia = new ProgressBar(0);
+    private final HBox gemasExperiencia = new HBox(2);
+    private final List<ImageView> iconosExperiencia = new ArrayList<>();
     private final Label tiempo = crearValor("--:--");
     private final Label oleada = crearValor("--");
     private final Label enemigos = crearValor("--");
@@ -110,7 +111,12 @@ public class VistaJuego extends StackPane {
         int actual = Math.max(0, Math.min(experiencia, objetivo));
         nivelExperiencia.setText("NIVEL " + nivel);
         valorExperiencia.setText(actual + " / " + objetivo + " XP");
-        barraExperiencia.setProgress(objetivo == 0 ? 0 : (double) actual / objetivo);
+        double progreso = objetivo == 0 ? 0 : (double) actual / objetivo;
+        int gemasLlenas = (int) Math.round(progreso * CANTIDAD_GEMAS_EXPERIENCIA);
+        for (int indice = 0; indice < iconosExperiencia.size(); indice++) {
+            iconosExperiencia.get(indice).setImage(
+                indice < gemasLlenas ? gemaExperienciaLlena : gemaExperienciaVacia);
+        }
     }
 
     public void actualizarTiempo(long segundos) {
@@ -150,36 +156,35 @@ public class VistaJuego extends StackPane {
         return tarjeta;
     }
 
-    private StackPane crearPanelExperiencia() {
-        ImageView placa = new ImageView(placaExperiencia);
-        placa.setViewport(new Rectangle2D(0, 30, 285, 60));
-        placa.setFitWidth(180);
-        placa.setPreserveRatio(true);
-
+    private HBox crearPanelExperiencia() {
         ImageView icono = new ImageView(iconoExperiencia);
         icono.setFitWidth(22);
         icono.setFitHeight(22);
         icono.setPreserveRatio(true);
 
+        for (int indice = 0; indice < CANTIDAD_GEMAS_EXPERIENCIA; indice++) {
+            ImageView gema = new ImageView(gemaExperienciaVacia);
+            gema.setFitWidth(11);
+            gema.setFitHeight(11);
+            gema.setPreserveRatio(true);
+            iconosExperiencia.add(gema);
+            gemasExperiencia.getChildren().add(gema);
+        }
+
         nivelExperiencia.getStyleClass().add("xp-level");
         valorExperiencia.getStyleClass().add("xp-value");
-        barraExperiencia.getStyleClass().add("xp-progress");
-        barraExperiencia.setMaxWidth(Double.MAX_VALUE);
 
         HBox etiquetas = new HBox(nivelExperiencia, valorExperiencia);
         etiquetas.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(nivelExperiencia, Priority.ALWAYS);
 
-        VBox informacion = new VBox(3, etiquetas, barraExperiencia);
+        VBox informacion = new VBox(3, etiquetas, gemasExperiencia);
         HBox contenido = new HBox(8, icono, informacion);
         contenido.setAlignment(Pos.CENTER_LEFT);
+        contenido.setMinSize(180, 56);
+        contenido.setPrefSize(180, 56);
         HBox.setHgrow(informacion, Priority.ALWAYS);
-
-        StackPane panel = new StackPane(placa, contenido);
-        panel.setMinSize(180, 56);
-        panel.setPrefSize(180, 56);
-        StackPane.setMargin(contenido, new Insets(7, 10, 7, 10));
-        return panel;
+        return contenido;
     }
 
     private static Image cargarImagen(String nombre) {
