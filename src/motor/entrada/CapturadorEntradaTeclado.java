@@ -3,13 +3,18 @@ import java.util.ArrayDeque;
 import java.util.EnumSet;
 import java.util.Queue;
 import java.util.Set;
-
-import javafx.scene.Node;
+import java.util.logging.Logger;
+import java.util.logging.Level;
+import javafx.event.EventHandler;
+import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 public class CapturadorEntradaTeclado {
-    
+    private final static Logger logger = Logger.getLogger(CapturadorEntradaTeclado.class.getName());
+    private final EventHandler<KeyEvent> capturaPresionar = e -> presionarTecla(e);
+    private final EventHandler<KeyEvent> capturaSoltar = e -> soltarTecla(e);
+
     private final Set<KeyCode> soltadas,presionadas,mantenidas;
     private final Queue<EstadoEntradaTeclado> bufferEntrada;
 
@@ -24,31 +29,18 @@ public class CapturadorEntradaTeclado {
 
     public void iniciarFrame() { 
         encolarEstado();
-        System.out.println(new EstadoEntradaTeclado(presionadas, mantenidas, soltadas).getInfo(KeyCode.SPACE));
         this.presionadas.clear(); 
         this.soltadas.clear(); 
     }
 
-    public void registrar(Node nodo) {
-        nodo.addEventHandler(
-            KeyEvent.KEY_PRESSED, 
-            this::presionarTecla
-        );
-        nodo.addEventHandler(
-            KeyEvent.KEY_RELEASED, 
-            this::soltarTecla
-        );
+    public void registrar(Scene escena) {
+        escena.addEventFilter(KeyEvent.KEY_PRESSED, capturaPresionar);
+        escena.addEventFilter(KeyEvent.KEY_RELEASED, capturaSoltar);
     }
 
-    public void deregistrar(Node nodo) {
-        nodo.removeEventHandler(
-            KeyEvent.KEY_PRESSED,
-            this::presionarTecla
-        );
-        nodo.removeEventHandler(
-            KeyEvent.KEY_RELEASED,
-            this::soltarTecla
-        );
+    public void deregistrar(Scene escena) {
+        escena.removeEventFilter(KeyEvent.KEY_PRESSED, capturaPresionar);
+        escena.removeEventFilter(KeyEvent.KEY_RELEASED, capturaSoltar);
     }
 
     private void encolarEstado() {

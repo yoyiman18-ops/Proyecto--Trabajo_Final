@@ -1,0 +1,82 @@
+.game-root {
+    -fx-background-color: #10161b;
+}
+
+.game-hud {
+    -fx-background-color: transparent;
+}
+
+.game-title {
+    -fx-text-fill: #f1e7cd;
+    -fx-font-family: "System";
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 4, 0.4, 0, 1);
+}
+
+.hud-label {
+    -fx-text-fill: #9eada7;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 3, 0.5, 0, 1);
+}
+
+.hud-value {
+    -fx-text-fill: #f1e7cd;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 3, 0.5, 0, 1);
+}
+
+.xp-level {
+    -fx-text-fill: #fff0c8;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 2, 0.5, 0, 1);
+}
+
+.xp-value {
+    -fx-text-fill: #fff0c8;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 2, 0.5, 0, 1);
+}
+
+.game-over-overlay {
+    -fx-background-color: rgba(8, 10, 10, 0.78);
+}
+
+.level-up-overlay {
+    -fx-background-color: rgba(8, 10, 10, 0.84);
+}
+
+.game-over-title {
+    -fx-text-fill: #f5e8c9;
+    -fx-font-size: 38px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 8, 0.5, 0, 2);
+}
+
+.game-over-button {
+    -fx-background-color: rgba(31, 45, 39, 0.96);
+    -fx-border-color: #bba36e;
+    -fx-border-width: 1px;
+    -fx-text-fill: #f5e8c9;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 12px 18px;
+    -fx-cursor: hand;
+}
+
+.game-over-button:hover,
+.game-over-button:focused {
+    -fx-background-color: #52694d;
+    -fx-border-color: #f0d98d;
+}
+
+.game-area {
+    -fx-background-color:
+        radial-gradient(radius 100%, #27352f, #18221f 75%, #111816);
+    -fx-border-color: #34433d;
+    -fx-border-width: 1px;
+}

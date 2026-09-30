@@ -1,3 +1,38 @@
+/**
+ * 
+ *      NO VOLVER A MODIFICAR CON LÓGICA ACOPLADA AL JUEGO
+ * 
+ * 
+ *      LA LÓGICA DEL JUEGO NO VA EN ESTA CLASE
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
+
+
 package motor;
 
 import java.util.ArrayList;

@@ -3,57 +3,79 @@ package controlador;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import modelo.EntidadMovil;
+import modelo.Personaje;
+import motor.colisiones.hitboxes.CategoriaColision;
+import motor.colisiones.hitboxes.HitboxRectangular;
+import motor.colisiones.hitboxes.MascaraColision;
+import motor.colisiones.hitboxes.TipoHitbox;
+import motor.modelo.Entidad;
+import motor.mvc.Controlador;
 import motor.util.VecDouble2D;
 
-/** Representa la experiencia que deja un enemigo y permite recogerla. */
-public class ExperienciaControlador {
+public final class ExperienciaControlador implements Controlador {
+    private static final double DISTANCIA_RECOLECCION = 38;
 
-    private static final double RADIO_RECOGIDA = 42;
-
-    private final Circle vista = new Circle(6, Color.GOLD);
-    private final VecDouble2D posicion;
+    private final Personaje jugador;
     private final int cantidad;
+    private final Entidad modelo;
+    private final Circle vista = new Circle(9, Color.web("#83df4e"));
     private boolean recogida;
 
-    public ExperienciaControlador(VecDouble2D posicion, int cantidad) {
-        if (posicion == null || cantidad <= 0) {
-            throw new IllegalArgumentException("La experiencia debe tener posición y cantidad positiva");
+    public ExperienciaControlador(Personaje jugador, double x, double y, int cantidad) {
+        if (jugador == null || cantidad <= 0) {
+            throw new IllegalArgumentException("El jugador y una cantidad positiva de XP son obligatorios.");
         }
-        this.posicion = posicion.clone();
+        this.jugador = jugador;
         this.cantidad = cantidad;
+        this.modelo = new Entidad(
+            "experiencia",
+            new HitboxRectangular(
+                new java.awt.geom.Rectangle2D.Double(0, 0, 18, 18),
+                TipoHitbox.SOLIDA,
+                MascaraColision.of(CategoriaColision.EXP),
+                MascaraColision.of(CategoriaColision.JUGADOR)
+            ),
+            new VecDouble2D(x, y),
+            new VecDouble2D(),
+            0,
+            0,
+            0
+        );
+        vista.setStroke(Color.web("#e4ff9b"));
+        vista.setStrokeWidth(2);
         actualizarVista();
     }
 
-    public boolean actualizar(EntidadMovil jugador) {
-        if (recogida) {
-            return false;
-        }
-        VecDouble2D jugadorPosicion = jugador.getPosicion();
-        double dx = jugadorPosicion.getX() - posicion.getX();
-        double dy = jugadorPosicion.getY() - posicion.getY();
-        if (Math.sqrt(dx * dx + dy * dy) <= RADIO_RECOGIDA) {
-            recogida = true;
-            vista.setVisible(false);
-            return true;
-        }
-        return false;
+    @Override
+    public Entidad getModelo() {
+        return modelo;
     }
 
-    private void actualizarVista() {
-        vista.setLayoutX(posicion.getX());
-        vista.setLayoutY(posicion.getY());
-    }
-
-    public int getCantidad() {
-        return cantidad;
+    @Override
+    public Node getVista() {
+        return vista;
     }
 
     public boolean fueRecogida() {
         return recogida;
     }
 
-    public Node getVista() {
-        return vista;
+    @Override
+    public void tick(Double dt) {
+        if (recogida || jugador.getVida() <= 0) {
+            return;
+        }
+
+        double diferenciaX = jugador.getPosicion().getX() + 25 - modelo.getPosicion().getX();
+        double diferenciaY = jugador.getPosicion().getY() + 25 - modelo.getPosicion().getY();
+        if (Math.hypot(diferenciaX, diferenciaY) <= DISTANCIA_RECOLECCION) {
+            jugador.ganarExperiencia(cantidad);
+            recogida = true;
+        }
+    }
+
+    private void actualizarVista() {
+        vista.setLayoutX(modelo.getPosicion().getX());
+        vista.setLayoutY(modelo.getPosicion().getY());
     }
 }

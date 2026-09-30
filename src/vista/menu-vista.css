@@ -1,0 +1,17 @@
+.menu-button {
+    -fx-background-color: rgba(20, 28, 24, 0.9);
+    -fx-border-color: #d5bd82;
+    -fx-border-width: 1px;
+    -fx-text-fill: #fff2d2;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-padding: 12px 24px;
+    -fx-cursor: hand;
+}
+
+.menu-button:hover,
+.menu-button:focused {
+    -fx-background-color: #52694d;
+    -fx-border-color: #f0d98d;
+}

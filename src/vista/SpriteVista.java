@@ -1,45 +1,46 @@
 package vista;
 
-import modelo.SpriteModelo;
-import motor.recursos.Extension;
-import motor.recursos.GestorRecursos;
+import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.Pane;
+import motor.util.observer.Observador;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
-public class SpriteVista extends Pane {
+public class SpriteVista extends ImageView implements Observador<Entidad> {
+    private final Animacion animacion;
 
-    private ImageView imageView;
-    private String imagen;
-    private Rectangle2D recorte;
-
-    public SpriteVista() {
-        imageView = new ImageView();
-        getChildren().add(imageView);
+    public SpriteVista(Image imagen, Rectangle2D recorte, double ancho, double alto) {
+        super(imagen);
+        this.animacion = null;
+        setViewport(recorte);
+        configurarTamaño(ancho, alto);
     }
 
-    public SpriteVista(String imagen, Rectangle2D recorte, double ancho, double alto) {
-        this.imagen = imagen;
-        this.recorte = recorte;
-        this.imageView = new ImageView();
-        imageView.setViewport(recorte);
-        imageView.setFitWidth(ancho);
-        imageView.setFitHeight(alto);
-        imageView.setPreserveRatio(true);
-        imageView.setImage(
-            GestorRecursos.getInstancia().getImagen(imagen, Extension.Imagen.JPG)
-        );
-        getChildren().add(imageView);
+    public SpriteVista(Image imagen, int columnas, int filas, double ancho, double alto) {
+        super(imagen);
+        this.animacion = new Animacion(imagen, columnas, filas);
+        setViewport(animacion.getViewport());
+        configurarTamaño(ancho, alto);
     }
 
-    public void actualizar(SpriteModelo modelo) {
-        VecDouble2D posicion = modelo.getPosicion();
-        String nombreImagen = imagen == null ? modelo.getNombre() : imagen;
-        imageView.setImage(
-        GestorRecursos.getInstancia().getImagen(nombreImagen, Extension.Imagen.JPG));
-        imageView.setLayoutX(posicion.getX());
-        imageView.setLayoutY(posicion.getY());
+    private void configurarTamaño(double ancho, double alto) {
+        setFitWidth(ancho);
+        setFitHeight(alto);
+        setPreserveRatio(true);
+    }
+
+    public void actualizarAnimacion(int fila, boolean activa, double dt) {
+        if (animacion != null) {
+            setViewport(animacion.actualizar(fila, activa, dt));
+        }
+    }
+
+    @Override 
+    public void cambio(Entidad entidad) {
+        VecDouble2D posicion = entidad.getPosicion();
+        setLayoutX(posicion.getX());
+        setLayoutY(posicion.getY());
     }
 
 }

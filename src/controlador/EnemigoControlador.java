@@ -1,120 +1,145 @@
 package controlador;
 
-import javafx.geometry.Point2D;
-import modelo.EntidadViva;
+import javafx.scene.Node;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import modelo.Enemigo;
+import modelo.Personaje;
+import motor.colisiones.hitboxes.CategoriaColision;
+import motor.colisiones.hitboxes.HitboxRectangular;
+import motor.colisiones.hitboxes.MascaraColision;
+import motor.colisiones.hitboxes.TipoHitbox;
+import motor.mvc.Controlador;
 import motor.util.VecDouble2D;
-import modelo.EntidadMovil;
-import vista.SpriteVista;
 
-/** Controla el comportamiento básico de un enemigo que persigue al jugador. */
-public class EnemigoControlador {
+public final class EnemigoControlador implements Controlador {
+    private static final double VELOCIDAD = 75;
+    private static final double VIDA_MAXIMA = 50;
+    private static final double DISTANCIA_ATAQUE = 34;
+    private static final double DANIO = 10;
+    private static final int EXPERIENCIA_RECOMPENSA = 10;
+    private static final double INTERVALO_ATAQUE = 1;
+    private static final double ANCHO_VISTA = 48;
+    private static final double ALTO_VISTA = 52;
+    private static final double DURACION_FRAME_IDLE = 0.35;
+    private static final double DURACION_REACCION_GOLPE = 0.22;
+    private static final Image FRAME_IDLE_1 = cargarFrame("idle/frame-1.png");
+    private static final Image FRAME_IDLE_2 = cargarFrame("idle/frame-2.png");
+    private static final Image FRAME_GOLPE = cargarFrame("got hit/frame.png");
 
-    private final EntidadViva modelo;
-    private final EntidadViva objetivo;
-    private final SpriteVista vista;
-    private final Runnable alMorir;
-    private final double posicionInicialX;
-    private final double posicionInicialY;
-    private long momentoRespawn;
-    private long ultimoAtaque;
-    private boolean muerteRegistrada;
-    private static final long TIEMPO_RESPAWN_NS = 2_000_000_000L;
-    private static final long COOLDOWN_ATAQUE_NS = 700_000_000L;
-    private static final int DAÑO_CONTACTO = 1;
+    private final Personaje objetivo;
+    private final Enemigo modelo;
+    private final ImageView vista = new ImageView(FRAME_IDLE_1);
+    private double tiempoHastaAtaque;
+    private double tiempoAnimacionIdle;
+    private double tiempoReaccionGolpe;
+    private boolean frameIdleAlterno;
 
-    public EnemigoControlador(EntidadViva modelo, EntidadViva objetivo, SpriteVista vista) {
-        this(modelo, objetivo, vista, () -> {});
+    public EnemigoControlador(Personaje objetivo) {
+        this(objetivo, 360, 240, VELOCIDAD);
     }
 
-    public EnemigoControlador(EntidadViva modelo, EntidadViva objetivo,
-                              SpriteVista vista, Runnable alMorir) {
-        if (modelo == null || objetivo == null || vista == null) {
-            throw new IllegalArgumentException("El enemigo, el objetivo y la vista son obligatorios");
-        }
-        if (alMorir == null) {
-            throw new IllegalArgumentException("El callback de muerte no puede ser null");
-        }
-        this.modelo = modelo;
+    public EnemigoControlador(Personaje objetivo, double x, double y, double velocidad) {
         this.objetivo = objetivo;
-        this.vista = vista;
-        this.alMorir = alMorir;
-        VecDouble2D posicionInicial = modelo.getPosicion();
-        this.posicionInicialX = posicionInicial.getX();
-        this.posicionInicialY = posicionInicial.getY();
-        vista.actualizar(modelo);
-    }
-
-    /** Actualiza la dirección, el movimiento y la representación del enemigo. */
-    public void actualizar() {
-        if (!modelo.estaVivo()) {
-            if (System.nanoTime() >= momentoRespawn) {
-                modelo.setPosicion(posicionInicialX, posicionInicialY);
-                modelo.revivir();
-                muerteRegistrada = false;
-                vista.setVisible(true);
-                vista.actualizar(modelo);
-            }
-            return;
-        }
-
-        VecDouble2D posicionEnemigo = modelo.getPosicion();
-        VecDouble2D posicionObjetivo = objetivo.getPosicion();
-        Point2D diferencia = new Point2D(
-                posicionObjetivo.getX() - posicionEnemigo.getX(),
-                posicionObjetivo.getY() - posicionEnemigo.getY()
+        VecDouble2D posicion = new VecDouble2D(x, y);
+        modelo = new Enemigo(
+            "enemigo",
+            new HitboxRectangular(
+                new java.awt.geom.Rectangle2D.Double(0, 0, 32, 32),
+                TipoHitbox.SOLIDA,
+                MascaraColision.of(CategoriaColision.ENEMIGO),
+                MascaraColision.of(CategoriaColision.JUGADOR)
+            ),
+            posicion,
+            velocidad,
+            VIDA_MAXIMA,
+            DANIO,
+            EXPERIENCIA_RECOMPENSA
         );
-
-        if (diferencia.magnitude() > 0) {
-            modelo.setDireccion(diferencia.getX(), diferencia.getY());
-            modelo.acelerar();
-            modelo.mover();
-        } else {
-            modelo.frenar();
-        }
-
-        atacarSiCorresponde();
-        vista.actualizar(modelo);
+        vista.setFitWidth(ANCHO_VISTA);
+        vista.setFitHeight(ALTO_VISTA);
+        vista.setPreserveRatio(true);
+        actualizarVista();
     }
 
-    public void recibirAtaque(int daño) {
-        if (!modelo.estaVivo()) {
-            return;
-        }
-        modelo.recibirDaño(daño);
-        if (!modelo.estaVivo()) {
-            vista.setVisible(false);
-            momentoRespawn = System.nanoTime() + TIEMPO_RESPAWN_NS;
-            if (!muerteRegistrada) {
-                muerteRegistrada = true;
-                alMorir.run();
-            }
-        }
-    }
-
-    private void atacarSiCorresponde() {
-        if (distanciaAl(objetivo) > 20 || !objetivo.estaVivo()) {
-            return;
-        }
-        long ahora = System.nanoTime();
-        if (ahora - ultimoAtaque >= COOLDOWN_ATAQUE_NS) {
-            objetivo.recibirDaño(DAÑO_CONTACTO);
-            ultimoAtaque = ahora;
-        }
-    }
-
-    public double distanciaAl(EntidadMovil entidad) {
-        VecDouble2D posicion = modelo.getPosicion();
-        VecDouble2D objetivo = entidad.getPosicion();
-        double dx = objetivo.getX() - posicion.getX();
-        double dy = objetivo.getY() - posicion.getY();
-        return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    public boolean estaVivo() {
-        return modelo.estaVivo();
-    }
-
-    public EntidadViva getModelo() {
+    @Override
+    public Enemigo getModelo() {
         return modelo;
+    }
+
+    @Override
+    public Node getVista() {
+        return vista;
+    }
+
+    public boolean recibirDanio(double cantidad) {
+        boolean derrotado = modelo.recibirDanio(cantidad);
+        double proporcionVida = modelo.getVida() / modelo.getVidaMaxima();
+        vista.setOpacity(0.55 + 0.45 * proporcionVida);
+        tiempoReaccionGolpe = DURACION_REACCION_GOLPE;
+        vista.setImage(FRAME_GOLPE);
+        return derrotado;
+    }
+
+    @Override
+    public void tick(Double dt) {
+        if (objetivo.getVida() <= 0) {
+            return;
+        }
+        actualizarAnimacion(dt);
+
+        VecDouble2D posicion = modelo.getPosicion();
+        VecDouble2D posicionObjetivo = objetivo.getPosicion();
+        double diferenciaX = posicionObjetivo.getX() + 25 - posicion.getX();
+        double diferenciaY = posicionObjetivo.getY() + 25 - posicion.getY();
+        double distancia = Math.hypot(diferenciaX, diferenciaY);
+
+        if (distancia <= DISTANCIA_ATAQUE) {
+            modelo.getVelocidad().setX(0);
+            modelo.getVelocidad().setY(0);
+            tiempoHastaAtaque -= dt;
+            if (tiempoHastaAtaque <= 0) {
+                objetivo.recibirDanio(modelo.getDanio());
+                tiempoHastaAtaque = INTERVALO_ATAQUE;
+            }
+            return;
+        }
+
+        tiempoHastaAtaque = 0;
+        modelo.getVelocidad().setX(diferenciaX / distancia * VELOCIDAD);
+        modelo.getVelocidad().setY(diferenciaY / distancia * VELOCIDAD);
+        modelo.mover(dt);
+        actualizarVista();
+    }
+
+    private void actualizarVista() {
+        vista.setLayoutX(modelo.getPosicion().getX() - (ANCHO_VISTA - 32) / 2);
+        vista.setLayoutY(modelo.getPosicion().getY() - (ALTO_VISTA - 32) / 2);
+    }
+
+    private void actualizarAnimacion(double dt) {
+        if (tiempoReaccionGolpe > 0) {
+            tiempoReaccionGolpe = Math.max(0, tiempoReaccionGolpe - dt);
+            if (tiempoReaccionGolpe == 0) {
+                vista.setImage(frameIdleAlterno ? FRAME_IDLE_2 : FRAME_IDLE_1);
+            }
+            return;
+        }
+
+        tiempoAnimacionIdle += dt;
+        if (tiempoAnimacionIdle >= DURACION_FRAME_IDLE) {
+            tiempoAnimacionIdle %= DURACION_FRAME_IDLE;
+            frameIdleAlterno = !frameIdleAlterno;
+            vista.setImage(frameIdleAlterno ? FRAME_IDLE_2 : FRAME_IDLE_1);
+        }
+    }
+
+    private static Image cargarFrame(String ruta) {
+        var recurso = EnemigoControlador.class.getResource(
+            "/recursos/imagenes/Transparent PNG/" + ruta);
+        if (recurso == null) {
+            throw new IllegalStateException("No se encontró el sprite del enemigo: " + ruta);
+        }
+        return new Image(recurso.toExternalForm());
     }
 }

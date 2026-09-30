@@ -10,11 +10,11 @@ import java.awt.geom.Rectangle2D;
 public class HitboxRectangular extends Hitbox {
 
     public HitboxRectangular(Rectangle2D rectanguloColision, TipoHitbox tipo, MascaraColision categoriasColision, MascaraColision capasColision) {
-        super(rectanguloColision, tipo, true, categoriasColision, capasColision);
+        super(rectanguloColision, tipo, categoriasColision, capasColision, true);
     }
 
-    public HitboxRectangular(Rectangle2D rectanguloColision, TipoHitbox tipo, boolean activa, MascaraColision categoriasColision, MascaraColision capasColision) {
-        super(rectanguloColision, tipo, activa, categoriasColision, capasColision);
+    public HitboxRectangular(Rectangle2D rectanguloColision, TipoHitbox tipo, MascaraColision categoriasColision, MascaraColision capasColision, boolean activa) {
+        super(rectanguloColision, tipo, categoriasColision, capasColision, activa);
     }
 
     @Override 
