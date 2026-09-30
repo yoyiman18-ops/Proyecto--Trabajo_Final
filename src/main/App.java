@@ -69,6 +69,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.Timer;
 
+import vista.MenuVista;
 
 
 
@@ -79,7 +80,16 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {      
+        MenuVista menu = new MenuVista();
+        Scene escena = new Scene(menu, 960, 720);
+        stage.setScene(escena);
+        stage.setTitle("Waves 2D");
+        menu.getBotonJugar().setOnAction(event -> iniciarPartida(stage));
+        menu.getBotonSalir().setOnAction(event -> Platform.exit());
+        stage.show();
+    }
 
+    private void iniciarPartida(Stage stage) {
         VistaJuego vista = new VistaJuego();
         motor = new Motor(vista.getAreaJuego());
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.A, TipoEntrada.MANTENER, Accion.MOVER_IZQUIERDA));
@@ -90,8 +100,6 @@ public class App extends Application {
 
         Scene escena = new Scene(vista, 960, 720);
         stage.setScene(escena);
-        stage.setTitle("Waves 2D | debug");
-        stage.show();
         motor.teclado().setEscenaRoot(escena);
         Platform.runLater(() -> vista.requestFocus());
         motor.iniciar();
