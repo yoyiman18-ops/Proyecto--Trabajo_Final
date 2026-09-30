@@ -96,7 +96,13 @@ public class App extends Application {
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.W, TipoEntrada.MANTENER, Accion.MOVER_ARRIBA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
-        motor.instanciarJugador("zorro/zorro");
+        motor.instanciarJugador("zorro/zorro", personaje -> Platform.runLater(() -> {
+            vista.actualizarVida(personaje.getVida(), personaje.getVidaMax());
+            if (personaje.getVida() <= 0) {
+                motor.detener();
+                vista.mostrarFinPartida();
+            }
+        }));
 
         Scene escena = new Scene(vista, 960, 720);
         stage.setScene(escena);

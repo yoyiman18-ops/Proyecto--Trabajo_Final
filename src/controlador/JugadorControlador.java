@@ -22,11 +22,21 @@ public class JugadorControlador implements ControladorUsuario {
     private final String nombre;
     private final SpriteVista vista;
     private final Personaje modelo;
+    private final Observador<Personaje> observadorVida;
     private EstadoAcciones estadoAcciones;
     private final Observador<EstadoAcciones> observadorAcciones;
 
     public JugadorControlador(String nombre, GestorRecursos recursos) {
+        this(nombre, recursos, personaje -> {});
+    }
+
+    public JugadorControlador(
+        String nombre,
+        GestorRecursos recursos,
+        Observador<Personaje> observadorVida
+    ) {
         this.nombre = nombre;
+        this.observadorVida = observadorVida;
         this.observadorAcciones = e -> this.estadoAcciones = e;
 
         this.vista = new SpriteVista(
@@ -51,6 +61,8 @@ public class JugadorControlador implements ControladorUsuario {
             .build();
         
         modelo.getNotificador().suscribirObservador(vista);
+        modelo.getNotificadorVida().suscribirObservador(this.observadorVida);
+        this.observadorVida.cambio(modelo);
     }
 
     public void tick(Double dt) {
@@ -85,6 +97,8 @@ public class JugadorControlador implements ControladorUsuario {
 
     @Override 
     public Observador<EstadoAcciones> getObservadorAcciones() { return this.observadorAcciones; }
+
+    public Personaje getPersonaje() { return this.modelo; }
 
     @Override public Entidad getModelo() { return this.modelo; }
     @Override public Node getVista() { return this.vista; }

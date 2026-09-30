@@ -38,6 +38,7 @@ public class VistaJuego extends StackPane {
     private final Label enemigos = crearValor("--");
     private final Label danio = crearValor("--");
     private final Label puntos = crearValor("--/--");
+    private final StackPane panelFinPartida = new StackPane(new Label("FIN DE LA PARTIDA"));
 
     public VistaJuego() {
         corazones.setPrefWrapLength(125);
@@ -63,7 +64,13 @@ public class VistaJuego extends StackPane {
         areaJuego.setMinSize(0, 0);
         areaJuego.setFocusTraversable(true);
 
-        getChildren().addAll(areaJuego, interfaz);
+        panelFinPartida.getStyleClass().add("game-over-overlay");
+        panelFinPartida.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        panelFinPartida.getChildren().get(0).getStyleClass().add("game-over-title");
+        panelFinPartida.setVisible(false);
+        panelFinPartida.setManaged(false);
+
+        getChildren().addAll(areaJuego, interfaz, panelFinPartida);
         StackPane.setAlignment(interfaz, Pos.TOP_LEFT);
         getStyleClass().add("game-root");
 
@@ -72,16 +79,20 @@ public class VistaJuego extends StackPane {
             throw new IllegalStateException("No se encontró vista-juego.css");
         }
         getStylesheets().add(hojaEstilos.toExternalForm());
-        actualizarVida(100, 100);
     }
 
     public Pane getAreaJuego() {
         return areaJuego;
     }
 
-    public void actualizarVida(int actual, int maxima) {
-        int maximaValida = Math.max(0, maxima);
-        int vidaValida = Math.max(0, Math.min(actual, maximaValida));
+    public void mostrarFinPartida() {
+        panelFinPartida.setManaged(true);
+        panelFinPartida.setVisible(true);
+    }
+
+    public void actualizarVida(double actual, double maxima) {
+        int maximaValida = Math.max(0, (int) Math.round(maxima));
+        int vidaValida = Math.max(0, Math.min((int) Math.round(actual), maximaValida));
         int corazonesMaximos = maximaValida == 0
             ? 0
             : 1 + (maximaValida - 1) / VIDA_POR_CORAZON;

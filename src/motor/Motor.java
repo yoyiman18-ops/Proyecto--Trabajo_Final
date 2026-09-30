@@ -2,10 +2,12 @@ package motor;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import controlador.EnemigoControlador;
 import controlador.JugadorControlador;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import modelo.Personaje;
 import motor.colisiones.Colisionable;
 import motor.colisiones.SistemaColisiones;
 import motor.colisiones.sistema.FaseEspecificaSimple;
@@ -15,6 +17,7 @@ import motor.mvc.Controlador;
 import motor.recursos.GestorRecursos;
 import motor.util.RelojDelta;
 import motor.util.observer.NotificadorFuerte;
+import motor.util.observer.Observador;
 
 public class Motor {
     private final SistemaColisiones sistemaColisiones;
@@ -61,10 +64,16 @@ public class Motor {
     }
 
     public void instanciarJugador(String nombre) {
-        JugadorControlador c = new JugadorControlador(nombre, gestorRecursos);
+        instanciarJugador(nombre, personaje -> {});
+    }
+
+    public void instanciarJugador(String nombre, Observador<Personaje> observadorVida) {
+        JugadorControlador c = new JugadorControlador(nombre, gestorRecursos, observadorVida);
+        EnemigoControlador enemigo = new EnemigoControlador(c.getPersonaje());
         this.controladores.add(c);
+        this.controladores.add(enemigo);
         this.gestorEntradaTeclado.suscribir(c.getObservadorAcciones());
-        Platform.runLater(() -> {root.getChildren().add(c.getVista()); });
+        Platform.runLater(() -> root.getChildren().addAll(c.getVista(), enemigo.getVista()));
     }
 
     public GestorRecursos recursos() { return this.gestorRecursos; }

@@ -3,14 +3,54 @@ package modelo;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
+import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorDebil;
 
 public class Personaje extends Entidad {
-    private double vida,vidaMax;
+    private double vida;
+    private final double vidaMax;
+    private final Notificador<Personaje> notificadorVida = new NotificadorDebil<>();
     
     private Personaje(Builder b) {
         super(b.nombre, b.hitbox, b.posicion, b.velocidad, b.aceleracion, b.friccion, b.velocidadMax);
         this.vida = b.vida;
         this.vidaMax = b.vidaMax;
+    }
+
+    public double getVida() {
+        return vida;
+    }
+
+    public double getVidaMax() {
+        return vidaMax;
+    }
+
+    public Notificador<Personaje> getNotificadorVida() {
+        return notificadorVida;
+    }
+
+    public void recibirDanio(double cantidad) {
+        validarCantidadVida(cantidad);
+        if (cantidad == 0 || vida == 0) {
+            return;
+        }
+        vida = Math.max(0, vida - cantidad);
+        notificadorVida.notificar(this);
+    }
+
+    public void curar(double cantidad) {
+        validarCantidadVida(cantidad);
+        if (cantidad == 0 || vida == vidaMax) {
+            return;
+        }
+        vida = Math.min(vidaMax, vida + cantidad);
+        notificadorVida.notificar(this);
+    }
+
+    private static void validarCantidadVida(double cantidad) {
+        if (!Double.isFinite(cantidad) || cantidad < 0) {
+            throw new IllegalArgumentException("La cantidad de vida debe ser finita y no negativa.");
+        }
     }
 
     public static class Builder {
