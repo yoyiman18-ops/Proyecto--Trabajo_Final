@@ -3,48 +3,43 @@
 }
 
 .game-hud {
-    -fx-background-color: linear-gradient(to bottom, #26343a, #1b272d);
-    -fx-border-color: #45575a;
-    -fx-border-width: 0 0 1 0;
+    -fx-background-color: transparent;
 }
 
 .game-title {
     -fx-text-fill: #f1e7cd;
     -fx-font-family: "System";
-    -fx-font-size: 18px;
+    -fx-font-size: 16px;
     -fx-font-weight: bold;
-}
-
-.hud-card {
-    -fx-background-color: #111a1f;
-    -fx-background-radius: 6px;
-    -fx-border-color: #3c5052;
-    -fx-border-radius: 6px;
-    -fx-padding: 8px 12px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 4, 0.4, 0, 1);
 }
 
 .hud-label {
     -fx-text-fill: #9eada7;
     -fx-font-size: 10px;
     -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 3, 0.5, 0, 1);
 }
 
 .hud-value {
     -fx-text-fill: #f1e7cd;
     -fx-font-size: 15px;
     -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 3, 0.5, 0, 1);
 }
 
 .xp-level {
     -fx-text-fill: #fff0c8;
     -fx-font-size: 10px;
     -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 2, 0.5, 0, 1);
 }
 
 .xp-value {
     -fx-text-fill: #fff0c8;
     -fx-font-size: 11px;
     -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 2, 0.5, 0, 1);
 }
 
 .xp-progress {
