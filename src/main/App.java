@@ -43,6 +43,7 @@ package main;
  */
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
@@ -92,6 +93,7 @@ public class App extends Application {
         stage.setTitle("Waves 2D | debug");
         stage.show();
         motor.teclado().setEscenaRoot(escena);
+        Platform.runLater(() -> vista.requestFocus());
         motor.iniciar();
     }
 

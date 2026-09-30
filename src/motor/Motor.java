@@ -1,7 +1,7 @@
 package motor;
 
 import java.util.concurrent.CopyOnWriteArrayList;
-import controlador.Controlador;
+
 import controlador.JugadorControlador;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -11,8 +11,10 @@ import motor.colisiones.SistemaColisiones;
 import motor.colisiones.sistema.FaseEspecificaSimple;
 import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.GestorEntradaTeclado;
+import motor.mvc.Controlador;
 import motor.recursos.GestorRecursos;
 import motor.util.RelojDelta;
+import motor.util.observer.NotificadorFuerte;
 
 public class Motor {
     private final SistemaColisiones sistemaColisiones;
@@ -45,7 +47,7 @@ public class Motor {
         ) {
         this.sistemaColisiones = sistemaColisiones;
         this.gestorRecursos = gestorRecursos;
-        this.relojDelta = new RelojDelta();
+        this.relojDelta = new RelojDelta(new NotificadorFuerte<>());
         this.root = root;
         this.gestorEntradaTeclado = new GestorEntradaTeclado();
         this.colisionables = new CopyOnWriteArrayList<>();
@@ -60,9 +62,9 @@ public class Motor {
 
     public void instanciarJugador(String nombre) {
         JugadorControlador c = new JugadorControlador(nombre, gestorRecursos);
-        this.gestorEntradaTeclado.suscribir(c.getObservadorAcciones());
         this.controladores.add(c);
-        Platform.runLater(() -> {root.getChildren().add(c.getVista());});
+        this.gestorEntradaTeclado.suscribir(c.getObservadorAcciones());
+        Platform.runLater(() -> {root.getChildren().add(c.getVista()); });
     }
 
     public GestorRecursos recursos() { return this.gestorRecursos; }

@@ -3,13 +3,15 @@ import java.util.ArrayDeque;
 import java.util.EnumSet;
 import java.util.Queue;
 import java.util.Set;
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 public class CapturadorEntradaTeclado {
+    private final static Logger logger = Logger.getLogger(CapturadorEntradaTeclado.class.getName());
     private final EventHandler<KeyEvent> capturaPresionar = e -> presionarTecla(e);
     private final EventHandler<KeyEvent> capturaSoltar = e -> soltarTecla(e);
 
@@ -37,8 +39,8 @@ public class CapturadorEntradaTeclado {
     }
 
     public void deregistrar(Scene escena) {
-        escena.removeEventHandler(KeyEvent.KEY_PRESSED, capturaPresionar);
-        escena.removeEventHandler(KeyEvent.KEY_RELEASED, capturaSoltar);
+        escena.removeEventFilter(KeyEvent.KEY_PRESSED, capturaPresionar);
+        escena.removeEventFilter(KeyEvent.KEY_RELEASED, capturaSoltar);
     }
 
     private void encolarEstado() {

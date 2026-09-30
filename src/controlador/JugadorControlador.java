@@ -9,6 +9,7 @@ import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
 import motor.modelo.Direccion;
 import motor.modelo.Entidad;
+import motor.mvc.ControladorUsuario;
 import motor.recursos.GestorRecursos;
 import motor.util.Eje;
 import motor.util.observer.Observador;
@@ -17,7 +18,7 @@ import vista.SpriteVista;
 
 import javafx.scene.Node;
 
-public class JugadorControlador implements Controlador {
+public class JugadorControlador implements ControladorUsuario {
     private final String nombre;
     private final SpriteVista vista;
     private final Personaje modelo;
