@@ -1,4 +1,4 @@
-package motor;
+
 
 public record EstadoOleadas(
 	int oleada,

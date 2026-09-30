@@ -77,7 +77,7 @@ import vista.MenuVista;
 // nota: en esta clase se prueban de forma arbitraria las características añadidas.
 
 public class App extends Application {
-    private Motor motor;
+    private final static Motor motor = Motor.getInstancia();
 
     @Override
     public void start(Stage stage) {
@@ -86,7 +86,7 @@ public class App extends Application {
 
     private void mostrarMenu(Stage stage) {
         if (motor != null) {
-            motor.detener();
+            motor.detenerColisiones();
         }
         MenuVista menu = new MenuVista();
         Scene escena = new Scene(menu, 960, 720);
@@ -99,12 +99,14 @@ public class App extends Application {
 
     private void iniciarPartida(Stage stage) {
         VistaJuego vista = new VistaJuego();
-        motor = new Motor(vista.getAreaJuego());
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.A, TipoEntrada.MANTENER, Accion.MOVER_IZQUIERDA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.W, TipoEntrada.MANTENER, Accion.MOVER_ARRIBA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.ATACAR));
+
+
+
         motor.instanciarJugador(
             "zorro/zorro",
             personaje -> Platform.runLater(() -> {
