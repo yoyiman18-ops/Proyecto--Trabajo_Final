@@ -16,6 +16,8 @@ import javafx.scene.layout.StackPane;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import modelo.ItemMejoraAtributo;
 
 public class VistaJuego extends StackPane {
     private static final int VIDA_POR_CORAZON = 10;
@@ -43,6 +45,7 @@ public class VistaJuego extends StackPane {
     private final Button botonReintentar = new Button("REINTENTAR");
     private final Button botonVolverMenu = new Button("VOLVER AL MENÚ");
     private final StackPane panelFinPartida = new StackPane();
+    private final StackPane panelEleccionMejora = new StackPane();
 
     public VistaJuego() {
         corazones.setPrefWrapLength(125);
@@ -85,7 +88,12 @@ public class VistaJuego extends StackPane {
         panelFinPartida.setVisible(false);
         panelFinPartida.setManaged(false);
 
-        getChildren().addAll(areaJuego, interfaz, panelFinPartida);
+        panelEleccionMejora.getStyleClass().add("level-up-overlay");
+        panelEleccionMejora.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        panelEleccionMejora.setVisible(false);
+        panelEleccionMejora.setManaged(false);
+
+        getChildren().addAll(areaJuego, interfaz, panelFinPartida, panelEleccionMejora);
         StackPane.setAlignment(interfaz, Pos.TOP_LEFT);
         getStyleClass().add("game-root");
 
@@ -100,11 +108,41 @@ public class VistaJuego extends StackPane {
         return areaJuego;
     }
 
-    public void mostrarFinPartida(Runnable reintentar, Runnable volverMenu) {
+    public void mostrarFinPartida(String mensaje, Runnable reintentar, Runnable volverMenu) {
+        textoFinPartida.setText(mensaje);
         botonReintentar.setOnAction(event -> reintentar.run());
         botonVolverMenu.setOnAction(event -> volverMenu.run());
         panelFinPartida.setManaged(true);
         panelFinPartida.setVisible(true);
+    }
+
+    public void mostrarEleccionMejora(
+        int nivel,
+        List<ItemMejoraAtributo> mejoras,
+        Consumer<ItemMejoraAtributo> alElegir
+    ) {
+        Label titulo = new Label("¡NIVEL " + nivel + "!");
+        titulo.getStyleClass().add("game-over-title");
+        VBox opciones = new VBox(14);
+        opciones.setAlignment(Pos.CENTER);
+        opciones.setMaxWidth(340);
+        opciones.getChildren().add(titulo);
+
+        for (ItemMejoraAtributo mejora : mejoras) {
+            Button opcion = new Button(mejora.descripcion());
+            opcion.getStyleClass().add("game-over-button");
+            opcion.setMaxWidth(Double.MAX_VALUE);
+            opcion.setOnAction(event -> {
+                panelEleccionMejora.setVisible(false);
+                panelEleccionMejora.setManaged(false);
+                alElegir.accept(mejora);
+            });
+            opciones.getChildren().add(opcion);
+        }
+
+        panelEleccionMejora.getChildren().setAll(opciones);
+        panelEleccionMejora.setManaged(true);
+        panelEleccionMejora.setVisible(true);
     }
 
     public void actualizarVida(double actual, double maxima) {

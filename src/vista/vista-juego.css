@@ -46,6 +46,10 @@
     -fx-background-color: rgba(8, 10, 10, 0.78);
 }
 
+.level-up-overlay {
+    -fx-background-color: rgba(8, 10, 10, 0.84);
+}
+
 .game-over-title {
     -fx-text-fill: #f5e8c9;
     -fx-font-size: 38px;
