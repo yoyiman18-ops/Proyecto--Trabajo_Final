@@ -79,7 +79,14 @@ public class App extends Application {
     private Motor motor;
 
     @Override
-    public void start(Stage stage) {      
+    public void start(Stage stage) {
+        mostrarMenu(stage);
+    }
+
+    private void mostrarMenu(Stage stage) {
+        if (motor != null) {
+            motor.detener();
+        }
         MenuVista menu = new MenuVista();
         Scene escena = new Scene(menu, 960, 720);
         stage.setScene(escena);
@@ -100,7 +107,10 @@ public class App extends Application {
             vista.actualizarVida(personaje.getVida(), personaje.getVidaMax());
             if (personaje.getVida() <= 0) {
                 motor.detener();
-                vista.mostrarFinPartida();
+                vista.mostrarFinPartida(
+                    () -> iniciarPartida(stage),
+                    () -> mostrarMenu(stage)
+                );
             }
         }));
 

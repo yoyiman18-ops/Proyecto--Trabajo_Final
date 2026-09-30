@@ -2,6 +2,7 @@ package vista;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -38,7 +39,10 @@ public class VistaJuego extends StackPane {
     private final Label enemigos = crearValor("--");
     private final Label danio = crearValor("--");
     private final Label puntos = crearValor("--/--");
-    private final StackPane panelFinPartida = new StackPane(new Label("FIN DE LA PARTIDA"));
+    private final Label textoFinPartida = new Label("FIN DE LA PARTIDA");
+    private final Button botonReintentar = new Button("REINTENTAR");
+    private final Button botonVolverMenu = new Button("VOLVER AL MENÚ");
+    private final StackPane panelFinPartida = new StackPane();
 
     public VistaJuego() {
         corazones.setPrefWrapLength(125);
@@ -66,7 +70,18 @@ public class VistaJuego extends StackPane {
 
         panelFinPartida.getStyleClass().add("game-over-overlay");
         panelFinPartida.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        panelFinPartida.getChildren().get(0).getStyleClass().add("game-over-title");
+        textoFinPartida.getStyleClass().add("game-over-title");
+        botonReintentar.getStyleClass().add("game-over-button");
+        botonVolverMenu.getStyleClass().add("game-over-button");
+        botonReintentar.setMaxWidth(Double.MAX_VALUE);
+        botonVolverMenu.setMaxWidth(Double.MAX_VALUE);
+        VBox opcionesFinPartida = new VBox(14,
+            textoFinPartida,
+            botonReintentar,
+            botonVolverMenu);
+        opcionesFinPartida.setAlignment(Pos.CENTER);
+        opcionesFinPartida.setMaxWidth(280);
+        panelFinPartida.getChildren().add(opcionesFinPartida);
         panelFinPartida.setVisible(false);
         panelFinPartida.setManaged(false);
 
@@ -85,7 +100,9 @@ public class VistaJuego extends StackPane {
         return areaJuego;
     }
 
-    public void mostrarFinPartida() {
+    public void mostrarFinPartida(Runnable reintentar, Runnable volverMenu) {
+        botonReintentar.setOnAction(event -> reintentar.run());
+        botonVolverMenu.setOnAction(event -> volverMenu.run());
         panelFinPartida.setManaged(true);
         panelFinPartida.setVisible(true);
     }

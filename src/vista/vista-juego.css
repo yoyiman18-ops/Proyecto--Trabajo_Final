@@ -53,6 +53,23 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 8, 0.5, 0, 2);
 }
 
+.game-over-button {
+    -fx-background-color: rgba(31, 45, 39, 0.96);
+    -fx-border-color: #bba36e;
+    -fx-border-width: 1px;
+    -fx-text-fill: #f5e8c9;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 12px 18px;
+    -fx-cursor: hand;
+}
+
+.game-over-button:hover,
+.game-over-button:focused {
+    -fx-background-color: #52694d;
+    -fx-border-color: #f0d98d;
+}
+
 .game-area {
     -fx-background-color:
         radial-gradient(radius 100%, #27352f, #18221f 75%, #111816);
