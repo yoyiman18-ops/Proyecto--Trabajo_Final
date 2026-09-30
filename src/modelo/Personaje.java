@@ -7,9 +7,17 @@ import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
 public class Personaje extends Entidad {
+    private static final double DEFENSA_MAXIMA_PORCENTUAL = 80;
+
     private double vida;
-    private final double vidaMax;
+    private double vidaMax;
+    private double defensaPorcentual;
     private final Notificador<Personaje> notificadorVida = new NotificadorDebil<>();
+    private int experiencia;
+    private int nivel = 1;
+    private int experienciaSiguiente = 100;
+    private int nivelesPendientes;
+    private double danioAtaque = 25;
     
     private Personaje(Builder b) {
         super(b.nombre, b.hitbox, b.posicion, b.velocidad, b.aceleracion, b.friccion, b.velocidadMax);
@@ -25,6 +33,66 @@ public class Personaje extends Entidad {
         return vidaMax;
     }
 
+    public int getExperiencia() {
+        return experiencia;
+    }
+
+    public int getNivel() {
+        return nivel;
+    }
+
+    public int getExperienciaSiguiente() {
+        return experienciaSiguiente;
+    }
+
+    public int getNivelesPendientes() {
+        return nivelesPendientes;
+    }
+
+    public double getDanioAtaque() {
+        return danioAtaque;
+    }
+
+    public double getDefensa() {
+        return defensaPorcentual;
+    }
+
+    public void aumentarDefensa(double porcentaje) {
+        if (!Double.isFinite(porcentaje) || porcentaje < 0) {
+            throw new IllegalArgumentException("El porcentaje de defensa debe ser finito y no negativo.");
+        }
+        defensaPorcentual = Math.min(DEFENSA_MAXIMA_PORCENTUAL, defensaPorcentual + porcentaje);
+    }
+
+    public void aumentarDanioAtaque(double cantidad) {
+        validarCantidadVida(cantidad);
+        danioAtaque += cantidad;
+    }
+
+    public boolean consumirNivelPendiente() {
+        if (nivelesPendientes == 0) {
+            return false;
+        }
+        nivelesPendientes--;
+        return true;
+    }
+
+    public int ganarExperiencia(int cantidad) {
+        if (cantidad < 0) {
+            throw new IllegalArgumentException("La experiencia no puede ser negativa.");
+        }
+        experiencia += cantidad;
+        int nivelesGanados = 0;
+        while (experiencia >= experienciaSiguiente) {
+            experiencia -= experienciaSiguiente;
+            nivel++;
+            experienciaSiguiente = nivel * 100;
+            nivelesGanados++;
+        }
+        nivelesPendientes += nivelesGanados;
+        return nivelesGanados;
+    }
+
     public Notificador<Personaje> getNotificadorVida() {
         return notificadorVida;
     }
@@ -34,7 +102,8 @@ public class Personaje extends Entidad {
         if (cantidad == 0 || vida == 0) {
             return;
         }
-        vida = Math.max(0, vida - cantidad);
+        double danioEfectivo = cantidad * (1 - defensaPorcentual / 100);
+        vida = Math.max(0, vida - danioEfectivo);
         notificadorVida.notificar(this);
     }
 
@@ -44,6 +113,16 @@ public class Personaje extends Entidad {
             return;
         }
         vida = Math.min(vidaMax, vida + cantidad);
+        notificadorVida.notificar(this);
+    }
+
+    public void aumentarVidaMaxima(double cantidad) {
+        validarCantidadVida(cantidad);
+        if (cantidad == 0) {
+            return;
+        }
+        vidaMax += cantidad;
+        vida += cantidad;
         notificadorVida.notificar(this);
     }
 

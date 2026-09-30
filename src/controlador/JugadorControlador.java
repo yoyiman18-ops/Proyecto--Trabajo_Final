@@ -23,11 +23,12 @@ public class JugadorControlador implements ControladorUsuario {
     private final SpriteVista vista;
     private final Personaje modelo;
     private final Observador<Personaje> observadorVida;
+    private final Runnable accionAtaque;
     private EstadoAcciones estadoAcciones;
     private final Observador<EstadoAcciones> observadorAcciones;
 
     public JugadorControlador(String nombre, GestorRecursos recursos) {
-        this(nombre, recursos, personaje -> {});
+        this(nombre, recursos, personaje -> {}, () -> {});
     }
 
     public JugadorControlador(
@@ -35,8 +36,18 @@ public class JugadorControlador implements ControladorUsuario {
         GestorRecursos recursos,
         Observador<Personaje> observadorVida
     ) {
+        this(nombre, recursos, observadorVida, () -> {});
+    }
+
+    public JugadorControlador(
+        String nombre,
+        GestorRecursos recursos,
+        Observador<Personaje> observadorVida,
+        Runnable accionAtaque
+    ) {
         this.nombre = nombre;
         this.observadorVida = observadorVida;
+        this.accionAtaque = accionAtaque;
         this.observadorAcciones = e -> this.estadoAcciones = e;
 
         this.vista = new SpriteVista(
@@ -93,6 +104,10 @@ public class JugadorControlador implements ControladorUsuario {
             }
         }
         vista.actualizarAnimacion(fila, (vx != 0 || vy != 0), dt);
+
+        if (estadoAcciones.activa(Accion.ATACAR)) {
+            accionAtaque.run();
+        }
     }
 
     @Override 

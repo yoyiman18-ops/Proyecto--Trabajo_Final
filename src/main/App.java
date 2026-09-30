@@ -60,6 +60,7 @@ import motor.entrada.EstadoAcciones;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
 import motor.util.observer.Observador;
+import modelo.ItemMejoraAtributo;
 import vista.VistaJuego;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
@@ -103,16 +104,57 @@ public class App extends Application {
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.W, TipoEntrada.MANTENER, Accion.MOVER_ARRIBA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
-        motor.instanciarJugador("zorro/zorro", personaje -> Platform.runLater(() -> {
-            vista.actualizarVida(personaje.getVida(), personaje.getVidaMax());
-            if (personaje.getVida() <= 0) {
-                motor.detener();
-                vista.mostrarFinPartida(
-                    () -> iniciarPartida(stage),
-                    () -> mostrarMenu(stage)
-                );
-            }
-        }));
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.ATACAR));
+        motor.instanciarJugador(
+            "zorro/zorro",
+            personaje -> Platform.runLater(() -> {
+                vista.actualizarVida(personaje.getVida(), personaje.getVidaMax());
+                if (personaje.getVida() <= 0) {
+                    motor.detener();
+                    vista.mostrarFinPartida("FIN DE LA PARTIDA",
+                        () -> iniciarPartida(stage),
+                        () -> mostrarMenu(stage)
+                    );
+                }
+            }),
+            estado -> {
+                vista.actualizarOleada(estado.oleada());
+                vista.actualizarEnemigos(estado.enemigos());
+                vista.actualizarTiempo(estado.segundosHastaOleada());
+                if (estado.completadas()) {
+                    motor.detener();
+                    vista.mostrarFinPartida("OLEADAS COMPLETADAS",
+                        () -> iniciarPartida(stage),
+                        () -> mostrarMenu(stage));
+                }
+            },
+            personaje -> Platform.runLater(() -> {
+                vista.actualizarProgreso(
+                    personaje.getNivel(),
+                    personaje.getExperiencia(),
+                    personaje.getExperienciaSiguiente());
+                vista.actualizarDanio((int) Math.round(personaje.getDanioAtaque()));
+            }),
+            personaje -> Platform.runLater(() -> vista.mostrarEleccionMejora(
+                personaje.getNivel(),
+                List.of(
+                    new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.VIDA_MAXIMA, 20),
+                    new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.DANIO_ATAQUE, 5),
+                    new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.VELOCIDAD_MAXIMA, 10),
+                    new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.DEFENSA, 5)
+                ),
+                mejora -> {
+                    mejora.aplicar(personaje);
+                    vista.actualizarVida(personaje.getVida(), personaje.getVidaMax());
+                    vista.actualizarProgreso(
+                        personaje.getNivel(),
+                        personaje.getExperiencia(),
+                        personaje.getExperienciaSiguiente());
+                    vista.actualizarDanio((int) Math.round(personaje.getDanioAtaque()));
+                    motor.continuarDespuesDeMejora();
+                }
+            ))
+        );
 
         Scene escena = new Scene(vista, 960, 720);
         stage.setScene(escena);

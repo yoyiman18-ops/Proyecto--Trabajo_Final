@@ -90,7 +90,15 @@ public class Entidad implements Colisionable {
     public VecDouble2D getPosicion() { return this.posicion; }
     public double getAceleracion() { return this.aceleracion; }
     public double getFriccion() { return this.friccion; }
+    public double getVelocidadMaxima() { return this.velocidadMax; }
     public Notificador<Entidad> getNotificador() { return this.notificador; }
+
+    public void aumentarVelocidadMaxima(double porcentaje) {
+        if (!Double.isFinite(porcentaje) || porcentaje < 0) {
+            throw new IllegalArgumentException("El porcentaje de velocidad debe ser finito y no negativo.");
+        }
+        velocidadMax *= 1 + porcentaje / 100;
+    }
 
     @Override public Hitbox getHitbox() { return this.hitbox; }
     @Override public boolean colisionesActivas() { return this.hitbox.estaActiva(); }
