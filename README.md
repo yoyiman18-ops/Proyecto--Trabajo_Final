@@ -63,4 +63,7 @@ El sistema será un juego funcional que implemente las características del gén
 - **Framework de IGU:** JavaFX 26.0.2
 - **Control de Versiones:** Git y GitHub
 
+## 5. Prototipo visual de juego
+link docs:https://docs.google.com/document/d/1ymfDy2KPGd-s9TxyYZ21VI9xH4Klr3R51EY6icsoZ6E/edit?hl=es&pli=1&tab=t.0
+
 
