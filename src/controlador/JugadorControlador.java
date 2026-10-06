@@ -12,11 +12,13 @@ import motor.modelo.Entidad;
 import motor.mvc.ControladorUsuario;
 import motor.recursos.GestorRecursos;
 import motor.util.Eje;
+import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
 import motor.recursos.Extension.Imagen;
 import vista.SpriteVista;
 
 import javafx.scene.Node;
+import javafx.scene.layout.Pane;
 
 public class JugadorControlador implements ControladorUsuario {
     private final String nombre;
@@ -26,6 +28,7 @@ public class JugadorControlador implements ControladorUsuario {
     private final Runnable accionAtaque;
     private EstadoAcciones estadoAcciones;
     private final Observador<EstadoAcciones> observadorAcciones;
+    private boolean posicionInicializada;
 
     public JugadorControlador(String nombre, GestorRecursos recursos) {
         this(nombre, recursos, personaje -> {}, () -> {});
@@ -85,6 +88,7 @@ public class JugadorControlador implements ControladorUsuario {
         else if (estadoAcciones.activa(Accion.MOVER_IZQUIERDA)) { modelo.acelerar(Direccion.IZQUIERDA, dt); }
         else { modelo.frenar(Eje.X, dt); }
         modelo.mover(dt);
+        mantenerDentroDelArea();
         double vx = modelo.getVelocidad().getX();
         double vy = modelo.getVelocidad().getY();
         // implementación preliminar para lógica de animación, queda poder volverla
@@ -107,6 +111,44 @@ public class JugadorControlador implements ControladorUsuario {
 
         if (estadoAcciones.activa(Accion.ATACAR)) {
             accionAtaque.run();
+        }
+    }
+
+    private void mantenerDentroDelArea() {
+        if (!(vista.getParent() instanceof Pane area)) {
+            return;
+        }
+
+        double anchoArea = area.getWidth();
+        double altoArea = area.getHeight();
+        if (anchoArea <= 0 || altoArea <= 0) {
+            return;
+        }
+
+        VecDouble2D posicion = modelo.getPosicion();
+        double anchoVista = vista.getLayoutBounds().getWidth();
+        double altoVista = vista.getLayoutBounds().getHeight();
+        boolean centrar = !posicionInicializada;
+        if (centrar) {
+            posicion.setX((anchoArea - anchoVista) / 2);
+            posicion.setY((altoArea - altoVista) / 2);
+            posicionInicializada = true;
+        }
+
+        double xAnterior = posicion.getX();
+        double yAnterior = posicion.getY();
+        double x = Math.max(0, Math.min(xAnterior, anchoArea - anchoVista));
+        double y = Math.max(0, Math.min(yAnterior, altoArea - altoVista));
+        boolean fueraEnX = x != xAnterior;
+        boolean fueraEnY = y != yAnterior;
+
+        if (centrar || fueraEnX || fueraEnY) {
+            posicion.setX(x);
+            posicion.setY(y);
+            if (fueraEnX) { modelo.getVelocidad().setX(0); }
+            if (fueraEnY) { modelo.getVelocidad().setY(0); }
+            modelo.getHitbox().actualizarTransformacion(posicion);
+            vista.cambio(modelo);
         }
     }
 

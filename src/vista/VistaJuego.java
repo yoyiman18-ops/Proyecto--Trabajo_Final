@@ -13,6 +13,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.BorderPane;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,31 +42,77 @@ public class VistaJuego extends StackPane {
     private final Label enemigos = crearValor("--");
     private final Label danio = crearValor("--");
     private final Label puntos = crearValor("--/--");
+    private final VBox indicadorPuntos = crearIndicador("PUNTOS", puntos, 90, 100);
+    private final Button botonPausar = new Button("PAUSA");
+    private final Button botonPausarMejora = new Button("PAUSA");
+    private final Label textoPausa = new Label("JUEGO EN PAUSA");
+    private final Button botonReanudar = new Button("CONTINUAR");
+    private final Button botonSalirPausa = new Button("VOLVER AL MENÚ");
+    private final StackPane panelPausa = new StackPane();
     private final Label textoFinPartida = new Label("FIN DE LA PARTIDA");
     private final Button botonReintentar = new Button("REINTENTAR");
     private final Button botonVolverMenu = new Button("VOLVER AL MENÚ");
     private final StackPane panelFinPartida = new StackPane();
     private final StackPane panelEleccionMejora = new StackPane();
+    private Runnable alPausar = () -> {};
+    private Runnable alReanudar = () -> {};
+    private Runnable alVolverAlMenuDesdePausa = () -> {};
 
     public VistaJuego() {
-        corazones.setPrefWrapLength(125);
-        FlowPane indicadores = new FlowPane(8, 8,
+        corazones.setPrefWrapLength(190);
+        FlowPane grupoJugador = crearGrupoHud(270,
             crearIndicador("VIDA", new VBox(5,
                 new HBox(6, corazones, vida),
-                crearPanelExperiencia()), 205, 215),
-                crearIndicador("TIEMPO", tiempo, 95, 110),
-                crearIndicador("OLEADA", oleada, 85, 95),
-                crearIndicador("ENEMIGOS", enemigos, 100, 110),
-                crearIndicador("DAÑO", danio, 85, 95),
-                crearIndicador("PUNTOS", puntos, 90, 100));
+                crearPanelExperiencia()), 245, 255));
+        FlowPane grupoPartida = crearGrupoHud(340,
+            crearIndicador("TIEMPO", tiempo, 95, 110),
+            crearIndicador("OLEADA", oleada, 85, 95),
+            crearIndicador("ENEMIGOS", enemigos, 100, 110));
+        FlowPane grupoCombate = crearGrupoHud(220,
+            crearIndicador("DAÑO", danio, 85, 95),
+            indicadorPuntos);
+        indicadorPuntos.setVisible(false);
+        indicadorPuntos.setManaged(false);
+
+        FlowPane indicadores = new FlowPane(10, 8, grupoJugador, grupoPartida, grupoCombate);
         indicadores.setAlignment(Pos.CENTER_LEFT);
         indicadores.setPadding(new Insets(8, 0, 0, 0));
         indicadores.setMaxWidth(Double.MAX_VALUE);
 
-        VBox interfaz = new VBox(indicadores);
+        VBox interfaz = new VBox();
         interfaz.getStyleClass().add("game-hud");
         interfaz.setPadding(new Insets(14));
         interfaz.setMaxWidth(Double.MAX_VALUE);
+
+        botonPausar.getStyleClass().add("pause-button");
+        HBox barraHud = new HBox(12, indicadores, botonPausar);
+        barraHud.setAlignment(Pos.TOP_LEFT);
+        HBox.setHgrow(indicadores, Priority.ALWAYS);
+        interfaz.getChildren().setAll(barraHud);
+        botonPausar.setOnAction(event -> abrirPausa());
+        botonPausarMejora.getStyleClass().add("pause-button");
+        botonPausarMejora.setOnAction(event -> abrirPausa());
+
+        panelPausa.getStyleClass().add("pause-overlay");
+        panelPausa.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        textoPausa.getStyleClass().add("game-over-title");
+        botonReanudar.getStyleClass().add("game-over-button");
+        botonSalirPausa.getStyleClass().add("game-over-button");
+        botonReanudar.setMaxWidth(Double.MAX_VALUE);
+        botonSalirPausa.setMaxWidth(Double.MAX_VALUE);
+        VBox opcionesPausa = new VBox(14, textoPausa, botonReanudar, botonSalirPausa);
+        opcionesPausa.setAlignment(Pos.CENTER);
+        opcionesPausa.setMaxWidth(280);
+        panelPausa.getChildren().add(opcionesPausa);
+        panelPausa.setVisible(false);
+        panelPausa.setManaged(false);
+        botonReanudar.setOnAction(event -> {
+            cerrarPausa();
+            if (!panelEleccionMejora.isVisible()) {
+                alReanudar.run();
+            }
+        });
+        botonSalirPausa.setOnAction(event -> alVolverAlMenuDesdePausa.run());
 
         areaJuego.getStyleClass().add("game-area");
         areaJuego.setMinSize(0, 0);
@@ -93,8 +140,12 @@ public class VistaJuego extends StackPane {
         panelEleccionMejora.setVisible(false);
         panelEleccionMejora.setManaged(false);
 
-        getChildren().addAll(areaJuego, interfaz, panelFinPartida, panelEleccionMejora);
-        StackPane.setAlignment(interfaz, Pos.TOP_LEFT);
+        BorderPane contenido = new BorderPane();
+        contenido.setMinSize(0, 0);
+        contenido.setTop(interfaz);
+        contenido.setCenter(areaJuego);
+
+        getChildren().addAll(contenido, panelEleccionMejora, panelPausa, panelFinPartida);
         getStyleClass().add("game-root");
 
         var hojaEstilos = VistaJuego.class.getResource("vista-juego.css");
@@ -108,7 +159,17 @@ public class VistaJuego extends StackPane {
         return areaJuego;
     }
 
+    public void configurarPausa(Runnable alPausar, Runnable alReanudar, Runnable volverAlMenu) {
+        this.alPausar = alPausar;
+        this.alReanudar = alReanudar;
+        this.alVolverAlMenuDesdePausa = volverAlMenu;
+    }
+
     public void mostrarFinPartida(String mensaje, Runnable reintentar, Runnable volverMenu) {
+        cerrarPausa();
+        panelEleccionMejora.setVisible(false);
+        panelEleccionMejora.setManaged(false);
+        botonPausar.setDisable(true);
         textoFinPartida.setText(mensaje);
         botonReintentar.setOnAction(event -> reintentar.run());
         botonVolverMenu.setOnAction(event -> volverMenu.run());
@@ -121,6 +182,9 @@ public class VistaJuego extends StackPane {
         List<ItemMejoraAtributo> mejoras,
         Consumer<ItemMejoraAtributo> alElegir
     ) {
+        if (panelFinPartida.isVisible()) {
+            return;
+        }
         Label titulo = new Label("¡NIVEL " + nivel + "!");
         titulo.getStyleClass().add("game-over-title");
         VBox opciones = new VBox(14);
@@ -140,9 +204,27 @@ public class VistaJuego extends StackPane {
             opciones.getChildren().add(opcion);
         }
 
-        panelEleccionMejora.getChildren().setAll(opciones);
+        BorderPane contenidoEleccion = new BorderPane(opciones);
+        contenidoEleccion.setTop(botonPausarMejora);
+        BorderPane.setAlignment(botonPausarMejora, Pos.TOP_RIGHT);
+        BorderPane.setMargin(botonPausarMejora, new Insets(18));
+        panelEleccionMejora.getChildren().setAll(contenidoEleccion);
         panelEleccionMejora.setManaged(true);
         panelEleccionMejora.setVisible(true);
+    }
+
+    private void cerrarPausa() {
+        panelPausa.setVisible(false);
+        panelPausa.setManaged(false);
+    }
+
+    private void abrirPausa() {
+        if (panelPausa.isVisible() || panelFinPartida.isVisible()) {
+            return;
+        }
+        panelPausa.setManaged(true);
+        panelPausa.setVisible(true);
+        alPausar.run();
     }
 
     public void actualizarVida(double actual, double maxima) {
@@ -157,8 +239,8 @@ public class VistaJuego extends StackPane {
 
         while (iconosVida.size() < corazonesMaximos) {
             ImageView corazon = new ImageView();
-            corazon.setFitWidth(22);
-            corazon.setFitHeight(22);
+            corazon.setFitWidth(16);
+            corazon.setFitHeight(16);
             corazon.setPreserveRatio(true);
             iconosVida.add(corazon);
             corazones.getChildren().add(corazon);
@@ -203,6 +285,8 @@ public class VistaJuego extends StackPane {
 
     public void actualizarPuntos(int actual, int siguiente) {
         puntos.setText(actual + "/" + siguiente);
+        indicadorPuntos.setManaged(true);
+        indicadorPuntos.setVisible(true);
     }
 
     private static Label crearValor(String valorInicial) {
@@ -220,6 +304,16 @@ public class VistaJuego extends StackPane {
         tarjeta.setPrefWidth(anchoPreferido);
         tarjeta.setMaxWidth(Double.MAX_VALUE);
         return tarjeta;
+    }
+
+    private static FlowPane crearGrupoHud(double anchoSalto, Node... indicadores) {
+        FlowPane grupo = new FlowPane(8, 6, indicadores);
+        grupo.getStyleClass().add("hud-group");
+        grupo.setAlignment(Pos.CENTER_LEFT);
+        grupo.setMinWidth(0);
+        grupo.setPrefWrapLength(anchoSalto);
+        grupo.setMaxWidth(Double.MAX_VALUE);
+        return grupo;
     }
 
     private HBox crearPanelExperiencia() {

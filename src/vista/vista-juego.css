@@ -3,7 +3,18 @@
 }
 
 .game-hud {
-    -fx-background-color: transparent;
+    -fx-background-color: rgba(12, 18, 16, 0.88);
+    -fx-border-color: transparent transparent rgba(178, 190, 177, 0.28) transparent;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.hud-group {
+    -fx-background-color: rgba(30, 42, 36, 0.72);
+    -fx-background-radius: 3px;
+    -fx-border-color: rgba(178, 190, 177, 0.22);
+    -fx-border-radius: 3px;
+    -fx-border-width: 1px;
+    -fx-padding: 8px;
 }
 
 .game-title {
@@ -46,6 +57,10 @@
     -fx-background-color: rgba(8, 10, 10, 0.78);
 }
 
+.pause-overlay {
+    -fx-background-color: rgba(8, 10, 10, 0.82);
+}
+
 .level-up-overlay {
     -fx-background-color: rgba(8, 10, 10, 0.84);
 }
@@ -74,9 +89,26 @@
     -fx-border-color: #f0d98d;
 }
 
+.pause-button {
+    -fx-background-color: rgba(31, 45, 39, 0.96);
+    -fx-border-color: rgba(178, 190, 177, 0.45);
+    -fx-border-width: 1px;
+    -fx-text-fill: #f5e8c9;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 8px 12px;
+    -fx-cursor: hand;
+}
+
+.pause-button:hover,
+.pause-button:focused {
+    -fx-background-color: #52694d;
+    -fx-border-color: #f0d98d;
+}
+
 .game-area {
     -fx-background-color:
         radial-gradient(radius 100%, #27352f, #18221f 75%, #111816);
-    -fx-border-color: #34433d;
-    -fx-border-width: 1px;
+    -fx-border-color: #71866f;
+    -fx-border-width: 2px;
 }

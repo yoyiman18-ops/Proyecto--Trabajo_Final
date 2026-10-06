@@ -1,5 +1,7 @@
 package vista;
 
+import java.util.List;
+
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
@@ -24,6 +26,20 @@ public class SpriteVista extends ImageView implements Observador<Entidad> {
         configurarTamaño(ancho, alto);
     }
 
+    public SpriteVista(List<Image> frames, double ancho, double alto) {
+        super();
+        this.animacion = new Animacion(frames);
+        setImage(animacion.getImagenActual());
+        configurarTamaño(ancho, alto);
+    }
+
+    public SpriteVista(List<Image> frames, double duracionFrame, double ancho, double alto) {
+        super();
+        this.animacion = new Animacion(frames, duracionFrame);
+        setImage(animacion.getImagenActual());
+        configurarTamaño(ancho, alto);
+    }
+
     private void configurarTamaño(double ancho, double alto) {
         setFitWidth(ancho);
         setFitHeight(alto);
@@ -32,7 +48,16 @@ public class SpriteVista extends ImageView implements Observador<Entidad> {
 
     public void actualizarAnimacion(int fila, boolean activa, double dt) {
         if (animacion != null) {
+            if (animacion.esSecuenciaImagenes()) {
+                throw new IllegalStateException("La animación por secuencia no usa filas.");
+            }
             setViewport(animacion.actualizar(fila, activa, dt));
+        }
+    }
+
+    public void actualizarAnimacion(boolean activa, double dt) {
+        if (animacion != null && animacion.esSecuenciaImagenes()) {
+            setImage(animacion.actualizarSecuencia(activa, dt));
         }
     }
 

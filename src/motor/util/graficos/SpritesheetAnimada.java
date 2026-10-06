@@ -20,6 +20,7 @@ public class SpritesheetAnimada {
     }
 
     public Animacion getAnimacion(String nombre) { return animaciones.get(nombre); }
+    
 
 
 
