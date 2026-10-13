@@ -117,6 +117,7 @@ public class VistaJuego extends StackPane {
         areaJuego.getStyleClass().add("game-area");
         areaJuego.setMinSize(0, 0);
         areaJuego.setFocusTraversable(true);
+        areaJuego.getChildren().add(new FondoMazmorra(areaJuego));
 
         panelFinPartida.getStyleClass().add("game-over-overlay");
         panelFinPartida.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);

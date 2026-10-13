@@ -15,6 +15,7 @@ import motor.util.Eje;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
 import motor.recursos.Extension.Imagen;
+import vista.FondoMazmorra;
 import vista.SpriteVista;
 
 import javafx.scene.Node;
@@ -128,17 +129,25 @@ public class JugadorControlador implements ControladorUsuario {
         VecDouble2D posicion = modelo.getPosicion();
         double anchoVista = vista.getLayoutBounds().getWidth();
         double altoVista = vista.getLayoutBounds().getHeight();
+        double limiteIzquierdo = FondoMazmorra.MARGEN_HORIZONTAL_JUGABLE;
+        double limiteSuperior = FondoMazmorra.MARGEN_SUPERIOR_JUGABLE;
+        double limiteDerecho = Math.max(
+            limiteIzquierdo,
+            anchoArea - FondoMazmorra.MARGEN_HORIZONTAL_JUGABLE - anchoVista);
+        double limiteInferior = Math.max(
+            limiteSuperior,
+            altoArea - FondoMazmorra.MARGEN_INFERIOR_JUGABLE - altoVista);
         boolean centrar = !posicionInicializada;
         if (centrar) {
-            posicion.setX((anchoArea - anchoVista) / 2);
-            posicion.setY((altoArea - altoVista) / 2);
+            posicion.setX((limiteIzquierdo + limiteDerecho) / 2);
+            posicion.setY((limiteSuperior + limiteInferior) / 2);
             posicionInicializada = true;
         }
 
         double xAnterior = posicion.getX();
         double yAnterior = posicion.getY();
-        double x = Math.max(0, Math.min(xAnterior, anchoArea - anchoVista));
-        double y = Math.max(0, Math.min(yAnterior, altoArea - altoVista));
+        double x = Math.max(limiteIzquierdo, Math.min(xAnterior, limiteDerecho));
+        double y = Math.max(limiteSuperior, Math.min(yAnterior, limiteInferior));
         boolean fueraEnX = x != xAnterior;
         boolean fueraEnY = y != yAnterior;
 
