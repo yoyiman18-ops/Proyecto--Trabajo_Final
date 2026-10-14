@@ -129,14 +129,22 @@ public class JugadorControlador implements ControladorUsuario {
         VecDouble2D posicion = modelo.getPosicion();
         double anchoVista = vista.getLayoutBounds().getWidth();
         double altoVista = vista.getLayoutBounds().getHeight();
-        double limiteIzquierdo = FondoMazmorra.MARGEN_HORIZONTAL_JUGABLE;
-        double limiteSuperior = FondoMazmorra.MARGEN_SUPERIOR_JUGABLE;
+        FondoMazmorra fondo = area.getChildren().stream()
+            .filter(FondoMazmorra.class::isInstance)
+            .map(FondoMazmorra.class::cast)
+            .findFirst()
+            .orElse(null);
+        double margenHorizontal = fondo == null ? 0 : fondo.getMargenHorizontalJugable();
+        double margenSuperior = fondo == null ? 0 : fondo.getMargenSuperiorJugable();
+        double margenInferior = fondo == null ? 0 : fondo.getMargenInferiorJugable();
+        double limiteIzquierdo = margenHorizontal;
+        double limiteSuperior = margenSuperior;
         double limiteDerecho = Math.max(
             limiteIzquierdo,
-            anchoArea - FondoMazmorra.MARGEN_HORIZONTAL_JUGABLE - anchoVista);
+            anchoArea - margenHorizontal - anchoVista);
         double limiteInferior = Math.max(
             limiteSuperior,
-            altoArea - FondoMazmorra.MARGEN_INFERIOR_JUGABLE - altoVista);
+            altoArea - margenInferior - altoVista);
         boolean centrar = !posicionInicializada;
         if (centrar) {
             posicion.setX((limiteIzquierdo + limiteDerecho) / 2);

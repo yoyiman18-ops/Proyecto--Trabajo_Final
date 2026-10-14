@@ -59,6 +59,7 @@ import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
+import motor.recursos.cache.CacheImagenes;
 import motor.util.observer.Observador;
 import modelo.ItemMejoraAtributo;
 import vista.VistaJuego;
@@ -98,7 +99,7 @@ public class App extends Application {
     }
 
     private void iniciarPartida(Stage stage) {
-        VistaJuego vista = new VistaJuego();
+        VistaJuego vista = new VistaJuego(new CacheImagenes("imagenes"), 32);
         motor = new Motor(vista.getAreaJuego());
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.A, TipoEntrada.MANTENER, Accion.MOVER_IZQUIERDA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));

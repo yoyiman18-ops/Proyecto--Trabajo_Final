@@ -18,7 +18,9 @@ import javafx.scene.layout.BorderPane;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import controlador.ControladorFondoMazmorra;
 import modelo.ItemMejoraAtributo;
+import motor.recursos.cache.CacheImagenes;
 
 public class VistaJuego extends StackPane {
     private static final int VIDA_POR_CORAZON = 10;
@@ -58,7 +60,7 @@ public class VistaJuego extends StackPane {
     private Runnable alReanudar = () -> {};
     private Runnable alVolverAlMenuDesdePausa = () -> {};
 
-    public VistaJuego() {
+    public VistaJuego(CacheImagenes cacheImagenes, double tamanoTile) {
         corazones.setPrefWrapLength(190);
         FlowPane grupoJugador = crearGrupoHud(270,
             crearIndicador("VIDA", new VBox(5,
@@ -117,7 +119,9 @@ public class VistaJuego extends StackPane {
         areaJuego.getStyleClass().add("game-area");
         areaJuego.setMinSize(0, 0);
         areaJuego.setFocusTraversable(true);
-        areaJuego.getChildren().add(new FondoMazmorra(areaJuego));
+        ControladorFondoMazmorra controladorFondo =
+            new ControladorFondoMazmorra(areaJuego, cacheImagenes, tamanoTile);
+        areaJuego.getChildren().add(controladorFondo.getVista());
 
         panelFinPartida.getStyleClass().add("game-over-overlay");
         panelFinPartida.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
