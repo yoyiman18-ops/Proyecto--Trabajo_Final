@@ -24,7 +24,7 @@ public abstract class Notificador<T> {
         for (Observador<T> o : observadores) { o.cambio(estado);}
     }
 
-    public void suscribirObservador(Observador<T> o) { colaModificaciones.add(() -> observadores.add(o)); }
-    public void desuscribirObservador(Observador<T> o) { colaModificaciones.add(() -> observadores.remove(o)); }
-    public void limpiarObservadores() { colaModificaciones.add(() -> observadores.clear()); }
+    synchronized public void suscribirObservador(Observador<T> o) { colaModificaciones.add(() -> observadores.add(o)); }
+    synchronized public void desuscribirObservador(Observador<T> o) { colaModificaciones.add(() -> observadores.remove(o)); }
+    synchronized public void limpiarObservadores() { colaModificaciones.add(() -> observadores.clear()); }
 }
