@@ -73,7 +73,7 @@ Un ejemplo muy sencillo de un observador lambda podria ser el siguiente, que al 
 
     private final Observador<Integer> parlante = e -> System.out.println(e);
 
-![Diagrama del patron Observer con el ejemplo del RelojDelta](PatronObserver.jpg)
+![Diagrama del patron Observer con el ejemplo del RelojDelta](PatronObserver.png)
 
 #### Diagramas de Diseño:
 
