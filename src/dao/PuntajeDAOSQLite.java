@@ -9,7 +9,8 @@ import java.util.Objects;
 import modelo.Puntaje;
 
 public final class PuntajeDAOSQLite implements PuntajeDAO {
-    private static final String CREAR_TABLA =
+
+    private final String CREAR_TABLA =
         "CREATE TABLE IF NOT EXISTS puntajes ("
             + "fecha INTEGER NOT NULL, "
             + "puntos INTEGER NOT NULL"
@@ -30,24 +31,23 @@ public final class PuntajeDAOSQLite implements PuntajeDAO {
     }
 
     @Override
-    public void guardar(Puntaje puntaje) throws SQLException {
+    public void guardar(Puntaje puntaje) {
         Objects.requireNonNull(puntaje, "El puntaje no puede ser nulo.");
 
         try (PreparedStatement sentencia = conexion.prepareStatement(INSERTAR_PUNTAJE)) {
             sentencia.setInt(1, puntaje.getFecha());
             sentencia.setInt(2, puntaje.getPuntos());
             sentencia.executeUpdate();
-        }
+        } catch (SQLException e) { throw new IllegalStateException(); }
     }
 
     @Override
-    public void borrar(Puntaje puntaje) throws SQLException {
+    public void borrar(Puntaje puntaje) {
         Objects.requireNonNull(puntaje, "El puntaje no puede ser nulo.");
-
         try (PreparedStatement sentencia = conexion.prepareStatement(BORRAR_PUNTAJE)) {
             sentencia.setInt(1, puntaje.getFecha());
             sentencia.setInt(2, puntaje.getPuntos());
             sentencia.executeUpdate();
-        }
+        } catch (SQLException e) { throw new IllegalStateException("Error al borrar el puntaje"); }
     }
 }
