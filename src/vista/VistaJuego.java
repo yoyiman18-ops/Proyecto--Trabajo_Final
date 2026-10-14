@@ -14,27 +14,26 @@ import javafx.scene.layout.VBox;
 import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.BorderPane;
+import java.util.Map;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import controlador.ControladorFondoMazmorra;
 import modelo.ItemMejoraAtributo;
-import motor.recursos.cache.CacheImagenes;
 
 public class VistaJuego extends StackPane {
-    private static final int VIDA_POR_CORAZON = 10;
-    private static final int CANTIDAD_GEMAS_EXPERIENCIA = 10;
+    private final int vidaPorCorazon = 10;
+    private final int cantidadGemasExperiencia = 10;
 
     private final Pane areaJuego = new Pane();
     private final Label vida = crearValor("100/100");
     private final FlowPane corazones = new FlowPane(3, 3);
     private final List<ImageView> iconosVida = new ArrayList<>();
-    private final Image corazonLleno = cargarImagen("led-heart-red.png");
-    private final Image corazonVacio = cargarImagen("led-heart.png");
-    private final Image iconoExperiencia = cargarImagen("hud_xp.png");
-    private final Image gemaExperienciaVacia = cargarImagen("hud_gema_gris.png");
-    private final Image gemaExperienciaLlena = cargarImagen("hud_gema_verde.png");
+    private final Image corazonLleno;
+    private final Image corazonVacio;
+    private final Image iconoExperiencia;
+    private final Image gemaExperienciaVacia;
+    private final Image gemaExperienciaLlena;
     private final Label nivelExperiencia = new Label("NIVEL --");
     private final Label valorExperiencia = crearValor("-- / -- XP");
     private final HBox gemasExperiencia = new HBox(2);
@@ -60,7 +59,13 @@ public class VistaJuego extends StackPane {
     private Runnable alReanudar = () -> {};
     private Runnable alVolverAlMenuDesdePausa = () -> {};
 
-    public VistaJuego(CacheImagenes cacheImagenes, double tamanoTile) {
+    public VistaJuego(Map<String, Image> imagenesHud) {
+        this.corazonLleno = imagenesHud.get("corazonLleno");
+        this.corazonVacio = imagenesHud.get("corazonVacio");
+        this.iconoExperiencia = imagenesHud.get("iconoExperiencia");
+        this.gemaExperienciaVacia = imagenesHud.get("gemaExperienciaVacia");
+        this.gemaExperienciaLlena = imagenesHud.get("gemaExperienciaLlena");
+
         corazones.setPrefWrapLength(190);
         FlowPane grupoJugador = crearGrupoHud(270,
             crearIndicador("VIDA", new VBox(5,
@@ -119,10 +124,6 @@ public class VistaJuego extends StackPane {
         areaJuego.getStyleClass().add("game-area");
         areaJuego.setMinSize(0, 0);
         areaJuego.setFocusTraversable(true);
-        ControladorFondoMazmorra controladorFondo =
-            new ControladorFondoMazmorra(areaJuego, cacheImagenes, tamanoTile);
-        areaJuego.getChildren().add(controladorFondo.getVista());
-
         panelFinPartida.getStyleClass().add("game-over-overlay");
         panelFinPartida.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         textoFinPartida.getStyleClass().add("game-over-title");
@@ -237,10 +238,10 @@ public class VistaJuego extends StackPane {
         int vidaValida = Math.max(0, Math.min((int) Math.round(actual), maximaValida));
         int corazonesMaximos = maximaValida == 0
             ? 0
-            : 1 + (maximaValida - 1) / VIDA_POR_CORAZON;
+            : 1 + (maximaValida - 1) / vidaPorCorazon;
         int corazonesLlenos = vidaValida == 0
             ? 0
-            : 1 + (vidaValida - 1) / VIDA_POR_CORAZON;
+            : 1 + (vidaValida - 1) / vidaPorCorazon;
 
         while (iconosVida.size() < corazonesMaximos) {
             ImageView corazon = new ImageView();
@@ -265,7 +266,7 @@ public class VistaJuego extends StackPane {
         nivelExperiencia.setText("NIVEL " + nivel);
         valorExperiencia.setText(actual + " / " + objetivo + " XP");
         double progreso = objetivo == 0 ? 0 : (double) actual / objetivo;
-        int gemasLlenas = (int) Math.round(progreso * CANTIDAD_GEMAS_EXPERIENCIA);
+        int gemasLlenas = (int) Math.round(progreso * cantidadGemasExperiencia);
         for (int indice = 0; indice < iconosExperiencia.size(); indice++) {
             iconosExperiencia.get(indice).setImage(
                 indice < gemasLlenas ? gemaExperienciaLlena : gemaExperienciaVacia);
@@ -294,13 +295,13 @@ public class VistaJuego extends StackPane {
         indicadorPuntos.setVisible(true);
     }
 
-    private static Label crearValor(String valorInicial) {
+    private Label crearValor(String valorInicial) {
         Label valor = new Label(valorInicial);
         valor.getStyleClass().add("hud-value");
         return valor;
     }
 
-    private static VBox crearIndicador(String titulo, Node valor,
+    private VBox crearIndicador(String titulo, Node valor,
                                        double anchoMinimo, double anchoPreferido) {
         Label etiqueta = new Label(titulo);
         etiqueta.getStyleClass().add("hud-label");
@@ -311,7 +312,7 @@ public class VistaJuego extends StackPane {
         return tarjeta;
     }
 
-    private static FlowPane crearGrupoHud(double anchoSalto, Node... indicadores) {
+    private FlowPane crearGrupoHud(double anchoSalto, Node... indicadores) {
         FlowPane grupo = new FlowPane(8, 6, indicadores);
         grupo.getStyleClass().add("hud-group");
         grupo.setAlignment(Pos.CENTER_LEFT);
@@ -327,7 +328,7 @@ public class VistaJuego extends StackPane {
         icono.setFitHeight(22);
         icono.setPreserveRatio(true);
 
-        for (int indice = 0; indice < CANTIDAD_GEMAS_EXPERIENCIA; indice++) {
+        for (int indice = 0; indice < cantidadGemasExperiencia; indice++) {
             ImageView gema = new ImageView(gemaExperienciaVacia);
             gema.setFitWidth(11);
             gema.setFitHeight(11);
@@ -352,11 +353,4 @@ public class VistaJuego extends StackPane {
         return contenido;
     }
 
-    private static Image cargarImagen(String nombre) {
-        var recurso = VistaJuego.class.getResource("/recursos/imagenes/" + nombre);
-        if (recurso == null) {
-            throw new IllegalStateException("No se encontró el recurso de HUD: " + nombre);
-        }
-        return new Image(recurso.toExternalForm());
-    }
 }

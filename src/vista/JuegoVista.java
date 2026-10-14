@@ -1,12 +1,13 @@
 package vista;
 
 import javafx.scene.layout.Pane;
-import motor.recursos.cache.CacheImagenes;
+import javafx.scene.image.Image;
+import java.util.Map;
 
 /** Fachada compatible del contenedor principal de la partida. */
 public final class JuegoVista extends VistaJuego {
-    public JuegoVista(CacheImagenes cacheImagenes, double tamanoTile) {
-        super(cacheImagenes, tamanoTile);
+    public JuegoVista(Map<String, Image> imagenesHud) {
+        super(imagenesHud);
         setPrefSize(800, 600);
     }
 

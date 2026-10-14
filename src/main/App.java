@@ -47,6 +47,7 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
+import controlador.ControladorVistaJuego;
 import vista.JuegoVista;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Rectangle2D;
@@ -99,7 +100,9 @@ public class App extends Application {
     }
 
     private void iniciarPartida(Stage stage) {
-        VistaJuego vista = new VistaJuego(new CacheImagenes("imagenes"), 32);
+        ControladorVistaJuego controladorVista =
+            new ControladorVistaJuego(new CacheImagenes("imagenes"), 32);
+        VistaJuego vista = controladorVista.getVistaJuego();
         motor = new Motor(vista.getAreaJuego());
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.A, TipoEntrada.MANTENER, Accion.MOVER_IZQUIERDA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));
