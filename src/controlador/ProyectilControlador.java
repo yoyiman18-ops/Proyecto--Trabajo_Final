@@ -1,42 +1,56 @@
 package controlador;
 
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import javafx.scene.Node;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import modelo.Proyectil;
 import modelo.ProyectilAliado;
 import modelo.ProyectilEnemigo;
+import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.HitboxRectangular;
 import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
-import motor.modelo.Entidad;
-import motor.mvc.Controlador;
 import motor.util.VecDouble2D;
 
-public final class ProyectilControlador implements Controlador {
+public final class ProyectilControlador {
     private static final double RADIO_VISTA = 5;
     private static final double TAMANIO_HITBOX = RADIO_VISTA * 2;
     private static final Color COLOR_ALIADO = Color.ORANGERED;
     private static final Color COLOR_ENEMIGO = Color.MEDIUMPURPLE;
 
-    private final Proyectil modelo;
-    private final Circle vista;
+    private final Pane escenario;
+    private final List<Colisionable> objetivos = new ArrayList<>();
+    private final List<ProyectilActivo> proyectiles = new ArrayList<>();
 
-    private ProyectilControlador(Proyectil modelo, Color color) {
-        if (modelo == null) {
-            throw new IllegalArgumentException("El proyectil no puede ser nulo.");
+    public ProyectilControlador(Pane escenario) {
+        if (escenario == null) {
+            throw new IllegalArgumentException("El escenario no puede ser nulo.");
         }
-        this.modelo = modelo;
-        this.vista = new Circle(RADIO_VISTA, color);
-        this.vista.setStroke(Color.WHITE);
-        this.modelo.getHitbox().actualizarTransformacion(modelo.getPosicion());
-        actualizarVista();
+        this.escenario = escenario;
     }
 
-    public static ProyectilControlador aliado(
+    public void agregarObjetivo(Colisionable objetivo) {
+        if (objetivo == null) {
+            throw new IllegalArgumentException("El objetivo no puede ser nulo.");
+        }
+        if (!objetivos.contains(objetivo)) {
+            objetivos.add(objetivo);
+        }
+    }
+
+    public boolean quitarObjetivo(Colisionable objetivo) {
+        return objetivos.remove(objetivo);
+    }
+
+    public Proyectil dispararAliado(
         String nombre,
         VecDouble2D posicion,
         VecDouble2D direccion,
@@ -46,27 +60,25 @@ public final class ProyectilControlador implements Controlador {
         int penetracion
     ) {
         validarNombreYPosicion(nombre, posicion);
-        HitboxRectangular hitbox = crearHitbox(
-            CategoriaColision.ALIADO,
-            CategoriaColision.ENEMIGO,
-            CategoriaColision.MURO
-        );
-        return new ProyectilControlador(
-            new ProyectilAliado(
-                nombre,
-                hitbox,
-                posicion,
-                direccion,
-                velocidad,
-                danio,
-                tiempoVida,
-                penetracion
+        Proyectil proyectil = new ProyectilAliado(
+            nombre,
+            crearHitbox(
+                CategoriaColision.ALIADO,
+                CategoriaColision.ENEMIGO,
+                CategoriaColision.MURO
             ),
-            COLOR_ALIADO
+            posicion,
+            direccion,
+            velocidad,
+            danio,
+            tiempoVida,
+            penetracion
         );
+        agregarProyectil(proyectil, COLOR_ALIADO);
+        return proyectil;
     }
 
-    public static ProyectilControlador enemigo(
+    public Proyectil dispararEnemigo(
         String nombre,
         VecDouble2D posicion,
         VecDouble2D direccion,
@@ -76,25 +88,32 @@ public final class ProyectilControlador implements Controlador {
         int penetracion
     ) {
         validarNombreYPosicion(nombre, posicion);
-        HitboxRectangular hitbox = crearHitbox(
-            CategoriaColision.ENEMIGO,
-            CategoriaColision.JUGADOR,
-            CategoriaColision.ALIADO,
-            CategoriaColision.MURO
-        );
-        return new ProyectilControlador(
-            new ProyectilEnemigo(
-                nombre,
-                hitbox,
-                posicion,
-                direccion,
-                velocidad,
-                danio,
-                tiempoVida,
-                penetracion
+        Proyectil proyectil = new ProyectilEnemigo(
+            nombre,
+            crearHitbox(
+                CategoriaColision.ENEMIGO,
+                CategoriaColision.JUGADOR,
+                CategoriaColision.ALIADO,
+                CategoriaColision.MURO
             ),
-            COLOR_ENEMIGO
+            posicion,
+            direccion,
+            velocidad,
+            danio,
+            tiempoVida,
+            penetracion
         );
+        agregarProyectil(proyectil, COLOR_ENEMIGO);
+        return proyectil;
+    }
+
+    private void agregarProyectil(Proyectil proyectil, Color color) {
+        Circle vista = new Circle(RADIO_VISTA, color);
+        vista.setStroke(Color.WHITE);
+        actualizarVista(vista, proyectil);
+        proyectil.getHitbox().actualizarTransformacion(proyectil.getPosicion());
+        escenario.getChildren().add(vista);
+        proyectiles.add(new ProyectilActivo(proyectil, vista));
     }
 
     private static HitboxRectangular crearHitbox(
@@ -121,35 +140,67 @@ public final class ProyectilControlador implements Controlador {
         }
     }
 
-    @Override
-    public Proyectil getModelo() {
-        return modelo;
-    }
-
-    public Proyectil getProyectil() {
-        return modelo;
-    }
-
-    @Override
-    public Node getVista() {
-        return vista;
-    }
-
-    @Override
     public void tick(Double dt) {
-        if (dt == null) {
-            throw new IllegalArgumentException("El tiempo de actualización no puede ser nulo.");
+        if (dt == null || !Double.isFinite(dt) || dt < 0) {
+            throw new IllegalArgumentException(
+                "El tiempo de actualización debe ser finito y no negativo."
+            );
         }
-        modelo.actualizar(dt);
-        actualizarVista();
+
+        Iterator<ProyectilActivo> iterador = proyectiles.iterator();
+        while (iterador.hasNext()) {
+            ProyectilActivo activo = iterador.next();
+            Proyectil proyectil = activo.modelo;
+            proyectil.actualizar(dt);
+            actualizarVista(activo.vista, proyectil);
+            comprobarColisiones(activo);
+
+            if (!proyectil.estaActivo() || proyectil.debeDesaparecer()) {
+                escenario.getChildren().remove(activo.vista);
+                iterador.remove();
+            }
+        }
     }
 
-    public boolean estaActivo() {
-        return modelo.estaActivo();
+    private void comprobarColisiones(ProyectilActivo activo) {
+        Proyectil proyectil = activo.modelo;
+        for (Colisionable objetivo : objetivos) {
+            if (!proyectil.estaActivo()) {
+                break;
+            }
+            if (objetivo == null
+                    || !objetivo.colisionesActivas()
+                    || activo.objetivosImpactados.contains(objetivo.getHitbox().getId())) {
+                continue;
+            }
+
+            var hitboxProyectil = proyectil.getHitbox();
+            var hitboxObjetivo = objetivo.getHitbox();
+            if (hitboxProyectil.esCompatible(hitboxObjetivo)
+                    && hitboxProyectil.intersecta(hitboxObjetivo)) {
+                activo.objetivosImpactados.add(hitboxObjetivo.getId());
+                proyectil.colisionar(objetivo);
+            }
+        }
     }
 
-    private void actualizarVista() {
-        vista.setLayoutX(modelo.getPosicion().getX());
-        vista.setLayoutY(modelo.getPosicion().getY());
+    private static void actualizarVista(Circle vista, Proyectil proyectil) {
+        vista.setLayoutX(proyectil.getPosicion().getX());
+        vista.setLayoutY(proyectil.getPosicion().getY());
+    }
+
+    public List<Proyectil> getProyectiles() {
+        return proyectiles.stream().map(proyectil -> proyectil.modelo).toList();
+    }
+
+    private static final class ProyectilActivo {
+        private final Proyectil modelo;
+        private final Circle vista;
+        private final Set<Integer> objetivosImpactados = new HashSet<>();
+
+        private ProyectilActivo(Proyectil modelo, Circle vista) {
+            this.modelo = modelo;
+            this.vista = vista;
+        }
     }
 }
