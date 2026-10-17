@@ -1,5 +1,6 @@
 package controlador;
 
+import modelo.BastonMagico;
 import modelo.Personaje;
 import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.HitboxRectangular;
@@ -26,8 +27,11 @@ public class JugadorControlador implements ControladorUsuario {
     private final Personaje modelo;
     private final Observador<Personaje> observadorVida;
     private final Runnable accionAtaque;
+    private final BastonMagico bastonMagico;
+    private final ProyectilControlador proyectilControlador;
     private EstadoAcciones estadoAcciones;
     private final Observador<EstadoAcciones> observadorAcciones;
+    private final VecDouble2D direccionAtaque = new VecDouble2D(1, 0);
     private boolean posicionInicializada;
 
     public JugadorControlador(String nombre, GestorRecursos recursos) {
@@ -48,9 +52,37 @@ public class JugadorControlador implements ControladorUsuario {
         Observador<Personaje> observadorVida,
         Runnable accionAtaque
     ) {
+        this(nombre, recursos, observadorVida, accionAtaque, null, null);
+    }
+
+    public JugadorControlador(
+        String nombre,
+        GestorRecursos recursos,
+        Observador<Personaje> observadorVida,
+        BastonMagico bastonMagico,
+        ProyectilControlador proyectilControlador
+    ) {
+        this(nombre, recursos, observadorVida, () -> {}, bastonMagico, proyectilControlador);
+    }
+
+    private JugadorControlador(
+        String nombre,
+        GestorRecursos recursos,
+        Observador<Personaje> observadorVida,
+        Runnable accionAtaque,
+        BastonMagico bastonMagico,
+        ProyectilControlador proyectilControlador
+    ) {
+        if ((bastonMagico == null) != (proyectilControlador == null)) {
+            throw new IllegalArgumentException(
+                "El bastón mágico y el controlador de proyectiles deben configurarse juntos."
+            );
+        }
         this.nombre = nombre;
         this.observadorVida = observadorVida;
         this.accionAtaque = accionAtaque;
+        this.bastonMagico = bastonMagico;
+        this.proyectilControlador = proyectilControlador;
         this.observadorAcciones = e -> this.estadoAcciones = e;
 
         this.vista = new SpriteVista(
@@ -80,6 +112,7 @@ public class JugadorControlador implements ControladorUsuario {
     }
 
     public void tick(Double dt) {
+        actualizarDireccionAtaque();
         if (estadoAcciones.activa(Accion.MOVER_ARRIBA)) { modelo.acelerar(Direccion.ARRIBA, dt); }
         else if (estadoAcciones.activa(Accion.MOVER_ABAJO)) { modelo.acelerar(Direccion.ABAJO, dt); }
         else { modelo.frenar(Eje.Y, dt); }
@@ -110,7 +143,39 @@ public class JugadorControlador implements ControladorUsuario {
         vista.actualizarAnimacion(fila, (vx != 0 || vy != 0), dt);
 
         if (estadoAcciones.activa(Accion.ATACAR)) {
-            accionAtaque.run();
+            if (bastonMagico == null) {
+                accionAtaque.run();
+            } else {
+                VecDouble2D posicionProyectil = new VecDouble2D(
+                    modelo.getPosicion().getX() + 25,
+                    modelo.getPosicion().getY() + 25
+                );
+                proyectilControlador.dispararAliado(
+                    "baston-magico",
+                    posicionProyectil,
+                    direccionAtaque,
+                    bastonMagico
+                );
+            }
+        }
+    }
+
+    private void actualizarDireccionAtaque() {
+        double x = 0;
+        double y = 0;
+        if (estadoAcciones.activa(Accion.MOVER_DERECHA)) {
+            x = 1;
+        } else if (estadoAcciones.activa(Accion.MOVER_IZQUIERDA)) {
+            x = -1;
+        }
+        if (estadoAcciones.activa(Accion.MOVER_ABAJO)) {
+            y = 1;
+        } else if (estadoAcciones.activa(Accion.MOVER_ARRIBA)) {
+            y = -1;
+        }
+        if (x != 0 || y != 0) {
+            direccionAtaque.setX(x);
+            direccionAtaque.setY(y);
         }
     }
 

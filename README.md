@@ -31,6 +31,7 @@ El sistema será un juego funcional que implemente las características del gén
     - Las mejoras modifican los atributos y las habilidades del personaje del jugador.
     - La experiencia obtenida permite al jugador subir automáticamente de nivel, presentándole tres opciones de mejoras aleatorias desde las opciones disponibles.
 - **Sistema de enemigos:**
+    - El modelo `Oleada` representa su número, cantidad de enemigos, intervalo de aparición y multiplicadores de vida y daño.
     - Los enemigos tienen una inteligencia artificial básica para atacar al jugador, perisiguiéndolo o disparando proyectiles.
     - Existen distintos tipos de enemigos, con atributos y habilidades distintas. 
     - Se obtiene experiencia al destruir enemigos.

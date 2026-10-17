@@ -10,6 +10,7 @@ import java.util.Set;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import modelo.BastonMagico;
 import modelo.Proyectil;
 import modelo.ProyectilAliado;
 import modelo.ProyectilEnemigo;
@@ -85,6 +86,26 @@ public final class ProyectilControlador {
         );
         agregarProyectil(proyectil, COLOR_ALIADO);
         return proyectil;
+    }
+
+    public Proyectil dispararAliado(
+        String nombre,
+        VecDouble2D posicion,
+        VecDouble2D direccion,
+        BastonMagico baston
+    ) {
+        if (baston == null) {
+            throw new IllegalArgumentException("El bastón mágico no puede ser nulo.");
+        }
+        return dispararAliado(
+            nombre,
+            posicion,
+            direccion,
+            baston.velocidad(),
+            baston.danio(),
+            baston.tiempoVida(),
+            baston.penetracion()
+        );
     }
 
     public Proyectil dispararEnemigo(

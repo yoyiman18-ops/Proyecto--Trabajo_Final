@@ -41,6 +41,48 @@ public final class EnemigoControlador implements Controlador {
     }
 
     public EnemigoControlador(Personaje objetivo, double x, double y, double velocidad) {
+        this(objetivo, x, y, velocidad, VIDA_MAXIMA, DANIO, EXPERIENCIA_RECOMPENSA);
+    }
+
+    public EnemigoControlador(
+        Personaje objetivo,
+        double x,
+        double y,
+        double multiplicadorVida,
+        double multiplicadorDanio
+    ) {
+        this(
+            objetivo,
+            x,
+            y,
+            VELOCIDAD,
+            VIDA_MAXIMA * validarMultiplicador(multiplicadorVida, "vida"),
+            DANIO * validarMultiplicador(multiplicadorDanio, "daño"),
+            EXPERIENCIA_RECOMPENSA
+        );
+    }
+
+    private static double validarMultiplicador(double multiplicador, String atributo) {
+        if (!Double.isFinite(multiplicador) || multiplicador <= 0) {
+            throw new IllegalArgumentException(
+                "El multiplicador de " + atributo + " debe ser positivo y finito."
+            );
+        }
+        return multiplicador;
+    }
+
+    private EnemigoControlador(
+        Personaje objetivo,
+        double x,
+        double y,
+        double velocidad,
+        double vidaMaxima,
+        double danio,
+        int experienciaRecompensa
+    ) {
+        if (objetivo == null) {
+            throw new IllegalArgumentException("El objetivo del enemigo no puede ser nulo.");
+        }
         this.objetivo = objetivo;
         VecDouble2D posicion = new VecDouble2D(x, y);
         modelo = new Enemigo(
@@ -53,9 +95,9 @@ public final class EnemigoControlador implements Controlador {
             ),
             posicion,
             velocidad,
-            VIDA_MAXIMA,
-            DANIO,
-            EXPERIENCIA_RECOMPENSA
+            vidaMaxima,
+            danio,
+            experienciaRecompensa
         );
         vista.setFitWidth(ANCHO_VISTA);
         vista.setFitHeight(ALTO_VISTA);
