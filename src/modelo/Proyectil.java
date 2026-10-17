@@ -1,9 +1,12 @@
 package modelo;
+
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
+import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorDebil;
 
-public final class Proyectil extends Entidad {
+public final class Proyectil extends Entidad implements ModeloProyectil {
 
     private final double danio;
     private final double velocidad;
@@ -18,15 +21,44 @@ public final class Proyectil extends Entidad {
         double velocidad,
         double tiempoVida
     ) {
+        this(
+            nombre,
+            hitbox,
+            posicion,
+            direccion,
+            danio,
+            velocidad,
+            tiempoVida,
+            new NotificadorDebil<>()
+        );
+    }
+
+    public Proyectil(
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        VecDouble2D direccion,
+        double danio,
+        double velocidad,
+        double tiempoVida,
+        Notificador<Entidad> notificador
+    ) {
         super(
             nombre,
             hitbox,
             posicion,
-            normalizarDireccion(direccion),
+            new VecDouble2D(),
             0,
             0,
-            velocidad
+            velocidad,
+            notificador
         );
+
+        if (direccion == null) {
+            throw new IllegalArgumentException(
+                "La dirección no puede ser nula."
+            );
+        }
 
         if (!Double.isFinite(danio) || danio < 0) {
             throw new IllegalArgumentException(
@@ -46,37 +78,32 @@ public final class Proyectil extends Entidad {
             );
         }
 
+        VecDouble2D velocidadCalculada = direccion.clone().normalizado();
+        velocidadCalculada.producto(velocidad);
+        getVelocidad().setX(velocidadCalculada.getX());
+        getVelocidad().setY(velocidadCalculada.getY());
+
         this.danio = danio;
         this.velocidad = velocidad;
         this.tiempoVida = tiempoVida;
     }
 
-    private static VecDouble2D normalizarDireccion(
-        VecDouble2D direccion
-    ) {
-        if (direccion == null) {
-            throw new IllegalArgumentException(
-                "La dirección no puede ser nula."
-            );
-        }
-
-        // La implementación depende de los métodos disponibles
-        // en VecDouble2D.
-        return direccion;
-    }
-
+    @Override
     public double getDanio() {
         return danio;
     }
 
+    @Override
     public double getVelocidad() {
         return velocidad;
     }
 
+    @Override
     public double getTiempoVida() {
         return tiempoVida;
     }
 
+    @Override
     public void actualizarTiempoVida(double deltaTiempo) {
         if (!Double.isFinite(deltaTiempo) || deltaTiempo < 0) {
             throw new IllegalArgumentException(
@@ -87,7 +114,13 @@ public final class Proyectil extends Entidad {
         tiempoVida = Math.max(0, tiempoVida - deltaTiempo);
     }
 
+    @Override
     public boolean estaExpirado() {
         return tiempoVida == 0;
+    }
+
+    @Override
+    public Entidad getEntidad() {
+        return this;
     }
 }

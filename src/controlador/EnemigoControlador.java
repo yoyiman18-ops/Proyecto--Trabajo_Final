@@ -2,14 +2,15 @@ package controlador;
 
 import java.util.Objects;
 import javafx.scene.Node;
-import modelo.Enemigo;
+import modelo.ModeloEnemigo;
 import modelo.ObjetivoEnemigo;
+import motor.modelo.Entidad;
 import motor.mvc.Controlador;
 import motor.util.VecDouble2D;
 import vista.VistaEnemigo;
 
 public final class EnemigoControlador implements Controlador {
-    private final Enemigo modelo;
+    private final ModeloEnemigo modelo;
     private final VistaEnemigo vista;
     private final ObjetivoEnemigo objetivo;
     private final double distanciaAtaque;
@@ -18,7 +19,7 @@ public final class EnemigoControlador implements Controlador {
     private double tiempoHastaAtaque;
 
     public EnemigoControlador(
-        Enemigo modelo,
+        ModeloEnemigo modelo,
         VistaEnemigo vista,
         ObjetivoEnemigo objetivo
     ) {
@@ -26,7 +27,7 @@ public final class EnemigoControlador implements Controlador {
     }
 
     public EnemigoControlador(
-        Enemigo modelo,
+        ModeloEnemigo modelo,
         VistaEnemigo vista,
         ObjetivoEnemigo objetivo,
         double distanciaAtaque,
@@ -46,8 +47,12 @@ public final class EnemigoControlador implements Controlador {
     }
 
     @Override
-    public Enemigo getModelo() {
-        return modelo;
+    public Entidad getModelo() {
+        return modelo.getEntidad();
+    }
+
+    public int getExperienciaRecompensa() {
+        return modelo.getExperienciaRecompensa();
     }
 
     @Override

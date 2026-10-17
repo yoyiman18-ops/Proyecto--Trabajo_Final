@@ -3,12 +3,13 @@ package vista;
 import java.util.Map;
 import java.util.Objects;
 
+import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 
-public final class FondoMazmorra extends Canvas {
+public final class FondoMazmorra extends Canvas implements VistaFondo {
     private final int cantidadMarcosFuente = 3;
     private final double tamanoTile;
     private final double margenHorizontalJugable;
@@ -57,6 +58,12 @@ public final class FondoMazmorra extends Canvas {
         dibujar();
     }
 
+    @Override
+    public Node getNodo() {
+        return this;
+    }
+
+    @Override
     public void actualizarAnimacion(double dt) {
         if (!Double.isFinite(dt) || dt < 0) {
             throw new IllegalArgumentException("El delta tiempo debe ser finito y no negativo.");
@@ -77,14 +84,17 @@ public final class FondoMazmorra extends Canvas {
         }
     }
 
+    @Override
     public double getMargenHorizontalJugable() {
         return margenHorizontalJugable;
     }
 
+    @Override
     public double getMargenSuperiorJugable() {
         return margenSuperiorJugable;
     }
 
+    @Override
     public double getMargenInferiorJugable() {
         return margenInferiorJugable;
     }

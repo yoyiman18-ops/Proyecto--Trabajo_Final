@@ -9,17 +9,16 @@ import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
 public class Personaje extends Entidad implements ModeloJugador {
-    private static final double DEFENSA_MAXIMA_PORCENTUAL = 80;
-
+    private final double defensaMaximaPorcentual;
     private double vida;
     private double vidaMax;
     private double defensaPorcentual;
     private final Notificador<ModeloJugador> notificadorVida;
     private int experiencia;
-    private int nivel = 1;
-    private int experienciaSiguiente = 100;
+    private int nivel;
+    private int experienciaSiguiente;
     private int nivelesPendientes;
-    private double danioAtaque = 25;
+    private double danioAtaque;
     
     private Personaje(Builder b) {
         super(
@@ -34,6 +33,13 @@ public class Personaje extends Entidad implements ModeloJugador {
         );
         this.vida = b.vida;
         this.vidaMax = b.vidaMax;
+        this.defensaMaximaPorcentual = b.defensaMaximaPorcentual;
+        this.defensaPorcentual = 0;
+        this.experiencia = 0;
+        this.nivel = b.nivelInicial;
+        this.experienciaSiguiente = b.experienciaSiguienteInicial;
+        this.nivelesPendientes = 0;
+        this.danioAtaque = b.danioAtaque;
         this.notificadorVida = Objects.requireNonNull(b.notificadorVida, "El notificador de vida no puede ser nulo");
     }
 
@@ -73,7 +79,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de defensa debe ser finito y no negativo.");
         }
-        defensaPorcentual = Math.min(DEFENSA_MAXIMA_PORCENTUAL, defensaPorcentual + porcentaje);
+        defensaPorcentual = Math.min(defensaMaximaPorcentual, defensaPorcentual + porcentaje);
     }
 
     public void aumentarDanioAtaque(double cantidad) {
@@ -143,7 +149,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         notificadorVida.notificar(this);
     }
 
-    private static void validarCantidadVida(double cantidad) {
+    private void validarCantidadVida(double cantidad) {
         if (!Double.isFinite(cantidad) || cantidad < 0) {
             throw new IllegalArgumentException("La cantidad de vida debe ser finita y no negativa.");
         }
@@ -157,7 +163,11 @@ public class Personaje extends Entidad implements ModeloJugador {
         private double aceleracion;
         private double friccion;
         private double velocidadMax;
-        private double vida,vidaMax;
+        private double vida, vidaMax;
+        private double defensaMaximaPorcentual;
+        private int nivelInicial;
+        private int experienciaSiguienteInicial;
+        private double danioAtaque;
         private Notificador<Entidad> notificadorEntidad;
         private Notificador<ModeloJugador> notificadorVida;
 
@@ -165,12 +175,16 @@ public class Personaje extends Entidad implements ModeloJugador {
             this.nombre = nombre;
             this.hitbox = hitbox;
             this.posicion = new VecDouble2D(0, 0);
-            this.velocidad = new VecDouble2D(0,0);
+            this.velocidad = new VecDouble2D(0, 0);
             this.aceleracion = 1;
             this.friccion = 0.75;
             this.vidaMax = 100;
             this.velocidadMax = aceleracion * 2;
             this.vida = vidaMax;
+            this.defensaMaximaPorcentual = 80;
+            this.nivelInicial = 1;
+            this.experienciaSiguienteInicial = 100;
+            this.danioAtaque = 25;
             this.notificadorEntidad = new NotificadorDebil<>();
             this.notificadorVida = new NotificadorDebil<>();
         }
@@ -211,6 +225,22 @@ public class Personaje extends Entidad implements ModeloJugador {
         public Builder vida(double vida) {
             if (vida < 0) { throw new IllegalArgumentException("Vida negativa no es valida"); }
             this.vida = vida;
+            return this;
+        }
+
+        public Builder defensaMaximaPorcentual(double defensaMaximaPorcentual) {
+            if (!Double.isFinite(defensaMaximaPorcentual) || defensaMaximaPorcentual < 0 || defensaMaximaPorcentual > 100) {
+                throw new IllegalArgumentException("La defensa máxima porcentual debe estar entre 0 y 100");
+            }
+            this.defensaMaximaPorcentual = defensaMaximaPorcentual;
+            return this;
+        }
+
+        public Builder danioAtaque(double danioAtaque) {
+            if (!Double.isFinite(danioAtaque) || danioAtaque < 0) {
+                throw new IllegalArgumentException("El daño de ataque no puede ser negativo");
+            }
+            this.danioAtaque = danioAtaque;
             return this;
         }
 

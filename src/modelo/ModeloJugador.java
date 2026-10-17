@@ -9,6 +9,12 @@ import motor.util.observer.Notificador;
 
 public interface ModeloJugador extends ObjetivoEnemigo {
     double getVidaMax();
+    int getExperiencia();
+    int getNivel();
+    int getExperienciaSiguiente();
+    int getNivelesPendientes();
+    double getDanioAtaque();
+    double getDefensa();
     VecDouble2D getVelocidad();
     Hitbox getHitbox();
     Notificador<ModeloJugador> getNotificadorVida();
@@ -17,6 +23,7 @@ public interface ModeloJugador extends ObjetivoEnemigo {
     void frenar(Eje eje, double dt);
     void mover(double dt);
     int ganarExperiencia(int cantidad);
+    boolean consumirNivelPendiente();
     void aumentarVidaMaxima(double cantidad);
     void aumentarDanioAtaque(double cantidad);
     void aumentarVelocidadMaxima(double porcentaje);

@@ -8,26 +8,28 @@ import javafx.scene.Node;
 import javafx.scene.image.Image;
 import motor.recursos.Extension;
 import motor.recursos.GestorRecursos;
-import vista.FondoMazmorra;
+import vista.VistaFondo;
 import vista.VistaJuego;
+import vista.VistaPartida;
 
 public final class ControladorVistaJuego {
-    private final String[] nombresImagenesHud = {
-        "led-heart-red", "led-heart", "hud_xp", "hud_gema_gris", "hud_gema_verde"
-    };
-    private final String[] clavesImagenesHud = {
-        "corazonLleno", "corazonVacio", "iconoExperiencia",
-        "gemaExperienciaVacia", "gemaExperienciaLlena"
-    };
+    private final String[] nombresImagenesHud;
+    private final String[] clavesImagenesHud;
+    private final VistaPartida vista;
+    private final VistaFondo fondoMazmorra;
 
-    private final VistaJuego vista;
-    private final FondoMazmorra fondoMazmorra;
-
-    public ControladorVistaJuego(VistaJuego vista) {
+    public ControladorVistaJuego(VistaPartida vista) {
         this(vista, null);
     }
 
-    public ControladorVistaJuego(VistaJuego vista, FondoMazmorra fondoMazmorra) {
+    public ControladorVistaJuego(VistaPartida vista, VistaFondo fondoMazmorra) {
+        this.nombresImagenesHud = new String[] {
+            "led-heart-red", "led-heart", "hud_xp", "hud_gema_gris", "hud_gema_verde"
+        };
+        this.clavesImagenesHud = new String[] {
+            "corazonLleno", "corazonVacio", "iconoExperiencia",
+            "gemaExperienciaVacia", "gemaExperienciaLlena"
+        };
         this.vista = Objects.requireNonNull(vista, "La vista del juego no puede ser nula");
         this.fondoMazmorra = fondoMazmorra;
     }
@@ -39,6 +41,13 @@ public final class ControladorVistaJuego {
     ) {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
         Objects.requireNonNull(hojaEstilosUrl, "La URL de la hoja de estilos no puede ser nula");
+        this.nombresImagenesHud = new String[] {
+            "led-heart-red", "led-heart", "hud_xp", "hud_gema_gris", "hud_gema_verde"
+        };
+        this.clavesImagenesHud = new String[] {
+            "corazonLleno", "corazonVacio", "iconoExperiencia",
+            "gemaExperienciaVacia", "gemaExperienciaLlena"
+        };
         Map<String, Image> imagenesHud = new HashMap<>();
         for (int indice = 0; indice < nombresImagenesHud.length; indice++) {
             imagenesHud.put(
@@ -53,19 +62,19 @@ public final class ControladorVistaJuego {
             tamanoTile
         );
         this.fondoMazmorra = controladorFondo.getVista();
-        this.vista.getAreaJuego().getChildren().add(this.fondoMazmorra);
+        this.vista.agregarNodoJuego(this.fondoMazmorra.getNodo());
     }
 
-    public VistaJuego getVistaJuego() {
+    public VistaPartida getVistaJuego() {
         return vista;
     }
 
-    public FondoMazmorra getFondoMazmorra() {
+    public VistaFondo getFondoMazmorra() {
         return fondoMazmorra;
     }
 
     public Node getVista() {
-        return vista;
+        return vista.getRaiz();
     }
 }
 

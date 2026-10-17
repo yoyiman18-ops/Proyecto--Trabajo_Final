@@ -8,6 +8,7 @@ import java.util.Objects;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -25,7 +26,7 @@ import javafx.scene.layout.VBox;
  * Cumple con MVC puro: solo contiene elementos y lógica de presentación,
  * sin acoplamiento a las clases del modelo de dominio.
  */
-public class VistaJuego extends StackPane {
+public class VistaJuego extends StackPane implements VistaPartida {
     public interface Eventos {
         void solicitarPausa();
         void solicitarReanudacion();
@@ -35,54 +36,81 @@ public class VistaJuego extends StackPane {
         void solicitarVolverAlMenuDesdeFinPartida();
     }
 
-    private final int vidaPorCorazon = 10;
-    private final int cantidadGemasExperiencia = 10;
+    private final int vidaPorCorazon;
+    private final int cantidadGemasExperiencia;
 
-    private final Pane areaJuego = new Pane();
-    private final Label vida = crearValor("100/100");
-    private final FlowPane corazones = new FlowPane(3, 3);
-    private final List<ImageView> iconosVida = new ArrayList<>();
+    private final Pane areaJuego;
+    private final Label vida;
+    private final FlowPane corazones;
+    private final List<ImageView> iconosVida;
     private final Image corazonLleno;
     private final Image corazonVacio;
     private final Image iconoExperiencia;
     private final Image gemaExperienciaVacia;
     private final Image gemaExperienciaLlena;
-    private final Label nivelExperiencia = new Label("NIVEL --");
-    private final Label valorExperiencia = crearValor("-- / -- XP");
-    private final HBox gemasExperiencia = new HBox(2);
-    private final List<ImageView> iconosExperiencia = new ArrayList<>();
+    private final Label nivelExperiencia;
+    private final Label valorExperiencia;
+    private final HBox gemasExperiencia;
+    private final List<ImageView> iconosExperiencia;
 
-    private final Label tiempo = crearValor("--:--");
-    private final Label oleada = crearValor("--");
-    private final Label enemigos = crearValor("--");
-    private final Label danio = crearValor("--");
-    private final Label puntos = crearValor("--/--");
-    private final VBox indicadorPuntos = crearIndicador("PUNTOS", puntos, 90, 100);
+    private final Label tiempo;
+    private final Label oleada;
+    private final Label enemigos;
+    private final Label danio;
+    private final Label puntos;
+    private final VBox indicadorPuntos;
 
-    private final Button botonPausar = new Button("PAUSA");
-    private final Button botonPausarMejora = new Button("PAUSA");
-    private final Label textoPausa = new Label("JUEGO EN PAUSA");
-    private final Button botonReanudar = new Button("CONTINUAR");
-    private final Button botonSalirPausa = new Button("VOLVER AL MENÚ");
-    private final StackPane panelPausa = new StackPane();
+    private final Button botonPausar;
+    private final Button botonPausarMejora;
+    private final Label textoPausa;
+    private final Button botonReanudar;
+    private final Button botonSalirPausa;
+    private final StackPane panelPausa;
 
-    private final Label textoFinPartida = new Label("FIN DE LA PARTIDA");
-    private final Button botonReintentar = new Button("REINTENTAR");
-    private final Button botonVolverMenu = new Button("VOLVER AL MENÚ");
-    private final StackPane panelFinPartida = new StackPane();
+    private final Label textoFinPartida;
+    private final Button botonReintentar;
+    private final Button botonVolverMenu;
+    private final StackPane panelFinPartida;
 
-    private final StackPane panelEleccionMejora = new StackPane();
+    private final StackPane panelEleccionMejora;
 
     private Eventos eventos;
 
     public VistaJuego(Map<String, Image> imagenesHud, String hojaEstilosUrl) {
         Objects.requireNonNull(imagenesHud, "El mapa de imágenes de HUD no puede ser nulo");
         Objects.requireNonNull(hojaEstilosUrl, "La URL de la hoja de estilos no puede ser nula");
+        this.vidaPorCorazon = 10;
+        this.cantidadGemasExperiencia = 10;
+        this.areaJuego = new Pane();
+        this.vida = crearValor("100/100");
+        this.corazones = new FlowPane(3, 3);
+        this.iconosVida = new ArrayList<>();
         this.corazonLleno = imagenesHud.get("corazonLleno");
         this.corazonVacio = imagenesHud.get("corazonVacio");
         this.iconoExperiencia = imagenesHud.get("iconoExperiencia");
         this.gemaExperienciaVacia = imagenesHud.get("gemaExperienciaVacia");
         this.gemaExperienciaLlena = imagenesHud.get("gemaExperienciaLlena");
+        this.nivelExperiencia = new Label("NIVEL --");
+        this.valorExperiencia = crearValor("-- / -- XP");
+        this.gemasExperiencia = new HBox(2);
+        this.iconosExperiencia = new ArrayList<>();
+        this.tiempo = crearValor("--:--");
+        this.oleada = crearValor("--");
+        this.enemigos = crearValor("--");
+        this.danio = crearValor("--");
+        this.puntos = crearValor("--/--");
+        this.indicadorPuntos = crearIndicador("PUNTOS", this.puntos, 90, 100);
+        this.botonPausar = new Button("PAUSA");
+        this.botonPausarMejora = new Button("PAUSA");
+        this.textoPausa = new Label("JUEGO EN PAUSA");
+        this.botonReanudar = new Button("CONTINUAR");
+        this.botonSalirPausa = new Button("VOLVER AL MENÚ");
+        this.panelPausa = new StackPane();
+        this.textoFinPartida = new Label("FIN DE LA PARTIDA");
+        this.botonReintentar = new Button("REINTENTAR");
+        this.botonVolverMenu = new Button("VOLVER AL MENÚ");
+        this.panelFinPartida = new StackPane();
+        this.panelEleccionMejora = new StackPane();
 
         corazones.setPrefWrapLength(190);
         FlowPane grupoJugador = crearGrupoHud(270,
@@ -176,25 +204,62 @@ public class VistaJuego extends StackPane {
         return Objects.requireNonNull(eventos, "Los eventos de VistaJuego no han sido configurados");
     }
 
+    @Override
+    public Parent getRaiz() {
+        return this;
+    }
+
+    @Override
     public Pane getAreaJuego() {
         return areaJuego;
     }
 
+    @Override
+    public double getAnchoAreaJuego() {
+        return areaJuego.getWidth();
+    }
+
+    @Override
+    public double getAltoAreaJuego() {
+        return areaJuego.getHeight();
+    }
+
+    @Override
+    public void agregarNodoJuego(Node nodo) {
+        Objects.requireNonNull(nodo, "El nodo a agregar no puede ser nulo");
+        areaJuego.getChildren().add(nodo);
+    }
+
+    @Override
+    public void removerNodoJuego(Node nodo) {
+        Objects.requireNonNull(nodo, "El nodo a remover no puede ser nulo");
+        areaJuego.getChildren().remove(nodo);
+    }
+
+    @Override
+    public void solicitarFoco() {
+        requestFocus();
+    }
+
+    @Override
     public void configurarEventos(Eventos eventos) {
         this.eventos = Objects.requireNonNull(eventos, "Los eventos de VistaJuego no pueden ser nulos");
     }
 
+    @Override
     public void setPausaHabilitada(boolean habilitada) {
         botonPausar.setDisable(!habilitada);
         botonPausarMejora.setDisable(!habilitada);
     }
 
+    @Override
     public void mostrarFinPartida(String mensaje) {
         textoFinPartida.setText(Objects.requireNonNull(mensaje, "El mensaje de fin de partida no puede ser nulo"));
         panelFinPartida.setManaged(true);
         panelFinPartida.setVisible(true);
     }
 
+    @Override
     public void mostrarEleccionMejora(
         int nivel,
         List<String> descripcionesMejoras

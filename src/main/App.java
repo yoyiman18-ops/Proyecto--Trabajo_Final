@@ -46,12 +46,17 @@ import java.net.URL;
 
 import controlador.ControladorPartida;
 import controlador.ControladorVistaJuego;
+import controlador.FabricaEntidadesPartida;
+import controlador.FabricaEntidadesPartidaPorDefecto;
+import controlador.MenuControlador;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
+import modelo.ModeloPartida;
+import modelo.Partida;
 import motor.Motor;
 import motor.colisiones.SistemaColisiones;
 import motor.colisiones.sistema.FaseEspecificaSimple;
@@ -61,14 +66,20 @@ import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
 import motor.recursos.Extension;
 import motor.recursos.GestorRecursos;
-import vista.FondoMazmorra;
 import vista.MenuVista;
-import vista.VistaJuego;
+import vista.VistaFondo;
+import vista.VistaMenu;
+import vista.VistaPartida;
 
 // nota: en esta clase se prueban de forma arbitraria las características añadidas.
 
 public class App extends Application {
+    private final GestorRecursos gestorRecursos;
     private ControladorPartida partidaActual;
+
+    public App() {
+        this.gestorRecursos = new GestorRecursos();
+    }
 
     @Override
     public void start(Stage stage) {
@@ -80,18 +91,20 @@ public class App extends Application {
             partidaActual.detener();
             partidaActual = null;
         }
-        GestorRecursos gestorRecursos = new GestorRecursos();
         Image imagenMenu = gestorRecursos.getImagen("menu", Extension.Imagen.PNG);
         URL hojaEstilosMenu = App.class.getResource("/vista/menu-vista.css");
         if (hojaEstilosMenu == null) {
             throw new IllegalStateException("No se encontró menu-vista.css");
         }
-        MenuVista menu = new MenuVista(imagenMenu, hojaEstilosMenu.toExternalForm());
-        Scene escena = new Scene(menu, 960, 720);
+        VistaMenu vistaMenu = new MenuVista(imagenMenu, hojaEstilosMenu.toExternalForm());
+        MenuControlador menuControlador = new MenuControlador(
+            vistaMenu,
+            () -> iniciarPartida(stage),
+            Platform::exit
+        );
+        Scene escena = new Scene(menuControlador.getVista(), 960, 720);
         stage.setScene(escena);
         stage.setTitle("Waves 2D");
-        menu.getBotonJugar().setOnAction(event -> iniciarPartida(stage));
-        menu.getBotonSalir().setOnAction(event -> Platform.exit());
         stage.show();
     }
 
@@ -101,9 +114,7 @@ public class App extends Application {
             partidaActual = null;
         }
 
-        GestorRecursos gestorRecursos = new GestorRecursos();
-
-        // 1. Configurar VistaJuego y FondoMazmorra mediante sus controladores de vista
+        // 1. Configurar VistaPartida y VistaFondo mediante sus controladores de vista
         URL hojaEstilos = App.class.getResource("/vista/vista-juego.css");
         if (hojaEstilos == null) {
             throw new IllegalStateException("No se encontró vista-juego.css");
@@ -113,8 +124,12 @@ public class App extends Application {
             hojaEstilos.toExternalForm(),
             32
         );
-        VistaJuego vista = controladorVista.getVistaJuego();
-        FondoMazmorra fondo = controladorVista.getFondoMazmorra();
+        VistaPartida vista = controladorVista.getVistaJuego();
+        VistaFondo fondo = controladorVista.getFondoMazmorra();
+
+        // 2. Crear Modelo de la partida y Fábrica de entidades
+        ModeloPartida modeloPartida = new Partida();
+        FabricaEntidadesPartida fabricaEntidades = new FabricaEntidadesPartidaPorDefecto(gestorRecursos);
 
         // 3. Crear Motor genérico
         Motor motor = new Motor(
@@ -133,17 +148,18 @@ public class App extends Application {
         // 5. Instanciar ControladorPartida (orquestador del juego con DI)
         partidaActual = new ControladorPartida(
             motor,
+            modeloPartida,
             vista,
             fondo,
-            gestorRecursos,
+            fabricaEntidades,
             () -> mostrarMenu(stage),
             () -> iniciarPartida(stage)
         );
 
-        Scene escena = new Scene(vista, 960, 720);
+        Scene escena = new Scene(vista.getRaiz(), 960, 720);
         stage.setScene(escena);
         motor.teclado().setEscenaRoot(escena);
-        Platform.runLater(vista::requestFocus);
+        Platform.runLater(vista::solicitarFoco);
         partidaActual.iniciar();
     }
 

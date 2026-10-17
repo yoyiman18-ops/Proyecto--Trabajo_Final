@@ -6,7 +6,7 @@ import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
-public final class Enemigo extends Entidad {
+public final class Enemigo extends Entidad implements ModeloEnemigo {
     private double vida;
     private final double vidaMaxima;
     private final double danio;
@@ -59,22 +59,32 @@ public final class Enemigo extends Entidad {
         this.experienciaRecompensa = experienciaRecompensa;
     }
 
+    @Override
     public double getVida() {
         return vida;
     }
 
+    @Override
     public double getVidaMaxima() {
         return vidaMaxima;
     }
 
+    @Override
     public double getDanio() {
         return danio;
     }
 
+    @Override
     public int getExperienciaRecompensa() {
         return experienciaRecompensa;
     }
 
+    @Override
+    public Entidad getEntidad() {
+        return this;
+    }
+
+    @Override
     public boolean recibirDanio(double cantidad) {
         if (!Double.isFinite(cantidad) || cantidad < 0) {
             throw new IllegalArgumentException("El daño recibido debe ser finito y no negativo.");

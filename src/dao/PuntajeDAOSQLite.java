@@ -10,23 +10,29 @@ import modelo.Puntaje;
 
 public final class PuntajeDAOSQLite implements PuntajeDAO {
 
-    private final String CREAR_TABLA =
-        "CREATE TABLE IF NOT EXISTS puntajes ("
-            + "fecha INTEGER NOT NULL, "
-            + "puntos INTEGER NOT NULL"
-            + ")";
-    private static final String INSERTAR_PUNTAJE =
-        "INSERT INTO puntajes (fecha, puntos) VALUES (?, ?)";
-    private static final String BORRAR_PUNTAJE =
-        "DELETE FROM puntajes WHERE fecha = ? AND puntos = ?";
-
+    private final String crearTabla;
+    private final String insertarPuntaje;
+    private final String borrarPuntaje;
     private final Connection conexion;
+
+    public PuntajeDAOSQLite(ProveedorConexion proveedorConexion) throws SQLException {
+        this(
+            Objects.requireNonNull(proveedorConexion, "El proveedor de conexión no puede ser nulo.").getConexion()
+        );
+    }
 
     public PuntajeDAOSQLite(Connection conexion) throws SQLException {
         this.conexion = Objects.requireNonNull(conexion, "La conexión no puede ser nula.");
+        this.crearTabla =
+            "CREATE TABLE IF NOT EXISTS puntajes ("
+                + "fecha INTEGER NOT NULL, "
+                + "puntos INTEGER NOT NULL"
+                + ")";
+        this.insertarPuntaje = "INSERT INTO puntajes (fecha, puntos) VALUES (?, ?)";
+        this.borrarPuntaje = "DELETE FROM puntajes WHERE fecha = ? AND puntos = ?";
 
         try (Statement sentencia = this.conexion.createStatement()) {
-            sentencia.executeUpdate(CREAR_TABLA);
+            sentencia.executeUpdate(this.crearTabla);
         }
     }
 
@@ -34,7 +40,7 @@ public final class PuntajeDAOSQLite implements PuntajeDAO {
     public void guardar(Puntaje puntaje) {
         Objects.requireNonNull(puntaje, "El puntaje no puede ser nulo.");
 
-        try (PreparedStatement sentencia = conexion.prepareStatement(INSERTAR_PUNTAJE)) {
+        try (PreparedStatement sentencia = conexion.prepareStatement(insertarPuntaje)) {
             sentencia.setInt(1, puntaje.getFecha());
             sentencia.setInt(2, puntaje.getPuntos());
             sentencia.executeUpdate();
@@ -44,7 +50,7 @@ public final class PuntajeDAOSQLite implements PuntajeDAO {
     @Override
     public void borrar(Puntaje puntaje) {
         Objects.requireNonNull(puntaje, "El puntaje no puede ser nulo.");
-        try (PreparedStatement sentencia = conexion.prepareStatement(BORRAR_PUNTAJE)) {
+        try (PreparedStatement sentencia = conexion.prepareStatement(borrarPuntaje)) {
             sentencia.setInt(1, puntaje.getFecha());
             sentencia.setInt(2, puntaje.getPuntos());
             sentencia.executeUpdate();
