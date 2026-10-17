@@ -1,6 +1,8 @@
 
 package modelo;
 
+import java.util.function.BiConsumer;
+
 import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.Hitbox;
@@ -130,8 +132,18 @@ public abstract class Proyectil extends Entidad {
 
     @Override
     public final void colisionar(Colisionable otra) {
+        colisionar(otra, ObjetivoDanio::aplicarDanio);
+    }
+
+    public final void colisionar(
+        Colisionable otra,
+        BiConsumer<ObjetivoDanio, Double> aplicarDanio
+    ) {
         if (otra == null) {
             throw new IllegalArgumentException("El objetivo del proyectil no puede ser nulo.");
+        }
+        if (aplicarDanio == null) {
+            throw new IllegalArgumentException("El resolutor de daño no puede ser nulo.");
         }
         if (!estaActivo()) {
             return;
@@ -150,7 +162,7 @@ public abstract class Proyectil extends Entidad {
                     "El colisionable de categoría compatible debe poder recibir daño."
                 );
             }
-            objetivo.aplicarDanio(danio);
+            aplicarDanio.accept(objetivo, danio);
         }
 
         penetracion--;

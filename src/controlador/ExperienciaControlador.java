@@ -40,7 +40,7 @@ public final class ExperienciaControlador implements Controlador {
             0,
             0,
             0
-        );
+        ) {};
         vista.setStroke(Color.web("#e4ff9b"));
         vista.setStrokeWidth(2);
         actualizarVista();

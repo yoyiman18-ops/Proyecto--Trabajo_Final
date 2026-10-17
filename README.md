@@ -44,6 +44,10 @@ El sistema será un juego funcional que implemente las características del gén
 - **Persistencia:**
     - Sistema de guardado y carga que registra la experiencia total obtenida del jugador.
 
+### Gestión del combate
+
+`CombateControlador` centraliza el daño al jugador y a los enemigos registrados. Al derrotar a un enemigo, lo retira del escenario y crea una recompensa de experiencia que el jugador obtiene al recogerla. Para usarlo, conectá el controlador de proyectiles con `conectarProyectiles`, registrá cada enemigo con `registrarEnemigo` y llamá a `tick(dt)` durante el ciclo de juego para actualizar las recompensas.
+
 ## 3. Arquitectura de Diseño
 
 ### Patrón de diseño adicional: Builder Pattern
@@ -62,5 +66,3 @@ El sistema será un juego funcional que implemente las características del gén
 - **Base de Datos:** PostgreSQL 18
 - **Framework de IGU:** JavaFX 26.0.2
 - **Control de Versiones:** Git y GitHub
-
-

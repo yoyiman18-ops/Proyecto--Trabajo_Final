@@ -30,6 +30,7 @@ public final class EnemigoControlador implements Controlador {
     private final Personaje objetivo;
     private final Enemigo modelo;
     private final ImageView vista = new ImageView(FRAME_IDLE_1);
+    private CombateControlador combate;
     private double tiempoHastaAtaque;
     private double tiempoAnimacionIdle;
     private double tiempoReaccionGolpe;
@@ -83,7 +84,7 @@ public final class EnemigoControlador implements Controlador {
 
     @Override
     public void tick(Double dt) {
-        if (objetivo.getVida() <= 0) {
+        if (objetivo.getVida() <= 0 || modelo.getVida() <= 0) {
             return;
         }
         actualizarAnimacion(dt);
@@ -99,7 +100,11 @@ public final class EnemigoControlador implements Controlador {
             modelo.getVelocidad().setY(0);
             tiempoHastaAtaque -= dt;
             if (tiempoHastaAtaque <= 0) {
-                objetivo.recibirDanio(modelo.getDanio());
+                if (combate == null) {
+                    objetivo.recibirDanio(modelo.getDanio());
+                } else {
+                    combate.recibirDanio(objetivo, modelo.getDanio());
+                }
                 tiempoHastaAtaque = INTERVALO_ATAQUE;
             }
             return;
@@ -110,6 +115,16 @@ public final class EnemigoControlador implements Controlador {
         modelo.getVelocidad().setY(diferenciaY / distancia * VELOCIDAD);
         modelo.mover(dt);
         actualizarVista();
+    }
+
+    void asociarCombate(CombateControlador combate) {
+        if (combate == null) {
+            throw new IllegalArgumentException("El controlador de combate no puede ser nulo.");
+        }
+        if (this.combate != null && this.combate != combate) {
+            throw new IllegalStateException("El enemigo ya pertenece a otro combate.");
+        }
+        this.combate = combate;
     }
 
     private void actualizarVista() {

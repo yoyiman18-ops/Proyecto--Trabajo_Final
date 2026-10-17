@@ -13,6 +13,7 @@ import javafx.scene.shape.Circle;
 import modelo.Proyectil;
 import modelo.ProyectilAliado;
 import modelo.ProyectilEnemigo;
+import modelo.ObjetivoDanio;
 import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.HitboxRectangular;
@@ -29,6 +30,7 @@ public final class ProyectilControlador {
     private final Pane escenario;
     private final List<Colisionable> objetivos = new ArrayList<>();
     private final List<ProyectilActivo> proyectiles = new ArrayList<>();
+    private CombateControlador combate;
 
     public ProyectilControlador(Pane escenario) {
         if (escenario == null) {
@@ -48,6 +50,13 @@ public final class ProyectilControlador {
 
     public boolean quitarObjetivo(Colisionable objetivo) {
         return objetivos.remove(objetivo);
+    }
+
+    void usarCombateControlador(CombateControlador combate) {
+        if (combate == null) {
+            throw new IllegalArgumentException("El controlador de combate no puede ser nulo.");
+        }
+        this.combate = combate;
     }
 
     public Proyectil dispararAliado(
@@ -164,7 +173,7 @@ public final class ProyectilControlador {
 
     private void comprobarColisiones(ProyectilActivo activo) {
         Proyectil proyectil = activo.modelo;
-        for (Colisionable objetivo : objetivos) {
+        for (Colisionable objetivo : List.copyOf(objetivos)) {
             if (!proyectil.estaActivo()) {
                 break;
             }
@@ -179,7 +188,11 @@ public final class ProyectilControlador {
             if (hitboxProyectil.esCompatible(hitboxObjetivo)
                     && hitboxProyectil.intersecta(hitboxObjetivo)) {
                 activo.objetivosImpactados.add(hitboxObjetivo.getId());
-                proyectil.colisionar(objetivo);
+                if (combate == null) {
+                    proyectil.colisionar(objetivo);
+                } else {
+                    proyectil.colisionar(objetivo, combate::recibirDanio);
+                }
             }
         }
     }
