@@ -32,6 +32,6 @@ public class Recorte {
     public double getOffsetY() { return this.offsetY; }
     public double getAncho() { return this.ancho; }
     public double getAlto() { return this.alto; }
-    public Rectangle2D getRecorte() { return this.recorte; }
+    public Rectangle2D get() { return this.recorte; }
 
 }

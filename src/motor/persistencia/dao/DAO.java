@@ -1,4 +1,4 @@
-package motor.util.dao;
+package motor.persistencia.dao;
 import java.util.List;
 
 /**
@@ -8,5 +8,6 @@ public interface DAO<T,K> {
     boolean guardar(T objeto);
     boolean cargar(K clave);
     boolean eliminar(K clave);
-    List<T> cargarTodo();
+    List<T> cargarTodos();
+    boolean modificar(T objeto);
 }
