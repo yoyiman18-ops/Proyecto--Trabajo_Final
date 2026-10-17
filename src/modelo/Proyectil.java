@@ -9,7 +9,6 @@ import motor.util.observer.NotificadorDebil;
 public final class Proyectil extends Entidad implements ModeloProyectil {
 
     private final double danio;
-    private final double velocidad;
     private double tiempoVida;
 
     public Proyectil(
@@ -84,18 +83,12 @@ public final class Proyectil extends Entidad implements ModeloProyectil {
         getVelocidad().setY(velocidadCalculada.getY());
 
         this.danio = danio;
-        this.velocidad = velocidad;
         this.tiempoVida = tiempoVida;
     }
 
     @Override
     public double getDanio() {
         return danio;
-    }
-
-    @Override
-    public double getVelocidad() {
-        return velocidad;
     }
 
     @Override

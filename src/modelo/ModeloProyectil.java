@@ -5,8 +5,9 @@ import motor.util.VecDouble2D;
 
 public interface ModeloProyectil {
     VecDouble2D getPosicion();
+    VecDouble2D getVelocidad();
+    double getVelocidadMaxima();
     double getDanio();
-    double getVelocidad();
     double getTiempoVida();
     void actualizarTiempoVida(double deltaTiempo);
     boolean estaExpirado();

@@ -38,7 +38,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
 
     public FabricaEntidadesPartidaPorDefecto(GestorRecursos gestorRecursos) {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
-        this.spriteSheetJugador = gestorRecursos.getImagen("zorro/zorro_sheet", Imagen.PNG);
+        this.spriteSheetJugador = gestorRecursos.getImagen("zorro_sheet", Imagen.PNG);
         this.frameEnemigoIdle1 = gestorRecursos.getImagen("Transparent PNG/idle/frame-1", Imagen.PNG);
         this.frameEnemigoIdle2 = gestorRecursos.getImagen("Transparent PNG/idle/frame-2", Imagen.PNG);
         this.frameEnemigoGolpe = gestorRecursos.getImagen("Transparent PNG/got hit/frame", Imagen.PNG);
