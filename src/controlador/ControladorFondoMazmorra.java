@@ -2,18 +2,16 @@ package controlador;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
-import motor.modelo.Entidad;
-import motor.mvc.Controlador;
 import motor.recursos.Extension;
-import motor.recursos.cache.CacheImagenes;
+import motor.recursos.GestorRecursos;
 import vista.FondoMazmorra;
 
-public final class ControladorFondoMazmorra implements Controlador {
-    private final long duracionMarcoFuente = 180_000_000L;
+public final class ControladorFondoMazmorra {
+    private final double duracionMarcoFuente = 0.18;
     private final String carpetaTiles = "0x72_DungeonTilesetII_v1.7/frames/";
     private final String[] nombresTiles = {
         "floor_1", "floor_2", "floor_3", "floor_4",
@@ -26,29 +24,35 @@ public final class ControladorFondoMazmorra implements Controlador {
         "wall_fountain_mid_red_anim_f2", "wall_fountain_basin_red_anim_f0",
         "wall_fountain_basin_red_anim_f1", "wall_fountain_basin_red_anim_f2"
     };
+
     private final FondoMazmorra vista;
 
-    public ControladorFondoMazmorra(Pane areaJuego, CacheImagenes cacheImagenes, double tamanoTile) {
+    public ControladorFondoMazmorra(FondoMazmorra vista) {
+        this.vista = Objects.requireNonNull(vista, "La vista del fondo de mazmorra no puede ser nula");
+    }
+
+    public ControladorFondoMazmorra(Pane areaJuego, GestorRecursos gestorRecursos, double tamanoTile) {
+        Objects.requireNonNull(areaJuego, "El área de juego no puede ser nula");
+        Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
+        if (!Double.isFinite(tamanoTile) || tamanoTile <= 0) {
+            throw new IllegalArgumentException("El tamaño de tile debe ser positivo y finito.");
+        }
         Map<String, Image> imagenes = new HashMap<>();
         for (String nombre : nombresTiles) {
             imagenes.put(
                 nombre,
-                cacheImagenes.getRecurso(carpetaTiles + nombre, Extension.Imagen.PNG));
+                gestorRecursos.getImagen(carpetaTiles + nombre, Extension.Imagen.PNG)
+            );
         }
-        vista = new FondoMazmorra(areaJuego, tamanoTile, duracionMarcoFuente, imagenes);
+        this.vista = new FondoMazmorra(areaJuego, tamanoTile, duracionMarcoFuente, Map.copyOf(imagenes));
     }
 
-    @Override
-    public Entidad getModelo() {
-        return null;
-    }
-
-    @Override
-    public Node getVista() {
+    public FondoMazmorra getVista() {
         return vista;
     }
 
-    @Override
-    public void tick(Double dt) {
+    public void actualizar(double dt) {
+        vista.actualizarAnimacion(dt);
     }
 }
+

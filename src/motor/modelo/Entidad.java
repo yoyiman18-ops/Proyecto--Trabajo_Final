@@ -1,5 +1,7 @@
 package motor.modelo;
 
+import java.util.Objects;
+
 import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.util.Eje;
@@ -25,6 +27,27 @@ public class Entidad implements Colisionable {
         double aceleracion,
         double friccion,
         double velocidadMax) {
+        this(
+            nombre,
+            hitbox,
+            posicion,
+            velocidad,
+            aceleracion,
+            friccion,
+            velocidadMax,
+            new NotificadorDebil<>()
+        );
+    }
+
+    public Entidad(
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        VecDouble2D velocidad,
+        double aceleracion,
+        double friccion,
+        double velocidadMax,
+        Notificador<Entidad> notificador) {
         this.nombre = nombre;
         this.hitbox = hitbox;
         this.posicion = posicion;
@@ -32,7 +55,7 @@ public class Entidad implements Colisionable {
         this.aceleracion = aceleracion;
         this.friccion = friccion;
         this.velocidadMax = velocidadMax;
-        this.notificador = new NotificadorDebil<>();
+        this.notificador = Objects.requireNonNull(notificador, "El notificador no puede ser nulo");
     }
 
     public void mover(double dt) {

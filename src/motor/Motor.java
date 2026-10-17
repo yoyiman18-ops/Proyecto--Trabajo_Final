@@ -36,6 +36,7 @@
 package motor;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import javafx.application.Platform;
 import javafx.scene.Parent;
@@ -45,9 +46,9 @@ import motor.colisiones.SistemaColisiones;
 import motor.colisiones.sistema.FaseEspecificaSimple;
 import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.GestorEntradaTeclado;
-import motor.modelo.Entidad;
 import motor.recursos.GestorRecursos;
 import motor.util.RelojDelta;
+import motor.util.observer.NotificadorFuerte;
 
 public class Motor {
     private final SistemaColisiones sistemaColisiones;
@@ -72,27 +73,41 @@ public class Motor {
         SistemaColisiones sistemaColisiones,
         GestorRecursos gestorRecursos,
         Parent root
-        ) {
-        this.sistemaColisiones = sistemaColisiones;
-        this.gestorRecursos = gestorRecursos;
-        this.relojDelta = new RelojDelta();
-        this.root = root;
-        this.gestorEntradaTeclado = new GestorEntradaTeclado(root);
+    ) {
+        this(
+            sistemaColisiones,
+            gestorRecursos,
+            new GestorEntradaTeclado(),
+            new RelojDelta(new NotificadorFuerte<>()),
+            root
+        );
+    }
+
+    public Motor(
+        SistemaColisiones sistemaColisiones,
+        GestorRecursos gestorRecursos,
+        GestorEntradaTeclado gestorEntradaTeclado,
+        RelojDelta relojDelta,
+        Parent root
+    ) {
+        this.sistemaColisiones = Objects.requireNonNull(sistemaColisiones, "El sistema de colisiones no puede ser nulo");
+        this.gestorRecursos = Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
+        this.gestorEntradaTeclado = Objects.requireNonNull(gestorEntradaTeclado, "El gestor de entrada de teclado no puede ser nulo");
+        this.relojDelta = Objects.requireNonNull(relojDelta, "El reloj delta no puede ser nulo");
+        this.root = Objects.requireNonNull(root, "El nodo raíz no puede ser nulo");
         this.colisionables = new ArrayList<>();
         
-        relojDelta.suscribirObservador(e -> {
+        this.relojDelta.suscribirObservador(e -> {
             this.gestorEntradaTeclado.tick();
             this.sistemaColisiones.resolverColisiones(colisionables);
         });
     }
 
-    public void instanciarEntidad(Entidad.Builder entidadBuilder) {
-        Entidad entidad = entidadBuilder.build(gestorRecursos);
-        colisionables.add(entidad);
-    }
-
     public GestorRecursos recursos() { return this.gestorRecursos; }
     public GestorEntradaTeclado teclado() { return this.gestorEntradaTeclado; }
+    public RelojDelta reloj() { return this.relojDelta; }
+    public SistemaColisiones colisiones() { return this.sistemaColisiones; }
+    public ArrayList<Colisionable> colisionables() { return this.colisionables; }
     public Parent root() { return this.root; }
     public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }

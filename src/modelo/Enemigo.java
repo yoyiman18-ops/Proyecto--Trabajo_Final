@@ -3,6 +3,8 @@ package modelo;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
+import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorDebil;
 
 public final class Enemigo extends Entidad {
     private double vida;
@@ -19,7 +21,29 @@ public final class Enemigo extends Entidad {
         double danio,
         int experienciaRecompensa
     ) {
-        super(nombre, hitbox, posicion, new VecDouble2D(), 0, 0, velocidadMaxima);
+        this(
+            nombre,
+            hitbox,
+            posicion,
+            velocidadMaxima,
+            vidaMaxima,
+            danio,
+            experienciaRecompensa,
+            new NotificadorDebil<>()
+        );
+    }
+
+    public Enemigo(
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        double velocidadMaxima,
+        double vidaMaxima,
+        double danio,
+        int experienciaRecompensa,
+        Notificador<Entidad> notificador
+    ) {
+        super(nombre, hitbox, posicion, new VecDouble2D(), 0, 0, velocidadMaxima, notificador);
         if (!Double.isFinite(vidaMaxima) || vidaMaxima <= 0) {
             throw new IllegalArgumentException("La vida máxima debe ser positiva y finita.");
         }

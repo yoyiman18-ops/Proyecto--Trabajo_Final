@@ -6,8 +6,8 @@ import java.util.Map;
 
 /** Fachada compatible del contenedor principal de la partida. */
 public final class JuegoVista extends VistaJuego {
-    public JuegoVista(Map<String, Image> imagenesHud) {
-        super(imagenesHud);
+    public JuegoVista(Map<String, Image> imagenesHud, String hojaEstilosUrl) {
+        super(imagenesHud, hojaEstilosUrl);
         setPrefSize(800, 600);
     }
 

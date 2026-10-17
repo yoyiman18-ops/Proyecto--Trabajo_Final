@@ -1,18 +1,20 @@
 package modelo;
 
+import java.util.Objects;
+
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
-public class Personaje extends Entidad {
+public class Personaje extends Entidad implements ModeloJugador {
     private static final double DEFENSA_MAXIMA_PORCENTUAL = 80;
 
     private double vida;
     private double vidaMax;
     private double defensaPorcentual;
-    private final Notificador<Personaje> notificadorVida = new NotificadorDebil<>();
+    private final Notificador<ModeloJugador> notificadorVida;
     private int experiencia;
     private int nivel = 1;
     private int experienciaSiguiente = 100;
@@ -20,9 +22,19 @@ public class Personaje extends Entidad {
     private double danioAtaque = 25;
     
     private Personaje(Builder b) {
-        super(b.nombre, b.hitbox, b.posicion, b.velocidad, b.aceleracion, b.friccion, b.velocidadMax);
+        super(
+            b.nombre,
+            b.hitbox,
+            b.posicion,
+            b.velocidad,
+            b.aceleracion,
+            b.friccion,
+            b.velocidadMax,
+            b.notificadorEntidad
+        );
         this.vida = b.vida;
         this.vidaMax = b.vidaMax;
+        this.notificadorVida = Objects.requireNonNull(b.notificadorVida, "El notificador de vida no puede ser nulo");
     }
 
     public double getVida() {
@@ -93,8 +105,13 @@ public class Personaje extends Entidad {
         return nivelesGanados;
     }
 
-    public Notificador<Personaje> getNotificadorVida() {
+    public Notificador<ModeloJugador> getNotificadorVida() {
         return notificadorVida;
+    }
+
+    @Override
+    public Entidad getEntidad() {
+        return this;
     }
 
     public void recibirDanio(double cantidad) {
@@ -141,6 +158,8 @@ public class Personaje extends Entidad {
         private double friccion;
         private double velocidadMax;
         private double vida,vidaMax;
+        private Notificador<Entidad> notificadorEntidad;
+        private Notificador<ModeloJugador> notificadorVida;
 
         public Builder(String nombre, Hitbox hitbox) {
             this.nombre = nombre;
@@ -152,6 +171,8 @@ public class Personaje extends Entidad {
             this.vidaMax = 100;
             this.velocidadMax = aceleracion * 2;
             this.vida = vidaMax;
+            this.notificadorEntidad = new NotificadorDebil<>();
+            this.notificadorVida = new NotificadorDebil<>();
         }
 
         public Builder posicion(VecDouble2D posicion) {
@@ -193,6 +214,22 @@ public class Personaje extends Entidad {
             return this;
         }
 
+        public Builder notificadorEntidad(Notificador<Entidad> notificadorEntidad) {
+            this.notificadorEntidad = Objects.requireNonNull(
+                notificadorEntidad,
+                "El notificador de entidad no puede ser nulo"
+            );
+            return this;
+        }
+
+        public Builder notificadorVida(Notificador<ModeloJugador> notificadorVida) {
+            this.notificadorVida = Objects.requireNonNull(
+                notificadorVida,
+                "El notificador de vida no puede ser nulo"
+            );
+            return this;
+        }
+
         public Personaje build() {
             if (this.vida > this.vidaMax) { this.vida = this.vidaMax; }
             if (this.vida < 0) { this.vida = 0; }
@@ -202,3 +239,4 @@ public class Personaje extends Entidad {
 
 
 }
+

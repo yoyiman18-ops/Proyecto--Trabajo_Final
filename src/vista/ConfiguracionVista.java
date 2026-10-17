@@ -7,16 +7,16 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
 public class ConfiguracionVista extends VBox {
-	private static final double ANCHO = 360;
-	private static final double ALTO = 460;
+	private final double ancho = 360;
+	private final double alto = 460;
 
 	private final Label titulo = new Label("Configuración");
 	private final VBox opciones = new VBox();
 	private final Button botonVolver = new Button("VOLVER");
 
 	public ConfiguracionVista() {
-		setPrefSize(ANCHO, ALTO);
-		setMaxSize(ANCHO, ALTO);
+		setPrefSize(ancho, alto);
+		setMaxSize(ancho, alto);
 		setSpacing(18);
 		setPadding(new Insets(24));
 		setAlignment(Pos.TOP_LEFT);

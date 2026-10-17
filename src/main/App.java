@@ -42,44 +42,33 @@ package main;
  * import controlador.VidaControlador;
  */
 
+import java.net.URL;
+
+import controlador.ControladorPartida;
+import controlador.ControladorVistaJuego;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.stage.Stage;
-import controlador.ControladorVistaJuego;
-import vista.JuegoVista;
-import javafx.animation.AnimationTimer;
-import javafx.geometry.Rectangle2D;
-import javafx.scene.layout.Pane;
-import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import motor.Motor;
+import motor.colisiones.SistemaColisiones;
+import motor.colisiones.sistema.FaseEspecificaSimple;
+import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.Accion;
-import motor.entrada.EstadoAcciones;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
-import motor.recursos.cache.CacheImagenes;
-import motor.util.observer.Observador;
-import modelo.ItemMejoraAtributo;
-import vista.VistaJuego;
-import java.awt.Shape;
-import java.awt.geom.Ellipse2D;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.swing.Timer;
-
+import motor.recursos.Extension;
+import motor.recursos.GestorRecursos;
+import vista.FondoMazmorra;
 import vista.MenuVista;
-
-
+import vista.VistaJuego;
 
 // nota: en esta clase se prueban de forma arbitraria las características añadidas.
 
 public class App extends Application {
-    private Motor motor;
+    private ControladorPartida partidaActual;
 
     @Override
     public void start(Stage stage) {
@@ -87,10 +76,17 @@ public class App extends Application {
     }
 
     private void mostrarMenu(Stage stage) {
-        if (motor != null) {
-            motor.detener();
+        if (partidaActual != null) {
+            partidaActual.detener();
+            partidaActual = null;
         }
-        MenuVista menu = new MenuVista();
+        GestorRecursos gestorRecursos = new GestorRecursos();
+        Image imagenMenu = gestorRecursos.getImagen("menu", Extension.Imagen.PNG);
+        URL hojaEstilosMenu = App.class.getResource("/vista/menu-vista.css");
+        if (hojaEstilosMenu == null) {
+            throw new IllegalStateException("No se encontró menu-vista.css");
+        }
+        MenuVista menu = new MenuVista(imagenMenu, hojaEstilosMenu.toExternalForm());
         Scene escena = new Scene(menu, 960, 720);
         stage.setScene(escena);
         stage.setTitle("Waves 2D");
@@ -100,77 +96,61 @@ public class App extends Application {
     }
 
     private void iniciarPartida(Stage stage) {
-        ControladorVistaJuego controladorVista =
-            new ControladorVistaJuego(new CacheImagenes("imagenes"), 32);
+        if (partidaActual != null) {
+            partidaActual.detener();
+            partidaActual = null;
+        }
+
+        GestorRecursos gestorRecursos = new GestorRecursos();
+
+        // 1. Configurar VistaJuego y FondoMazmorra mediante sus controladores de vista
+        URL hojaEstilos = App.class.getResource("/vista/vista-juego.css");
+        if (hojaEstilos == null) {
+            throw new IllegalStateException("No se encontró vista-juego.css");
+        }
+        ControladorVistaJuego controladorVista = new ControladorVistaJuego(
+            gestorRecursos,
+            hojaEstilos.toExternalForm(),
+            32
+        );
         VistaJuego vista = controladorVista.getVistaJuego();
-        motor = new Motor(vista.getAreaJuego());
+        FondoMazmorra fondo = controladorVista.getFondoMazmorra();
+
+        // 3. Crear Motor genérico
+        Motor motor = new Motor(
+            new SistemaColisiones(new FaseGeneralSpatialHashGrid(100), new FaseEspecificaSimple()),
+            gestorRecursos,
+            vista.getAreaJuego()
+        );
+
+        // 4. Mapeos de entrada de teclado
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.A, TipoEntrada.MANTENER, Accion.MOVER_IZQUIERDA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.W, TipoEntrada.MANTENER, Accion.MOVER_ARRIBA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.ATACAR));
-        motor.instanciarJugador(
-            "zorro/zorro",
-            personaje -> Platform.runLater(() -> {
-                vista.actualizarVida(personaje.getVida(), personaje.getVidaMax());
-                if (personaje.getVida() <= 0) {
-                    motor.detener();
-                    vista.mostrarFinPartida("FIN DE LA PARTIDA",
-                        () -> iniciarPartida(stage),
-                        () -> mostrarMenu(stage)
-                    );
-                }
-            }),
-            estado -> {
-                vista.actualizarOleada(estado.oleada());
-                vista.actualizarEnemigos(estado.enemigos());
-                vista.actualizarTiempo(estado.segundosHastaOleada());
-                if (estado.completadas()) {
-                    motor.detener();
-                    vista.mostrarFinPartida("OLEADAS COMPLETADAS",
-                        () -> iniciarPartida(stage),
-                        () -> mostrarMenu(stage));
-                }
-            },
-            personaje -> Platform.runLater(() -> {
-                vista.actualizarProgreso(
-                    personaje.getNivel(),
-                    personaje.getExperiencia(),
-                    personaje.getExperienciaSiguiente());
-                vista.actualizarDanio((int) Math.round(personaje.getDanioAtaque()));
-            }),
-            personaje -> Platform.runLater(() -> vista.mostrarEleccionMejora(
-                personaje.getNivel(),
-                List.of(
-                    new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.VIDA_MAXIMA, 20),
-                    new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.DANIO_ATAQUE, 5),
-                    new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.VELOCIDAD_MAXIMA, 10),
-                    new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.DEFENSA, 5)
-                ),
-                mejora -> {
-                    mejora.aplicar(personaje);
-                    vista.actualizarVida(personaje.getVida(), personaje.getVidaMax());
-                    vista.actualizarProgreso(
-                        personaje.getNivel(),
-                        personaje.getExperiencia(),
-                        personaje.getExperienciaSiguiente());
-                    vista.actualizarDanio((int) Math.round(personaje.getDanioAtaque()));
-                    motor.continuarDespuesDeMejora();
-                }
-            ))
+
+        // 5. Instanciar ControladorPartida (orquestador del juego con DI)
+        partidaActual = new ControladorPartida(
+            motor,
+            vista,
+            fondo,
+            gestorRecursos,
+            () -> mostrarMenu(stage),
+            () -> iniciarPartida(stage)
         );
 
         Scene escena = new Scene(vista, 960, 720);
         stage.setScene(escena);
         motor.teclado().setEscenaRoot(escena);
-        Platform.runLater(() -> vista.requestFocus());
-        motor.iniciar();
+        Platform.runLater(vista::requestFocus);
+        partidaActual.iniciar();
     }
 
     @Override
     public void stop() throws Exception {
-        if (motor != null) {
-            motor.detener();
+        if (partidaActual != null) {
+            partidaActual.detener();
         }
     }
 

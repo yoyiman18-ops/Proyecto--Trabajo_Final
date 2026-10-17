@@ -1,45 +1,52 @@
 package vista;
 
+import java.util.Map;
+import java.util.Objects;
+
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
-import javafx.animation.AnimationTimer;
-import java.util.Map;
 
 public final class FondoMazmorra extends Canvas {
+    private final int cantidadMarcosFuente = 3;
     private final double tamanoTile;
     private final double margenHorizontalJugable;
     private final double margenSuperiorJugable;
     private final double margenInferiorJugable;
-    private final long duracionMarcoFuente;
+    private final double duracionMarcoFuente;
     private final Map<String, Image> imagenes;
     private int marcoFuente;
-    private long ultimaActualizacionFuente;
-    private final AnimationTimer animacionFuente = new AnimationTimer() {
-        @Override
-        public void handle(long ahora) {
-            if (ultimaActualizacionFuente == 0) {
-                ultimaActualizacionFuente = ahora;
-            } else if (ahora - ultimaActualizacionFuente >= duracionMarcoFuente) {
-                marcoFuente = (marcoFuente + 1) % 3;
-                ultimaActualizacionFuente = ahora;
-                dibujar();
-            }
-        }
-    };
+    private double tiempoAcumuladoFuente;
 
     public FondoMazmorra(
         Pane areaJuego,
         double tamanoTile,
-        long duracionMarcoFuente,
+        long duracionMarcoFuenteNanosegundos,
         Map<String, Image> imagenes
     ) {
+        this(areaJuego, tamanoTile, duracionMarcoFuenteNanosegundos / 1_000_000_000.0, imagenes);
+    }
+
+    public FondoMazmorra(
+        Pane areaJuego,
+        double tamanoTile,
+        double duracionMarcoFuenteSegundos,
+        Map<String, Image> imagenes
+    ) {
+        Objects.requireNonNull(areaJuego, "El área de juego no puede ser nula");
+        Objects.requireNonNull(imagenes, "El mapa de imágenes no puede ser nulo");
+        if (!Double.isFinite(tamanoTile) || tamanoTile <= 0) {
+            throw new IllegalArgumentException("El tamaño de tile debe ser positivo y finito.");
+        }
+        if (!Double.isFinite(duracionMarcoFuenteSegundos) || duracionMarcoFuenteSegundos <= 0) {
+            throw new IllegalArgumentException("La duración del marco de la fuente debe ser positiva y finita.");
+        }
         this.tamanoTile = tamanoTile;
         this.margenHorizontalJugable = tamanoTile;
         this.margenSuperiorJugable = tamanoTile * 3;
         this.margenInferiorJugable = tamanoTile;
-        this.duracionMarcoFuente = duracionMarcoFuente;
+        this.duracionMarcoFuente = duracionMarcoFuenteSegundos;
         this.imagenes = Map.copyOf(imagenes);
         setMouseTransparent(true);
         setFocusTraversable(false);
@@ -47,15 +54,27 @@ public final class FondoMazmorra extends Canvas {
         heightProperty().bind(areaJuego.heightProperty());
         widthProperty().addListener((observable, anterior, nuevo) -> dibujar());
         heightProperty().addListener((observable, anterior, nuevo) -> dibujar());
-        sceneProperty().addListener((observable, anterior, escena) -> {
-            ultimaActualizacionFuente = 0;
-            if (escena == null) {
-                animacionFuente.stop();
-            } else {
-                animacionFuente.start();
-            }
-        });
         dibujar();
+    }
+
+    public void actualizarAnimacion(double dt) {
+        if (!Double.isFinite(dt) || dt < 0) {
+            throw new IllegalArgumentException("El delta tiempo debe ser finito y no negativo.");
+        }
+        tiempoAcumuladoFuente += dt;
+        if (tiempoAcumuladoFuente >= duracionMarcoFuente) {
+            int avances = (int) (tiempoAcumuladoFuente / duracionMarcoFuente);
+            tiempoAcumuladoFuente %= duracionMarcoFuente;
+            setMarcoFuente((marcoFuente + avances) % cantidadMarcosFuente);
+        }
+    }
+
+    public void setMarcoFuente(int marcoFuente) {
+        int nuevoMarco = Math.floorMod(marcoFuente, cantidadMarcosFuente);
+        if (this.marcoFuente != nuevoMarco) {
+            this.marcoFuente = nuevoMarco;
+            dibujar();
+        }
     }
 
     public double getMargenHorizontalJugable() {

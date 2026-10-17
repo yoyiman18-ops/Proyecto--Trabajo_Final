@@ -1,150 +1,121 @@
 package controlador;
 
-import modelo.Personaje;
-import motor.colisiones.hitboxes.CategoriaColision;
-import motor.colisiones.hitboxes.HitboxRectangular;
-import motor.colisiones.hitboxes.MascaraColision;
-import motor.colisiones.hitboxes.TipoHitbox;
+import java.util.Objects;
+import java.util.function.DoubleSupplier;
+
+import javafx.scene.Node;
+import modelo.ModeloJugador;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
 import motor.modelo.Direccion;
 import motor.modelo.Entidad;
 import motor.mvc.ControladorUsuario;
-import motor.recursos.GestorRecursos;
 import motor.util.Eje;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
-import motor.recursos.Extension.Imagen;
-import vista.FondoMazmorra;
-import vista.SpriteVista;
-
-import javafx.scene.Node;
-import javafx.scene.layout.Pane;
+import vista.VistaJugador;
 
 public class JugadorControlador implements ControladorUsuario {
-    private final String nombre;
-    private final SpriteVista vista;
-    private final Personaje modelo;
-    private final Observador<Personaje> observadorVida;
+
+    public record LimitesArea(
+        double margenHorizontal,
+        double margenSuperior,
+        double margenInferior
+    ) {
+        public LimitesArea {
+            if (!Double.isFinite(margenHorizontal) || margenHorizontal < 0
+                || !Double.isFinite(margenSuperior) || margenSuperior < 0
+                || !Double.isFinite(margenInferior) || margenInferior < 0) {
+                throw new IllegalArgumentException("Los márgenes deben ser finitos y no negativos.");
+            }
+        }
+    }
+
+    private final ModeloJugador modelo;
+    private final VistaJugador vista;
+    private final DoubleSupplier anchoArea;
+    private final DoubleSupplier altoArea;
+    private final LimitesArea limites;
+    private final Observador<ModeloJugador> observadorVida;
     private final Runnable accionAtaque;
     private EstadoAcciones estadoAcciones;
     private final Observador<EstadoAcciones> observadorAcciones;
     private boolean posicionInicializada;
 
-    public JugadorControlador(String nombre, GestorRecursos recursos) {
-        this(nombre, recursos, personaje -> {}, () -> {});
-    }
-
     public JugadorControlador(
-        String nombre,
-        GestorRecursos recursos,
-        Observador<Personaje> observadorVida
-    ) {
-        this(nombre, recursos, observadorVida, () -> {});
-    }
-
-    public JugadorControlador(
-        String nombre,
-        GestorRecursos recursos,
-        Observador<Personaje> observadorVida,
+        ModeloJugador modelo,
+        VistaJugador vista,
+        DoubleSupplier anchoArea,
+        DoubleSupplier altoArea,
+        LimitesArea limites,
+        Observador<ModeloJugador> observadorVida,
         Runnable accionAtaque
     ) {
-        this.nombre = nombre;
-        this.observadorVida = observadorVida;
-        this.accionAtaque = accionAtaque;
-        this.observadorAcciones = e -> this.estadoAcciones = e;
+        this.modelo = Objects.requireNonNull(modelo, "modelo no puede ser nulo");
+        this.vista = Objects.requireNonNull(vista, "vista no puede ser nula");
+        this.anchoArea = Objects.requireNonNull(anchoArea, "anchoArea no puede ser nulo");
+        this.altoArea = Objects.requireNonNull(altoArea, "altoArea no puede ser nulo");
+        this.limites = Objects.requireNonNull(limites, "limites no puede ser nulo");
+        this.observadorVida = Objects.requireNonNull(observadorVida, "observadorVida no puede ser nulo");
+        this.accionAtaque = Objects.requireNonNull(accionAtaque, "accionAtaque no puede ser nula");
+        this.observadorAcciones = estado -> this.estadoAcciones = estado;
 
-        this.vista = new SpriteVista(
-            recursos.getImagen("zorro_sheet", Imagen.PNG),
-            4,
-            4,
-            50,
-            50
-        );
-
-        this.modelo = new Personaje.Builder(
-            nombre,
-            new HitboxRectangular(
-                new java.awt.geom.Rectangle2D.Double(0,0,30,20),
-                TipoHitbox.SOLIDA,
-                MascaraColision.of(CategoriaColision.JUGADOR),
-                MascaraColision.of(CategoriaColision.ENEMIGO, CategoriaColision.EXP, CategoriaColision.ITEM, CategoriaColision.MURO)
-            ))
-            .friccion(2500)
-            .aceleracion(3000)
-            .velocidadMax(240)
-            .build();
-        
-        modelo.getNotificador().suscribirObservador(vista);
         modelo.getNotificadorVida().suscribirObservador(this.observadorVida);
         this.observadorVida.cambio(modelo);
     }
 
+    @Override
     public void tick(Double dt) {
-        if (estadoAcciones.activa(Accion.MOVER_ARRIBA)) { modelo.acelerar(Direccion.ARRIBA, dt); }
-        else if (estadoAcciones.activa(Accion.MOVER_ABAJO)) { modelo.acelerar(Direccion.ABAJO, dt); }
-        else { modelo.frenar(Eje.Y, dt); }
+        Objects.requireNonNull(dt, "dt no puede ser nulo");
+        if (!Double.isFinite(dt) || dt < 0) {
+            throw new IllegalArgumentException("El delta tiempo debe ser finito y no negativo.");
+        }
 
-        if (estadoAcciones.activa(Accion.MOVER_DERECHA)) { modelo.acelerar(Direccion.DERECHA, dt); }
-        else if (estadoAcciones.activa(Accion.MOVER_IZQUIERDA)) { modelo.acelerar(Direccion.IZQUIERDA, dt); }
-        else { modelo.frenar(Eje.X, dt); }
+        if (estadoAcciones != null && estadoAcciones.activa(Accion.MOVER_ARRIBA)) {
+            modelo.acelerar(Direccion.ARRIBA, dt);
+        } else if (estadoAcciones != null && estadoAcciones.activa(Accion.MOVER_ABAJO)) {
+            modelo.acelerar(Direccion.ABAJO, dt);
+        } else {
+            modelo.frenar(Eje.Y, dt);
+        }
+
+        if (estadoAcciones != null && estadoAcciones.activa(Accion.MOVER_DERECHA)) {
+            modelo.acelerar(Direccion.DERECHA, dt);
+        } else if (estadoAcciones != null && estadoAcciones.activa(Accion.MOVER_IZQUIERDA)) {
+            modelo.acelerar(Direccion.IZQUIERDA, dt);
+        } else {
+            modelo.frenar(Eje.X, dt);
+        }
         modelo.mover(dt);
         mantenerDentroDelArea();
+
         double vx = modelo.getVelocidad().getX();
         double vy = modelo.getVelocidad().getY();
-        // implementación preliminar para lógica de animación, queda poder volverla
-        // más genérica y abstracta 
-        int fila;
-        if (Math.abs(vx) > Math.abs(vy)) {
-            if (vx > 0) {
-                fila = 2;
-            } else {
-                fila = 3;
-            }
-        } else {
-            if (vy > 0) {
-                fila = 0;
-            } else {
-                fila = 1;
-            }
-        }
-        vista.actualizarAnimacion(fila, (vx != 0 || vy != 0), dt);
+        vista.actualizarPosicion(modelo.getPosicion().getX(), modelo.getPosicion().getY());
+        vista.actualizarAnimacion(direccionMovimiento(vx, vy), vx != 0 || vy != 0, dt);
 
-        if (estadoAcciones.activa(Accion.ATACAR)) {
+        if (estadoAcciones != null && estadoAcciones.activa(Accion.ATACAR)) {
             accionAtaque.run();
         }
     }
 
     private void mantenerDentroDelArea() {
-        if (!(vista.getParent() instanceof Pane area)) {
-            return;
-        }
-
-        double anchoArea = area.getWidth();
-        double altoArea = area.getHeight();
-        if (anchoArea <= 0 || altoArea <= 0) {
+        double anchoAreaActual = anchoArea.getAsDouble();
+        double altoAreaActual = altoArea.getAsDouble();
+        if (!Double.isFinite(anchoAreaActual) || !Double.isFinite(altoAreaActual)
+            || anchoAreaActual <= 0 || altoAreaActual <= 0) {
             return;
         }
 
         VecDouble2D posicion = modelo.getPosicion();
-        double anchoVista = vista.getLayoutBounds().getWidth();
-        double altoVista = vista.getLayoutBounds().getHeight();
-        FondoMazmorra fondo = area.getChildren().stream()
-            .filter(FondoMazmorra.class::isInstance)
-            .map(FondoMazmorra.class::cast)
-            .findFirst()
-            .orElse(null);
-        double margenHorizontal = fondo == null ? 0 : fondo.getMargenHorizontalJugable();
-        double margenSuperior = fondo == null ? 0 : fondo.getMargenSuperiorJugable();
-        double margenInferior = fondo == null ? 0 : fondo.getMargenInferiorJugable();
-        double limiteIzquierdo = margenHorizontal;
-        double limiteSuperior = margenSuperior;
+        double limiteIzquierdo = limites.margenHorizontal();
+        double limiteSuperior = limites.margenSuperior();
         double limiteDerecho = Math.max(
             limiteIzquierdo,
-            anchoArea - margenHorizontal - anchoVista);
+            anchoAreaActual - limites.margenHorizontal() - vista.getAncho());
         double limiteInferior = Math.max(
             limiteSuperior,
-            altoArea - margenInferior - altoVista);
+            altoAreaActual - limites.margenInferior() - vista.getAlto());
         boolean centrar = !posicionInicializada;
         if (centrar) {
             posicion.setX((limiteIzquierdo + limiteDerecho) / 2);
@@ -162,19 +133,35 @@ public class JugadorControlador implements ControladorUsuario {
         if (centrar || fueraEnX || fueraEnY) {
             posicion.setX(x);
             posicion.setY(y);
-            if (fueraEnX) { modelo.getVelocidad().setX(0); }
-            if (fueraEnY) { modelo.getVelocidad().setY(0); }
+            if (fueraEnX) {
+                modelo.getVelocidad().setX(0);
+            }
+            if (fueraEnY) {
+                modelo.getVelocidad().setY(0);
+            }
             modelo.getHitbox().actualizarTransformacion(posicion);
-            vista.cambio(modelo);
         }
     }
 
-    @Override 
-    public Observador<EstadoAcciones> getObservadorAcciones() { return this.observadorAcciones; }
+    private Direccion direccionMovimiento(double vx, double vy) {
+        if (Math.abs(vx) > Math.abs(vy)) {
+            return vx > 0 ? Direccion.DERECHA : Direccion.IZQUIERDA;
+        }
+        return vy > 0 ? Direccion.ABAJO : Direccion.ARRIBA;
+    }
 
-    public Personaje getPersonaje() { return this.modelo; }
+    @Override
+    public Observador<EstadoAcciones> getObservadorAcciones() {
+        return observadorAcciones;
+    }
 
-    @Override public Entidad getModelo() { return this.modelo; }
-    @Override public Node getVista() { return this.vista; }
+    @Override
+    public Entidad getModelo() {
+        return modelo.getEntidad();
+    }
 
+    @Override
+    public Node getVista() {
+        return vista.getNodo();
+    }
 }

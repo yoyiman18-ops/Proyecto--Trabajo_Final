@@ -1,27 +1,40 @@
 package vista;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.BorderPane;
-import java.util.Map;
+import javafx.scene.layout.VBox;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
-import modelo.ItemMejoraAtributo;
-
+/**
+ * Vista principal de la pantalla de juego y su interfaz gráfica (HUD, menús de pausa, mejoras y fin de partida).
+ * Cumple con MVC puro: solo contiene elementos y lógica de presentación,
+ * sin acoplamiento a las clases del modelo de dominio.
+ */
 public class VistaJuego extends StackPane {
+    public interface Eventos {
+        void solicitarPausa();
+        void solicitarReanudacion();
+        void solicitarVolverAlMenuDesdePausa();
+        void seleccionarMejora(int indice);
+        void solicitarReintento();
+        void solicitarVolverAlMenuDesdeFinPartida();
+    }
+
     private final int vidaPorCorazon = 10;
     private final int cantidadGemasExperiencia = 10;
 
@@ -38,28 +51,33 @@ public class VistaJuego extends StackPane {
     private final Label valorExperiencia = crearValor("-- / -- XP");
     private final HBox gemasExperiencia = new HBox(2);
     private final List<ImageView> iconosExperiencia = new ArrayList<>();
+
     private final Label tiempo = crearValor("--:--");
     private final Label oleada = crearValor("--");
     private final Label enemigos = crearValor("--");
     private final Label danio = crearValor("--");
     private final Label puntos = crearValor("--/--");
     private final VBox indicadorPuntos = crearIndicador("PUNTOS", puntos, 90, 100);
+
     private final Button botonPausar = new Button("PAUSA");
     private final Button botonPausarMejora = new Button("PAUSA");
     private final Label textoPausa = new Label("JUEGO EN PAUSA");
     private final Button botonReanudar = new Button("CONTINUAR");
     private final Button botonSalirPausa = new Button("VOLVER AL MENÚ");
     private final StackPane panelPausa = new StackPane();
+
     private final Label textoFinPartida = new Label("FIN DE LA PARTIDA");
     private final Button botonReintentar = new Button("REINTENTAR");
     private final Button botonVolverMenu = new Button("VOLVER AL MENÚ");
     private final StackPane panelFinPartida = new StackPane();
-    private final StackPane panelEleccionMejora = new StackPane();
-    private Runnable alPausar = () -> {};
-    private Runnable alReanudar = () -> {};
-    private Runnable alVolverAlMenuDesdePausa = () -> {};
 
-    public VistaJuego(Map<String, Image> imagenesHud) {
+    private final StackPane panelEleccionMejora = new StackPane();
+
+    private Eventos eventos;
+
+    public VistaJuego(Map<String, Image> imagenesHud, String hojaEstilosUrl) {
+        Objects.requireNonNull(imagenesHud, "El mapa de imágenes de HUD no puede ser nulo");
+        Objects.requireNonNull(hojaEstilosUrl, "La URL de la hoja de estilos no puede ser nula");
         this.corazonLleno = imagenesHud.get("corazonLleno");
         this.corazonVacio = imagenesHud.get("corazonVacio");
         this.iconoExperiencia = imagenesHud.get("iconoExperiencia");
@@ -96,9 +114,9 @@ public class VistaJuego extends StackPane {
         barraHud.setAlignment(Pos.TOP_LEFT);
         HBox.setHgrow(indicadores, Priority.ALWAYS);
         interfaz.getChildren().setAll(barraHud);
-        botonPausar.setOnAction(event -> abrirPausa());
+        botonPausar.setOnAction(event -> eventos().solicitarPausa());
         botonPausarMejora.getStyleClass().add("pause-button");
-        botonPausarMejora.setOnAction(event -> abrirPausa());
+        botonPausarMejora.setOnAction(event -> eventos().solicitarPausa());
 
         panelPausa.getStyleClass().add("pause-overlay");
         panelPausa.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -113,13 +131,8 @@ public class VistaJuego extends StackPane {
         panelPausa.getChildren().add(opcionesPausa);
         panelPausa.setVisible(false);
         panelPausa.setManaged(false);
-        botonReanudar.setOnAction(event -> {
-            cerrarPausa();
-            if (!panelEleccionMejora.isVisible()) {
-                alReanudar.run();
-            }
-        });
-        botonSalirPausa.setOnAction(event -> alVolverAlMenuDesdePausa.run());
+        botonReanudar.setOnAction(event -> eventos().solicitarReanudacion());
+        botonSalirPausa.setOnAction(event -> eventos().solicitarVolverAlMenuDesdePausa());
 
         areaJuego.getStyleClass().add("game-area");
         areaJuego.setMinSize(0, 0);
@@ -140,6 +153,8 @@ public class VistaJuego extends StackPane {
         panelFinPartida.getChildren().add(opcionesFinPartida);
         panelFinPartida.setVisible(false);
         panelFinPartida.setManaged(false);
+        botonReintentar.setOnAction(event -> eventos().solicitarReintento());
+        botonVolverMenu.setOnAction(event -> eventos().solicitarVolverAlMenuDesdeFinPartida());
 
         panelEleccionMejora.getStyleClass().add("level-up-overlay");
         panelEleccionMejora.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -154,43 +169,37 @@ public class VistaJuego extends StackPane {
         getChildren().addAll(contenido, panelEleccionMejora, panelPausa, panelFinPartida);
         getStyleClass().add("game-root");
 
-        var hojaEstilos = VistaJuego.class.getResource("vista-juego.css");
-        if (hojaEstilos == null) {
-            throw new IllegalStateException("No se encontró vista-juego.css");
-        }
-        getStylesheets().add(hojaEstilos.toExternalForm());
+        getStylesheets().add(hojaEstilosUrl);
+    }
+
+    private Eventos eventos() {
+        return Objects.requireNonNull(eventos, "Los eventos de VistaJuego no han sido configurados");
     }
 
     public Pane getAreaJuego() {
         return areaJuego;
     }
 
-    public void configurarPausa(Runnable alPausar, Runnable alReanudar, Runnable volverAlMenu) {
-        this.alPausar = alPausar;
-        this.alReanudar = alReanudar;
-        this.alVolverAlMenuDesdePausa = volverAlMenu;
+    public void configurarEventos(Eventos eventos) {
+        this.eventos = Objects.requireNonNull(eventos, "Los eventos de VistaJuego no pueden ser nulos");
     }
 
-    public void mostrarFinPartida(String mensaje, Runnable reintentar, Runnable volverMenu) {
-        cerrarPausa();
-        panelEleccionMejora.setVisible(false);
-        panelEleccionMejora.setManaged(false);
-        botonPausar.setDisable(true);
-        textoFinPartida.setText(mensaje);
-        botonReintentar.setOnAction(event -> reintentar.run());
-        botonVolverMenu.setOnAction(event -> volverMenu.run());
+    public void setPausaHabilitada(boolean habilitada) {
+        botonPausar.setDisable(!habilitada);
+        botonPausarMejora.setDisable(!habilitada);
+    }
+
+    public void mostrarFinPartida(String mensaje) {
+        textoFinPartida.setText(Objects.requireNonNull(mensaje, "El mensaje de fin de partida no puede ser nulo"));
         panelFinPartida.setManaged(true);
         panelFinPartida.setVisible(true);
     }
 
     public void mostrarEleccionMejora(
         int nivel,
-        List<ItemMejoraAtributo> mejoras,
-        Consumer<ItemMejoraAtributo> alElegir
+        List<String> descripcionesMejoras
     ) {
-        if (panelFinPartida.isVisible()) {
-            return;
-        }
+        Objects.requireNonNull(descripcionesMejoras, "Las descripciones de mejoras no pueden ser nulas");
         Label titulo = new Label("¡NIVEL " + nivel + "!");
         titulo.getStyleClass().add("game-over-title");
         VBox opciones = new VBox(14);
@@ -198,15 +207,12 @@ public class VistaJuego extends StackPane {
         opciones.setMaxWidth(340);
         opciones.getChildren().add(titulo);
 
-        for (ItemMejoraAtributo mejora : mejoras) {
-            Button opcion = new Button(mejora.descripcion());
+        for (int indice = 0; indice < descripcionesMejoras.size(); indice++) {
+            final int seleccion = indice;
+            Button opcion = new Button(descripcionesMejoras.get(indice));
             opcion.getStyleClass().add("game-over-button");
             opcion.setMaxWidth(Double.MAX_VALUE);
-            opcion.setOnAction(event -> {
-                panelEleccionMejora.setVisible(false);
-                panelEleccionMejora.setManaged(false);
-                alElegir.accept(mejora);
-            });
+            opcion.setOnAction(event -> eventos().seleccionarMejora(seleccion));
             opciones.getChildren().add(opcion);
         }
 
@@ -219,18 +225,19 @@ public class VistaJuego extends StackPane {
         panelEleccionMejora.setVisible(true);
     }
 
-    private void cerrarPausa() {
+    public void cerrarPausa() {
         panelPausa.setVisible(false);
         panelPausa.setManaged(false);
     }
 
-    private void abrirPausa() {
-        if (panelPausa.isVisible() || panelFinPartida.isVisible()) {
-            return;
-        }
+    public void mostrarPausa() {
         panelPausa.setManaged(true);
         panelPausa.setVisible(true);
-        alPausar.run();
+    }
+
+    public void cerrarEleccionMejora() {
+        panelEleccionMejora.setVisible(false);
+        panelEleccionMejora.setManaged(false);
     }
 
     public void actualizarVida(double actual, double maxima) {
@@ -302,7 +309,7 @@ public class VistaJuego extends StackPane {
     }
 
     private VBox crearIndicador(String titulo, Node valor,
-                                       double anchoMinimo, double anchoPreferido) {
+                                double anchoMinimo, double anchoPreferido) {
         Label etiqueta = new Label(titulo);
         etiqueta.getStyleClass().add("hud-label");
         VBox tarjeta = new VBox(4, etiqueta, valor);
@@ -352,5 +359,4 @@ public class VistaJuego extends StackPane {
         HBox.setHgrow(informacion, Priority.ALWAYS);
         return contenido;
     }
-
 }
