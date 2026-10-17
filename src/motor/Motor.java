@@ -56,6 +56,7 @@ public class Motor {
     private final RelojDelta relojDelta;
     private final Parent root;
     private final ArrayList<Colisionable> colisionables;
+    private final ArrayList<Entidad> entidades;
 
     /**
      * Crear motor default.
@@ -79,16 +80,29 @@ public class Motor {
         this.root = root;
         this.gestorEntradaTeclado = new GestorEntradaTeclado(root);
         this.colisionables = new ArrayList<>();
+        this.entidades = new ArrayList<>();
         
         relojDelta.suscribirObservador(e -> {
+            limpiarEntidadesDesactivadas();
             this.gestorEntradaTeclado.tick();
             this.sistemaColisiones.resolverColisiones(colisionables);
         });
     }
 
+    private void limpiarEntidadesDesactivadas() {
+        for (int i = entidades.size() - 1; i >= 0; i--) {
+            Entidad entidad = entidades.get(i);
+            if (entidad.debeDesaparecer()) {
+                entidades.remove(i);
+                colisionables.remove(entidad);
+            }
+        }
+    }
+
     public void instanciarEntidad(Entidad.Builder entidadBuilder) {
         Entidad entidad = entidadBuilder.build(gestorRecursos);
         colisionables.add(entidad);
+        entidades.add(entidad);
     }
 
     public GestorRecursos recursos() { return this.gestorRecursos; }
@@ -97,5 +111,4 @@ public class Motor {
     public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }
 }
-
 

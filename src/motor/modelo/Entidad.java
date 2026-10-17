@@ -7,7 +7,7 @@ import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
-public class Entidad implements Colisionable {
+public abstract class Entidad implements Colisionable {
     private final String nombre;
     private final Hitbox hitbox;
     private VecDouble2D posicion;
@@ -15,6 +15,7 @@ public class Entidad implements Colisionable {
     private double aceleracion;
     private double friccion;
     private double velocidadMax;
+    private boolean debeDesaparecer;
     private final Notificador<Entidad> notificador;
 
     public Entidad(
@@ -100,9 +101,14 @@ public class Entidad implements Colisionable {
         velocidadMax *= 1 + porcentaje / 100;
     }
 
+    public void desactivar() {
+        debeDesaparecer = true;
+        hitbox.setActiva(false);
+    }
+
+    public boolean debeDesaparecer() { return debeDesaparecer; }
+
     @Override public Hitbox getHitbox() { return this.hitbox; }
     @Override public boolean colisionesActivas() { return this.hitbox.estaActiva(); }
     @Override public void colisionar(Colisionable otra) { System.out.println(this.nombre +" ha colisionado."); }
-
-
 }

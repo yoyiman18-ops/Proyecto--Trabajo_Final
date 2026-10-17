@@ -1,24 +1,28 @@
 
 package modelo;
 
+import motor.colisiones.Colisionable;
+import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.Hitbox;
+import motor.colisiones.hitboxes.MascaraColision;
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
 
-public final class Proyectil extends Entidad {
+public abstract class Proyectil extends Entidad {
 
     private final double danio;
     private double tiempoVida;
-    private boolean activo;
+    private int penetracion;
 
-    public Proyectil(
+    protected Proyectil(
         String nombre,
         Hitbox hitbox,
         VecDouble2D posicion,
         VecDouble2D direccion,
         double velocidad,
         double danio,
-        double tiempoVida
+        double tiempoVida,
+        int penetracion
     ) {
         super(
             nombre,
@@ -42,9 +46,15 @@ public final class Proyectil extends Entidad {
             );
         }
 
+        if (penetracion <= 0) {
+            throw new IllegalArgumentException(
+                "La penetración debe ser positiva."
+            );
+        }
+
         this.danio = danio;
         this.tiempoVida = tiempoVida;
-        this.activo = true;
+        this.penetracion = penetracion;
     }
 
     private static VecDouble2D crearVelocidad(
@@ -87,7 +97,11 @@ public final class Proyectil extends Entidad {
     }
 
     public boolean estaActivo() {
-        return activo;
+        return colisionesActivas();
+    }
+
+    public int getPenetracion() {
+        return penetracion;
     }
 
     public void actualizar(double dt) {
@@ -97,7 +111,7 @@ public final class Proyectil extends Entidad {
             );
         }
 
-        if (!activo) {
+        if (!estaActivo()) {
             return;
         }
 
@@ -112,12 +126,47 @@ public final class Proyectil extends Entidad {
         mover(dt);
     }
 
-    public void desactivar() {
-        if (!activo) {
+    protected abstract boolean puedeImpactar(CategoriaColision categoria);
+
+    @Override
+    public final void colisionar(Colisionable otra) {
+        if (otra == null) {
+            throw new IllegalArgumentException("El objetivo del proyectil no puede ser nulo.");
+        }
+        if (!estaActivo()) {
             return;
         }
 
-        activo = false;
-        getHitbox().desactivar();
+        MascaraColision capasOtra = otra.getHitbox().getCapasColision();
+        if (capasOtra.contiene(CategoriaColision.MURO)) {
+            desactivar();
+            return;
+        }
+
+        MascaraColision categoriasOtra = otra.getHitbox().getCategoriasColision();
+        if (puedeImpactar(categoriasOtra)) {
+            if (!(otra instanceof ObjetivoDanio objetivo)) {
+                throw new IllegalStateException(
+                    "El colisionable de categoría compatible debe poder recibir daño."
+                );
+            }
+            objetivo.aplicarDanio(danio);
+        }
+
+        penetracion--;
+        if (penetracion == 0) {
+            desactivar();
+        }
+    }
+
+    private boolean puedeImpactar(
+        MascaraColision categorias
+    ) {
+        for (CategoriaColision categoria : CategoriaColision.values()) {
+            if (categorias.contiene(categoria) && puedeImpactar(categoria)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

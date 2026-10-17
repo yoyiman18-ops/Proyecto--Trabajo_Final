@@ -6,7 +6,7 @@ import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
-public class Personaje extends Entidad {
+public class Personaje extends Entidad implements ObjetivoDanio {
     private static final double DEFENSA_MAXIMA_PORCENTUAL = 80;
 
     private double vida;
@@ -105,6 +105,11 @@ public class Personaje extends Entidad {
         double danioEfectivo = cantidad * (1 - defensaPorcentual / 100);
         vida = Math.max(0, vida - danioEfectivo);
         notificadorVida.notificar(this);
+    }
+
+    @Override
+    public void aplicarDanio(double cantidad) {
+        recibirDanio(cantidad);
     }
 
     public void curar(double cantidad) {

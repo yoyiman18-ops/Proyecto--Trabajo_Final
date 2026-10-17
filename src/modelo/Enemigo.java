@@ -4,7 +4,7 @@ import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
 
-public final class Enemigo extends Entidad {
+public final class Enemigo extends Entidad implements ObjetivoDanio {
     private double vida;
     private final double vidaMaxima;
     private final double danio;
@@ -60,5 +60,10 @@ public final class Enemigo extends Entidad {
         }
         vida = Math.max(0, vida - cantidad);
         return vida == 0;
+    }
+
+    @Override
+    public void aplicarDanio(double cantidad) {
+        recibirDanio(cantidad);
     }
 }

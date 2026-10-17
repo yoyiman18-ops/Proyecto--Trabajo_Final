@@ -20,7 +20,13 @@ public class MascaraColision {
         return new MascaraColision(bitMask);
     }
 
+    public boolean contiene(CategoriaColision categoria) {
+        if (categoria == null) {
+            throw new IllegalArgumentException("La categoría no puede ser nula.");
+        }
+        return (bitMask & (1 << categoria.ordinal())) != 0;
+    }
+
     public int interseccion(MascaraColision otra) { return getMascara() & otra.getMascara(); }
     public int getMascara() { return this.bitMask; }
 }
-
