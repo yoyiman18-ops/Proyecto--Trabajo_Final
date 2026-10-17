@@ -14,6 +14,7 @@ public class Personaje extends Entidad implements ObjetivoDanio {
     private double defensaPorcentual;
     private final Notificador<Personaje> notificadorVida = new NotificadorDebil<>();
     private int experiencia;
+    private int monedas;
     private int nivel = 1;
     private int experienciaSiguiente = 100;
     private int nivelesPendientes;
@@ -35,6 +36,17 @@ public class Personaje extends Entidad implements ObjetivoDanio {
 
     public int getExperiencia() {
         return experiencia;
+    }
+
+    public int getMonedas() {
+        return monedas;
+    }
+
+    public void sumarMonedas(int cantidad) {
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad de monedas debe ser positiva.");
+        }
+        monedas = Math.addExact(monedas, cantidad);
     }
 
     public int getNivel() {
