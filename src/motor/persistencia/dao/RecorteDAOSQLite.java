@@ -74,12 +74,13 @@ public class RecorteDAOSQLite implements DAO<Recorte, PKRecorte> {
             sentencia.setString(2, clave.nombreRecorte());
             try (ResultSet rs = sentencia.executeQuery()) {
                 if (rs.next()) {
+                    int idSheet = rs.getInt("id_sheet");
                     String nombreRecorte = rs.getString("nombre_recorte");
                     double offsetX = rs.getDouble("offset_x");
                     double offsetY = rs.getDouble("offset_y");
                     double ancho = rs.getDouble("ancho");
                     double alto = rs.getDouble("alto");
-                    return new Recorte(nombreRecorte, offsetX, offsetY, ancho, alto);
+                    return new Recorte(idSheet, nombreRecorte, offsetX, offsetY, ancho, alto);
                 }
                 return null;
             }
@@ -116,16 +117,17 @@ public class RecorteDAOSQLite implements DAO<Recorte, PKRecorte> {
             sentencia.setInt(1, this.idSheet);
             try (ResultSet rs = sentencia.executeQuery()) {
                 while (rs.next()) {
+                    int idSheet = rs.getInt("id_sheet");
                     String nombreRecorte = rs.getString("nombre_recorte");
                     double offsetX = rs.getDouble("offset_x");
                     double offsetY = rs.getDouble("offset_y");
                     double ancho = rs.getDouble("ancho");
                     double alto = rs.getDouble("alto");
-                    recortes.add(new Recorte(nombreRecorte, offsetX, offsetY, ancho, alto));
+                    recortes.add(new Recorte(idSheet, nombreRecorte, offsetX, offsetY, ancho, alto));
                 }
             }
         } catch (SQLException e) {
-            return recortes;
+            return null;
         }
         return recortes;
     }
