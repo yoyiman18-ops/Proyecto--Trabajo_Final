@@ -3,11 +3,13 @@ package motor.modelo.graficos;
 import javafx.geometry.Rectangle2D;
 
 public class Recorte {
+    private final int idSheet;
     private final String nombreRecorte;
     private final double offsetX,offsetY,ancho,alto;
-    private final Rectangle2D recorte;
+    private final Rectangle2D rectangulo;
 
     public Recorte(
+        int idSheet,
         String nombreRecorte,
         double offsetX,
         double offsetY,
@@ -19,19 +21,23 @@ public class Recorte {
             if (ancho <= 0 || alto <= 0) {
                 throw new IllegalArgumentException("Ancho y alto deben ser mayores a 0");
             }
+            this.idSheet = idSheet;
             this.nombreRecorte = nombreRecorte;
             this.offsetX = offsetX;
             this.offsetY = offsetY;
             this.ancho = ancho;
             this.alto = alto;
-            this.recorte = new Rectangle2D(offsetX, offsetY, ancho, alto);
+            this.rectangulo = new Rectangle2D(offsetX, offsetY, ancho, alto);
         }
 
+    public int getIdSheet() { return this.idSheet; }
     public String getNombreRecorte() { return this.nombreRecorte; }
     public double getOffsetX() { return this.offsetX; }
     public double getOffsetY() { return this.offsetY; }
     public double getAncho() { return this.ancho; }
     public double getAlto() { return this.alto; }
-    public Rectangle2D get() { return this.recorte; }
+    public Rectangle2D getRectangulo() { return this.rectangulo; }
+
+
 
 }

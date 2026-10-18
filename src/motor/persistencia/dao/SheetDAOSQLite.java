@@ -212,4 +212,34 @@ public class SheetDAOSQLite implements DAO<Sheet, Integer> {
             return false;
         }
     }
+
+    @Override
+    public void mostrar(Integer clave) {
+        Sheet s = cargar(clave);
+        if (s == null) {
+            System.out.println("Sheet no encontrada para clave: " + clave);
+            return;
+        }
+        System.out.printf("Sheet [idSheet=%d, path=%s, extension=%s]%n",
+            s.getIdSheet(), s.getPath(), s.getExtension().name());
+        System.out.println(" Recortes:");
+        DAO<Recorte, PKRecorte> recorteDAO = new RecorteDAOSQLite(this.conexion, s.getIdSheet());
+        recorteDAO.mostrarTodos();
+        System.out.println(" Animaciones:");
+        DAO<Animacion, PKAnimacion> animacionDAO = new AnimacionDAOSQLite(this.conexion, s.getIdSheet());
+        animacionDAO.mostrarTodos();
+    }
+
+    @Override
+    public void mostrarTodos() {
+        List<Sheet> sheets = cargarTodos();
+        if (sheets == null || sheets.isEmpty()) {
+            System.out.println("(Sin sheets registradas)");
+            return;
+        }
+        for (Sheet s : sheets) {
+            mostrar(s.getIdSheet());
+            System.out.println("--------------------------------------------------");
+        }
+    }
 }

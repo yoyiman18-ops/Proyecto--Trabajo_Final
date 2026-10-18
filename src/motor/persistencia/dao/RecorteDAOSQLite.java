@@ -37,7 +37,7 @@ public class RecorteDAOSQLite implements DAO<Recorte, PKRecorte> {
                 offset_y REAL NOT NULL,
                 ancho REAL NOT NULL,
                 alto REAL NOT NULL,
-                FOREIGN KEY id_sheet REFERENCES sheet(id_sheet) ON DELETE CASCADE,
+                FOREIGN KEY (id_sheet) REFERENCES sheet(id_sheet) ON DELETE CASCADE,
                 PRIMARY KEY (id_sheet, nombre_recorte)
             );
             """;
@@ -152,6 +152,29 @@ public class RecorteDAOSQLite implements DAO<Recorte, PKRecorte> {
             return sentencia.executeUpdate() > 0;
         } catch (SQLException e) {
             return false;
+        }
+    }
+
+    @Override
+    public void mostrar(PKRecorte clave) {
+        Recorte r = cargar(clave);
+        if (r == null) {
+            System.out.println("Recorte no encontrado para clave: " + clave);
+            return;
+        }
+        System.out.printf("  Recorte [idSheet=%d, nombre=%s, offsetX=%.2f, offsetY=%.2f, ancho=%.2f, alto=%.2f]%n",
+            r.getIdSheet(), r.getNombreRecorte(), r.getOffsetX(), r.getOffsetY(), r.getAncho(), r.getAlto());
+    }
+
+    @Override
+    public void mostrarTodos() {
+        List<Recorte> recortes = cargarTodos();
+        if (recortes == null || recortes.isEmpty()) {
+            System.out.println("  (Sin recortes para idSheet=" + this.idSheet + ")");
+            return;
+        }
+        for (Recorte r : recortes) {
+            mostrar(new PKRecorte(r.getIdSheet(), r.getNombreRecorte()));
         }
     }
 }

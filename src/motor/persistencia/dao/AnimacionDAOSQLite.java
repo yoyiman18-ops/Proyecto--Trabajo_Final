@@ -10,7 +10,6 @@ import java.util.List;
 
 import motor.modelo.graficos.Animacion;
 import motor.modelo.graficos.Frame;
-import motor.modelo.graficos.Recorte;
 import motor.persistencia.PKAnimacion;
 import motor.persistencia.PKFrame;
 
@@ -37,7 +36,7 @@ public class AnimacionDAOSQLite implements DAO<Animacion, PKAnimacion> {
                 id_sheet INTEGER NOT NULL,
                 nombre_animacion TEXT NOT NULL,
                 es_bucle INTEGER NOT NULL,
-                FOREIGN KEY id_sheet REFERENCES sheet(id_sheet) ON DELETE CASCADE,
+                FOREIGN KEY (id_sheet) REFERENCES sheet(id_sheet) ON DELETE CASCADE,
                 PRIMARY KEY (id_sheet, nombre_animacion)
             );
             """;
@@ -92,10 +91,10 @@ public class AnimacionDAOSQLite implements DAO<Animacion, PKAnimacion> {
 
                     DAO<Frame, PKFrame> frameDAO = new FrameDAOSQLite(
                         this.conexion,
-                        this.idSheet,
+                        clave.idSheet(),
                         clave.nombreAnimacion()
                     );
-                    List<Frame> frames = frameDAO.cargarTodos();
+                    List<Frame> frames = frameDAO.cargarTodos(); // puede ser vacia, la excepcion aparece en el constructor de animacion
                     return new Animacion(idAnimacion, nombreAnimacion, esBucle, frames);
                 }
                 return null;
@@ -186,5 +185,34 @@ public class AnimacionDAOSQLite implements DAO<Animacion, PKAnimacion> {
         } catch (SQLException e) {
             return false;
         }
+    }
+
+    @Override
+    public void mostrar(PKAnimacion clave) {
+        Animacion a = cargar(clave);
+        if (a == null) {
+            System.out.println("Animacion no encontrada para clave: " + clave);
+            return;
+        }
+        System.out.printf("  Animacion [idSheet=%d, nombre=%s, esBucle=%b]%n",
+            a.getIdSheet(), a.getNombreAnimacion(), a.esBucle());
+        DAO<Frame, PKFrame> frameDAO = new FrameDAOSQLite(
+            this.conexion,
+            a.getIdSheet(),
+            a.getNombreAnimacion()
+        );
+        frameDAO.mostrarTodos();
+    }
+
+    @Override
+    public void mostrarTodos() {
+        List<Animacion> animaciones = cargarTodos();
+        if (animaciones == null || animaciones.isEmpty()) {
+            System.out.println("  (Sin animaciones para idSheet =" + this.idSheet + ")");
+            return;
+        } else {
+        for (Animacion a : animaciones) {
+            mostrar(new PKAnimacion(a.getIdSheet(), a.getNombreAnimacion()));
+        }}
     }
 }

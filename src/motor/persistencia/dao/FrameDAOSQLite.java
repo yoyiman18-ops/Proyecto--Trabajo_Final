@@ -8,7 +8,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import motor.modelo.graficos.Animacion;
 import motor.modelo.graficos.Frame;
 import motor.modelo.graficos.Recorte;
 import motor.persistencia.PKFrame;
@@ -44,8 +43,8 @@ implements DAO<Frame,PKFrame> {
                 nro_frame INTEGER NOT NULL,
                 nombre_recorte TEXT NOT NULL,
                 duracion INTEGER NOT NULL,
-                FOREIGN KEY id_sheet REFERENCES sheet(id_sheet) ON DELETE CASCADE,
-                FOREIGN KEY nombre_animacion REFERENCES animacion(nombre_animacion) ON DELETE CASCADE,
+                FOREIGN KEY (id_sheet) REFERENCES sheet(id_sheet) ON DELETE CASCADE,
+                FOREIGN KEY (id_sheet, nombre_animacion) REFERENCES animacion(id_sheet, nombre_animacion) ON DELETE CASCADE,
                 PRIMARY KEY (id_sheet, nombre_animacion, nro_frame)
             );
             """;
@@ -96,6 +95,7 @@ implements DAO<Frame,PKFrame> {
                         try (ResultSet rsRecorte = sentenciaRecorte.executeQuery()) {
                             if (rsRecorte.next()) {
                                 recorte = new Recorte(
+                                    idSheet,
                                     nombreRecorte,
                                     rsRecorte.getDouble("offset_x"),
                                     rsRecorte.getDouble("offset_y"),
@@ -108,7 +108,7 @@ implements DAO<Frame,PKFrame> {
                         throw new IllegalStateException("Error cargando los recortes del frame.");
                     }
                     if (recorte == null) {
-                        recorte = new Recorte(nombreRecorte, 0, 0, 1, 1);
+                        throw new IllegalStateException("Recorte no encontrado al cargar el frame.");
                     }
                     return new Frame(idSheet, nombreAnimacion, nroFrame, nombreRecorte, recorte, duracion);
                 }
@@ -165,6 +165,7 @@ implements DAO<Frame,PKFrame> {
                         try (ResultSet rsRecorte = sentenciaRecorte.executeQuery()) {
                             if (rsRecorte.next()) {
                                 recorte = new Recorte(
+                                    idSheet,
                                     nombreRecorte,
                                     rsRecorte.getDouble("offset_x"),
                                     rsRecorte.getDouble("offset_y"),
@@ -175,7 +176,7 @@ implements DAO<Frame,PKFrame> {
                         }
                     } catch (SQLException e) { throw new IllegalStateException("Error cargando los recortes del frame."); }
                     if (recorte == null) {
-                        recorte = new Recorte(nombreRecorte, 0, 0, 1, 1);
+                        recorte = new Recorte(idSheet, nombreRecorte, 0, 0, 1, 1);
                     }
                     frames.add(new Frame(idSheet, nombreAnimacion, nroFrame, nombreRecorte, recorte, duracion));
                 }
@@ -203,6 +204,31 @@ implements DAO<Frame,PKFrame> {
             return sentencia.executeUpdate() > 0;
         } catch (SQLException e) {
             return false;
+        }
+    }
+
+    @Override
+    public void mostrar(PKFrame clave) {
+        Frame f = cargar(clave);
+        if (f == null) {
+            System.out.println("Frame no encontrado para clave: " + clave);
+            return;
+        }
+        Recorte r = f.getRecorte();
+        System.out.printf("    Frame [idSheet=%d, animacion=%s, nroFrame=%d, recorte=%s (offsetX=%.2f, offsetY=%.2f, ancho=%.2f, alto=%.2f), duracion=%dms]%n",
+            f.getIdSheet(), f.getNombreAnimacion(), f.getNroFrame(), f.getNombreRecorte(),
+            r.getOffsetX(), r.getOffsetY(), r.getAncho(), r.getAlto(), f.getDuracion());
+    }
+
+    @Override
+    public void mostrarTodos() {
+        List<Frame> frames = cargarTodos();
+        if (frames == null || frames.isEmpty()) {
+            System.out.println("    (Sin frames para idSheet=" + this.idSheet + ", animacion=" + this.nombreAnimacion + ")");
+            return;
+        }
+        for (Frame f : frames) {
+            mostrar(new PKFrame(f.getIdSheet(), f.getNombreAnimacion(), f.getNroFrame()));
         }
     }
     
