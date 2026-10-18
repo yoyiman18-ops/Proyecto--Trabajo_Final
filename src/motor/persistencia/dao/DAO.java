@@ -10,6 +10,6 @@ public interface DAO<T,K> {
     boolean eliminar(K clave);
     List<T> cargarTodos();
     boolean modificar(T objeto);
-    void mostrar(K clave);
-    void mostrarTodos();
+    String aJson(K clave);
+    String aJson();
 }

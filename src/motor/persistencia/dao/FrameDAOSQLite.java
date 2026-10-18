@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import motor.modelo.graficos.Frame;
 import motor.modelo.graficos.Recorte;
@@ -45,6 +46,7 @@ implements DAO<Frame,PKFrame> {
                 duracion INTEGER NOT NULL,
                 FOREIGN KEY (id_sheet) REFERENCES sheet(id_sheet) ON DELETE CASCADE,
                 FOREIGN KEY (id_sheet, nombre_animacion) REFERENCES animacion(id_sheet, nombre_animacion) ON DELETE CASCADE,
+                FOREIGN KEY (id_sheet, nombre_recorte) REFERENCES recorte(id_sheet,nombre_recorte) ON DELETE CASCADE,
                 PRIMARY KEY (id_sheet, nombre_animacion, nro_frame)
             );
             """;
@@ -208,28 +210,41 @@ implements DAO<Frame,PKFrame> {
     }
 
     @Override
-    public void mostrar(PKFrame clave) {
+    public String aJson(PKFrame clave) {
         Frame f = cargar(clave);
         if (f == null) {
-            System.out.println("Frame no encontrado para clave: " + clave);
-            return;
+            return "null";
         }
         Recorte r = f.getRecorte();
-        System.out.printf("    Frame [idSheet=%d, animacion=%s, nroFrame=%d, recorte=%s (offsetX=%.2f, offsetY=%.2f, ancho=%.2f, alto=%.2f), duracion=%dms]%n",
-            f.getIdSheet(), f.getNombreAnimacion(), f.getNroFrame(), f.getNombreRecorte(),
-            r.getOffsetX(), r.getOffsetY(), r.getAncho(), r.getAlto(), f.getDuracion());
+        String recorteJson = String.format(
+            Locale.US,
+            "{\"idSheet\": %d, \"nombreRecorte\": \"%s\", \"offsetX\": %.2f, \"offsetY\": %.2f, \"ancho\": %.2f, \"alto\": %.2f}",
+            r.getIdSheet(), r.getNombreRecorte(), r.getOffsetX(), r.getOffsetY(), r.getAncho(), r.getAlto()
+        );
+        return String.format(
+            Locale.US,
+            "{\"idSheet\": %d, \"nombreAnimacion\": \"%s\", \"nroFrame\": %d, \"nombreRecorte\": \"%s\", \"duracion\": %d, \"recorte\": %s}",
+            f.getIdSheet(), f.getNombreAnimacion(), f.getNroFrame(), f.getNombreRecorte(), f.getDuracion(), recorteJson
+        );
     }
 
     @Override
-    public void mostrarTodos() {
+    public String aJson() {
         List<Frame> frames = cargarTodos();
         if (frames == null || frames.isEmpty()) {
-            System.out.println("    (Sin frames para idSheet=" + this.idSheet + ", animacion=" + this.nombreAnimacion + ")");
-            return;
+            return "[]";
         }
-        for (Frame f : frames) {
-            mostrar(new PKFrame(f.getIdSheet(), f.getNombreAnimacion(), f.getNroFrame()));
+        StringBuilder sb = new StringBuilder("[\n");
+        for (int i = 0; i < frames.size(); i++) {
+            Frame f = frames.get(i);
+            sb.append("          ").append(aJson(new PKFrame(f.getIdSheet(), f.getNombreAnimacion(), f.getNroFrame())));
+            if (i < frames.size() - 1) {
+                sb.append(",");
+            }
+            sb.append("\n");
         }
+        sb.append("        ]");
+        return sb.toString();
     }
     
 }

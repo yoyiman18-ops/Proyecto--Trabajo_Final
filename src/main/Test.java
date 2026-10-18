@@ -24,7 +24,10 @@ public class Test {
         Platform.startup(() -> {});
         GestorRecursos recursos = new GestorRecursos();
 
+        /*
+        // test 1: ram
         try (Connection conexion = DriverManager.getConnection("jdbc:sqlite::memory:")) {
+
             // --- Sheet 1: Zorro ---
             int idSheet1 = 1;
             String path1 = "zorro/zorro";
@@ -78,14 +81,26 @@ public class Test {
 
             Sheet sheet2 = new Sheet(idSheet2, path2, img2, ext2, animacionesSheet2, recortesSheet2);
 
-            // --- Guardar en DAO<Sheet, Integer> y mostrarTodos() ---
+            // --- Guardar en DAO<Sheet, Integer> y aJson() ---
             DAO<Sheet, Integer> sheetDAO = new SheetDAOSQLite(conexion, recursos);
             sheetDAO.guardar(sheet1);
             sheetDAO.guardar(sheet2);
 
-            sheetDAO.mostrarTodos();
+            sheetDAO.eliminar(1);
+            System.out.println(sheetDAO.aJson(2));
+        
         } finally {
             Platform.exit();
+        }
+        */
+
+        //test 2: cargar de una bd
+
+        try (Connection conexion = DriverManager.getConnection("jdbc:sqlite::imagenes_test.bd")) {
+            DAO<Sheet,Integer> sheetDAO = new SheetDAOSQLite(conexion, recursos);
+            System.out.println(sheetDAO.aJson());
+        } finally {
+            Platform.exit();;
         }
     }
 

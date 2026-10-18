@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import motor.modelo.graficos.Recorte;
 import motor.persistencia.PKRecorte;
@@ -156,25 +157,34 @@ public class RecorteDAOSQLite implements DAO<Recorte, PKRecorte> {
     }
 
     @Override
-    public void mostrar(PKRecorte clave) {
+    public String aJson(PKRecorte clave) {
         Recorte r = cargar(clave);
         if (r == null) {
-            System.out.println("Recorte no encontrado para clave: " + clave);
-            return;
+            return "null";
         }
-        System.out.printf("  Recorte [idSheet=%d, nombre=%s, offsetX=%.2f, offsetY=%.2f, ancho=%.2f, alto=%.2f]%n",
-            r.getIdSheet(), r.getNombreRecorte(), r.getOffsetX(), r.getOffsetY(), r.getAncho(), r.getAlto());
+        return String.format(
+            Locale.US,
+            "{\"idSheet\": %d, \"nombreRecorte\": \"%s\", \"offsetX\": %.2f, \"offsetY\": %.2f, \"ancho\": %.2f, \"alto\": %.2f}",
+            r.getIdSheet(), r.getNombreRecorte(), r.getOffsetX(), r.getOffsetY(), r.getAncho(), r.getAlto()
+        );
     }
 
     @Override
-    public void mostrarTodos() {
+    public String aJson() {
         List<Recorte> recortes = cargarTodos();
         if (recortes == null || recortes.isEmpty()) {
-            System.out.println("  (Sin recortes para idSheet=" + this.idSheet + ")");
-            return;
+            return "[]";
         }
-        for (Recorte r : recortes) {
-            mostrar(new PKRecorte(r.getIdSheet(), r.getNombreRecorte()));
+        StringBuilder sb = new StringBuilder("[\n");
+        for (int i = 0; i < recortes.size(); i++) {
+            Recorte r = recortes.get(i);
+            sb.append("      ").append(aJson(new PKRecorte(r.getIdSheet(), r.getNombreRecorte())));
+            if (i < recortes.size() - 1) {
+                sb.append(",");
+            }
+            sb.append("\n");
         }
+        sb.append("    ]");
+        return sb.toString();
     }
 }

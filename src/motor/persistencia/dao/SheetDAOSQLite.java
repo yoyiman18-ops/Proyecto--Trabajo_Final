@@ -214,32 +214,35 @@ public class SheetDAOSQLite implements DAO<Sheet, Integer> {
     }
 
     @Override
-    public void mostrar(Integer clave) {
+    public String aJson(Integer clave) {
         Sheet s = cargar(clave);
         if (s == null) {
-            System.out.println("Sheet no encontrada para clave: " + clave);
-            return;
+            return "null";
         }
-        System.out.printf("Sheet [idSheet=%d, path=%s, extension=%s]%n",
-            s.getIdSheet(), s.getPath(), s.getExtension().name());
-        System.out.println(" Recortes:");
         DAO<Recorte, PKRecorte> recorteDAO = new RecorteDAOSQLite(this.conexion, s.getIdSheet());
-        recorteDAO.mostrarTodos();
-        System.out.println(" Animaciones:");
         DAO<Animacion, PKAnimacion> animacionDAO = new AnimacionDAOSQLite(this.conexion, s.getIdSheet());
-        animacionDAO.mostrarTodos();
+        return String.format(
+            "{\n    \"idSheet\": %d,\n    \"path\": \"%s\",\n    \"extension\": \"%s\",\n    \"recortes\": %s,\n    \"animaciones\": %s\n  }",
+            s.getIdSheet(), s.getPath(), s.getExtension().name(), recorteDAO.aJson(), animacionDAO.aJson()
+        );
     }
 
     @Override
-    public void mostrarTodos() {
+    public String aJson() {
         List<Sheet> sheets = cargarTodos();
         if (sheets == null || sheets.isEmpty()) {
-            System.out.println("(Sin sheets registradas)");
-            return;
+            return "[]";
         }
-        for (Sheet s : sheets) {
-            mostrar(s.getIdSheet());
-            System.out.println("--------------------------------------------------");
+        StringBuilder sb = new StringBuilder("[\n");
+        for (int i = 0; i < sheets.size(); i++) {
+            Sheet s = sheets.get(i);
+            sb.append("  ").append(aJson(s.getIdSheet()));
+            if (i < sheets.size() - 1) {
+                sb.append(",");
+            }
+            sb.append("\n");
         }
+        sb.append("]");
+        return sb.toString();
     }
 }

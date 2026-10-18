@@ -188,31 +188,38 @@ public class AnimacionDAOSQLite implements DAO<Animacion, PKAnimacion> {
     }
 
     @Override
-    public void mostrar(PKAnimacion clave) {
+    public String aJson(PKAnimacion clave) {
         Animacion a = cargar(clave);
         if (a == null) {
-            System.out.println("Animacion no encontrada para clave: " + clave);
-            return;
+            return "null";
         }
-        System.out.printf("  Animacion [idSheet=%d, nombre=%s, esBucle=%b]%n",
-            a.getIdSheet(), a.getNombreAnimacion(), a.esBucle());
         DAO<Frame, PKFrame> frameDAO = new FrameDAOSQLite(
             this.conexion,
             a.getIdSheet(),
             a.getNombreAnimacion()
         );
-        frameDAO.mostrarTodos();
+        return String.format(
+            "{\n        \"idSheet\": %d,\n        \"nombreAnimacion\": \"%s\",\n        \"esBucle\": %b,\n        \"frames\": %s\n      }",
+            a.getIdSheet(), a.getNombreAnimacion(), a.esBucle(), frameDAO.aJson()
+        );
     }
 
     @Override
-    public void mostrarTodos() {
+    public String aJson() {
         List<Animacion> animaciones = cargarTodos();
         if (animaciones == null || animaciones.isEmpty()) {
-            System.out.println("  (Sin animaciones para idSheet =" + this.idSheet + ")");
-            return;
-        } else {
-        for (Animacion a : animaciones) {
-            mostrar(new PKAnimacion(a.getIdSheet(), a.getNombreAnimacion()));
-        }}
+            return "[]";
+        }
+        StringBuilder sb = new StringBuilder("[\n");
+        for (int i = 0; i < animaciones.size(); i++) {
+            Animacion a = animaciones.get(i);
+            sb.append("      ").append(aJson(new PKAnimacion(a.getIdSheet(), a.getNombreAnimacion())));
+            if (i < animaciones.size() - 1) {
+                sb.append(",");
+            }
+            sb.append("\n");
+        }
+        sb.append("    ]");
+        return sb.toString();
     }
 }
