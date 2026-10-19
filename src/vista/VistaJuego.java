@@ -7,6 +7,7 @@ import java.util.Objects;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -18,11 +19,13 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import motor.util.graficos.SheetLibre;
 
 /**
- * Vista principal de la pantalla de juego y su interfaz gráfica (HUD, menús de pausa, mejoras y fin de partida).
+ * Vista principal de la pantalla de juego y su interfaz gráfica (HUD integrado, menús de pausa, mejoras y fin de partida).
  * Cumple con MVC puro: solo contiene elementos y lógica de presentación,
  * sin acoplamiento a las clases del modelo de dominio.
  */
@@ -48,6 +51,9 @@ public class VistaJuego extends StackPane implements VistaPartida {
     private final Image iconoExperiencia;
     private final Image gemaExperienciaVacia;
     private final Image gemaExperienciaLlena;
+    private final Image hojaGuiRpg;
+    private final SheetLibre recortesGui;
+
     private final Label nivelExperiencia;
     private final Label valorExperiencia;
     private final HBox gemasExperiencia;
@@ -58,7 +64,7 @@ public class VistaJuego extends StackPane implements VistaPartida {
     private final Label enemigos;
     private final Label danio;
     private final Label puntos;
-    private final VBox indicadorPuntos;
+    private final StackPane indicadorPuntos;
 
     private final Button botonPausar;
     private final Button botonPausarMejora;
@@ -77,21 +83,33 @@ public class VistaJuego extends StackPane implements VistaPartida {
     private Eventos eventos;
 
     public VistaJuego(Map<String, Image> imagenesHud, String hojaEstilosUrl) {
+        this(imagenesHud, crearSheetPorDefecto(), hojaEstilosUrl);
+    }
+
+    public VistaJuego(
+        Map<String, Image> imagenesHud,
+        SheetLibre recortesGui,
+        String hojaEstilosUrl
+    ) {
         Objects.requireNonNull(imagenesHud, "El mapa de imágenes de HUD no puede ser nulo");
+        Objects.requireNonNull(recortesGui, "El SheetLibre de recortes GUI no puede ser nulo");
         Objects.requireNonNull(hojaEstilosUrl, "La URL de la hoja de estilos no puede ser nula");
         this.vidaPorCorazon = 10;
         this.cantidadGemasExperiencia = 10;
         this.areaJuego = new Pane();
         this.vida = crearValor("100/100");
-        this.corazones = new FlowPane(3, 3);
+        this.corazones = new FlowPane(3, 2);
         this.iconosVida = new ArrayList<>();
         this.corazonLleno = imagenesHud.get("corazonLleno");
         this.corazonVacio = imagenesHud.get("corazonVacio");
         this.iconoExperiencia = imagenesHud.get("iconoExperiencia");
         this.gemaExperienciaVacia = imagenesHud.get("gemaExperienciaVacia");
         this.gemaExperienciaLlena = imagenesHud.get("gemaExperienciaLlena");
-        this.nivelExperiencia = new Label("NIVEL --");
-        this.valorExperiencia = crearValor("-- / -- XP");
+        this.hojaGuiRpg = imagenesHud.get("hojaGuiRpg");
+        this.recortesGui = recortesGui;
+
+        this.nivelExperiencia = new Label("NIVEL 1");
+        this.valorExperiencia = crearValor("0 / 100 XP");
         this.gemasExperiencia = new HBox(2);
         this.iconosExperiencia = new ArrayList<>();
         this.tiempo = crearValor("--:--");
@@ -99,63 +117,108 @@ public class VistaJuego extends StackPane implements VistaPartida {
         this.enemigos = crearValor("--");
         this.danio = crearValor("--");
         this.puntos = crearValor("--/--");
-        this.indicadorPuntos = crearIndicador("PUNTOS", this.puntos, 90, 100);
-        this.botonPausar = new Button("PAUSA");
-        this.botonPausarMejora = new Button("PAUSA");
-        this.textoPausa = new Label("JUEGO EN PAUSA");
-        this.botonReanudar = new Button("CONTINUAR");
-        this.botonSalirPausa = new Button("VOLVER AL MENÚ");
+        this.indicadorPuntos = crearMedallonAtributo(
+            "PUNTOS",
+            this.puntos,
+            imagenesHud.get("iconoPuntos"),
+            116,
+            44
+        );
+        this.botonPausar = crearBotonPlacaRpg("II  PAUSA", "placa_brillante", 112, 44, "pause-button");
+        this.botonPausarMejora = crearBotonPlacaRpg("II  PAUSA", "placa_brillante", 112, 44, "pause-button");
+        this.textoPausa = new Label("PARTIDA EN PAUSA");
+        this.botonReanudar = crearBotonPlacaRpg("CONTINUAR", "placa_ancha", 260, 48, "game-over-button");
+        this.botonSalirPausa = crearBotonPlacaRpg("VOLVER AL MENÚ", "placa_ancha", 260, 48, "game-over-button");
         this.panelPausa = new StackPane();
         this.textoFinPartida = new Label("FIN DE LA PARTIDA");
-        this.botonReintentar = new Button("REINTENTAR");
-        this.botonVolverMenu = new Button("VOLVER AL MENÚ");
+        this.botonReintentar = crearBotonPlacaRpg("REINTENTAR", "placa_ancha", 260, 48, "game-over-button");
+        this.botonVolverMenu = crearBotonPlacaRpg("VOLVER AL MENÚ", "placa_ancha", 260, 48, "game-over-button");
         this.panelFinPartida = new StackPane();
         this.panelEleccionMejora = new StackPane();
 
-        corazones.setPrefWrapLength(190);
-        FlowPane grupoJugador = crearGrupoHud(270,
-            crearIndicador("VIDA", new VBox(5,
-                new HBox(6, corazones, vida),
-                crearPanelExperiencia()), 245, 255));
-        FlowPane grupoPartida = crearGrupoHud(340,
-            crearIndicador("TIEMPO", tiempo, 95, 110),
-            crearIndicador("OLEADA", oleada, 85, 95),
-            crearIndicador("ENEMIGOS", enemigos, 100, 110));
-        FlowPane grupoCombate = crearGrupoHud(220,
-            crearIndicador("DAÑO", danio, 85, 95),
-            indicadorPuntos);
+        // 1. Panel izquierdo: Estado del jugador (Salud + Nivel/XP sobre placas RPG)
+        StackPane placaVida = crearPlacaVitalidad();
+        StackPane placaExperiencia = crearPlacaExperiencia();
+        VBox grupoJugador = new VBox(3, placaVida, placaExperiencia);
+        grupoJugador.setAlignment(Pos.TOP_LEFT);
+        grupoJugador.setPickOnBounds(false);
+
+        // 2. Panel central: Crónica de la mazmorra (Oleada, Tiempo, Enemigos)
+        StackPane medallonOleada = crearMedallonAtributo(
+            "OLEADA",
+            oleada,
+            imagenesHud.get("iconoOleada"),
+            118,
+            44
+        );
+        StackPane medallonTiempo = crearMedallonAtributo(
+            "TIEMPO",
+            tiempo,
+            imagenesHud.get("iconoTiempo"),
+            126,
+            44
+        );
+        StackPane medallonEnemigos = crearMedallonAtributo(
+            "ENEMIGOS",
+            enemigos,
+            imagenesHud.get("iconoEnemigos"),
+            126,
+            44
+        );
+        HBox grupoPartida = new HBox(8, medallonOleada, medallonTiempo, medallonEnemigos);
+        grupoPartida.setAlignment(Pos.TOP_CENTER);
+        grupoPartida.setPickOnBounds(false);
+
+        // 3. Panel derecho: Atributos de combate y botón de pausa integrado
+        StackPane medallonDanio = crearMedallonAtributo(
+            "PODER",
+            danio,
+            imagenesHud.get("iconoDanio"),
+            116,
+            44
+        );
         indicadorPuntos.setVisible(false);
         indicadorPuntos.setManaged(false);
 
-        FlowPane indicadores = new FlowPane(10, 8, grupoJugador, grupoPartida, grupoCombate);
-        indicadores.setAlignment(Pos.CENTER_LEFT);
-        indicadores.setPadding(new Insets(8, 0, 0, 0));
-        indicadores.setMaxWidth(Double.MAX_VALUE);
-
-        VBox interfaz = new VBox();
-        interfaz.getStyleClass().add("game-hud");
-        interfaz.setPadding(new Insets(14));
-        interfaz.setMaxWidth(Double.MAX_VALUE);
-
-        botonPausar.getStyleClass().add("pause-button");
-        HBox barraHud = new HBox(12, indicadores, botonPausar);
-        barraHud.setAlignment(Pos.TOP_LEFT);
-        HBox.setHgrow(indicadores, Priority.ALWAYS);
-        interfaz.getChildren().setAll(barraHud);
+        botonPausar.setFocusTraversable(false);
         botonPausar.setOnAction(event -> eventos().solicitarPausa());
-        botonPausarMejora.getStyleClass().add("pause-button");
+
+        botonPausarMejora.setFocusTraversable(false);
         botonPausarMejora.setOnAction(event -> eventos().solicitarPausa());
 
+        HBox grupoDerecho = new HBox(8, medallonDanio, indicadorPuntos, botonPausar);
+        grupoDerecho.setAlignment(Pos.TOP_RIGHT);
+        grupoDerecho.setPickOnBounds(false);
+
+        Region espaciadorIzquierdo = new Region();
+        Region espaciadorDerecho = new Region();
+        espaciadorIzquierdo.setMouseTransparent(true);
+        espaciadorDerecho.setMouseTransparent(true);
+        HBox.setHgrow(espaciadorIzquierdo, Priority.ALWAYS);
+        HBox.setHgrow(espaciadorDerecho, Priority.ALWAYS);
+
+        HBox barraHud = new HBox(8,
+            grupoJugador,
+            espaciadorIzquierdo,
+            grupoPartida,
+            espaciadorDerecho,
+            grupoDerecho
+        );
+        barraHud.getStyleClass().add("game-hud-overlay");
+        barraHud.setAlignment(Pos.TOP_CENTER);
+        barraHud.setPadding(new Insets(6, 12, 0, 12));
+        barraHud.setPickOnBounds(false);
+        barraHud.setMaxHeight(Region.USE_PREF_SIZE);
+        StackPane.setAlignment(barraHud, Pos.TOP_CENTER);
+
+        // 4. Paneles modales (Pausa, Fin de partida, Subida de nivel) con estética RPG
         panelPausa.getStyleClass().add("pause-overlay");
         panelPausa.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         textoPausa.getStyleClass().add("game-over-title");
-        botonReanudar.getStyleClass().add("game-over-button");
-        botonSalirPausa.getStyleClass().add("game-over-button");
-        botonReanudar.setMaxWidth(Double.MAX_VALUE);
-        botonSalirPausa.setMaxWidth(Double.MAX_VALUE);
         VBox opcionesPausa = new VBox(14, textoPausa, botonReanudar, botonSalirPausa);
+        opcionesPausa.getStyleClass().add("rpg-modal-card");
         opcionesPausa.setAlignment(Pos.CENTER);
-        opcionesPausa.setMaxWidth(280);
+        opcionesPausa.setMaxSize(380, Region.USE_PREF_SIZE);
         panelPausa.getChildren().add(opcionesPausa);
         panelPausa.setVisible(false);
         panelPausa.setManaged(false);
@@ -164,20 +227,19 @@ public class VistaJuego extends StackPane implements VistaPartida {
 
         areaJuego.getStyleClass().add("game-area");
         areaJuego.setMinSize(0, 0);
+        areaJuego.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         areaJuego.setFocusTraversable(true);
+
         panelFinPartida.getStyleClass().add("game-over-overlay");
         panelFinPartida.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         textoFinPartida.getStyleClass().add("game-over-title");
-        botonReintentar.getStyleClass().add("game-over-button");
-        botonVolverMenu.getStyleClass().add("game-over-button");
-        botonReintentar.setMaxWidth(Double.MAX_VALUE);
-        botonVolverMenu.setMaxWidth(Double.MAX_VALUE);
         VBox opcionesFinPartida = new VBox(14,
             textoFinPartida,
             botonReintentar,
             botonVolverMenu);
+        opcionesFinPartida.getStyleClass().add("rpg-modal-card");
         opcionesFinPartida.setAlignment(Pos.CENTER);
-        opcionesFinPartida.setMaxWidth(280);
+        opcionesFinPartida.setMaxSize(420, Region.USE_PREF_SIZE);
         panelFinPartida.getChildren().add(opcionesFinPartida);
         panelFinPartida.setVisible(false);
         panelFinPartida.setManaged(false);
@@ -189,15 +251,21 @@ public class VistaJuego extends StackPane implements VistaPartida {
         panelEleccionMejora.setVisible(false);
         panelEleccionMejora.setManaged(false);
 
-        BorderPane contenido = new BorderPane();
-        contenido.setMinSize(0, 0);
-        contenido.setTop(interfaz);
-        contenido.setCenter(areaJuego);
-
-        getChildren().addAll(contenido, panelEleccionMejora, panelPausa, panelFinPartida);
+        // El área de juego ocupa toda la ventana y el HUD se integra flotando encima
+        getChildren().addAll(areaJuego, barraHud, panelEleccionMejora, panelPausa, panelFinPartida);
         getStyleClass().add("game-root");
 
         getStylesheets().add(hojaEstilosUrl);
+    }
+
+    private static SheetLibre crearSheetPorDefecto() {
+        SheetLibre sheet = new SheetLibre();
+        sheet.addRecorte("placa_ancha", new java.awt.geom.Rectangle2D.Double(14, 127, 283, 54));
+        sheet.addRecorte("placa_recta", new java.awt.geom.Rectangle2D.Double(39, 127, 232, 54));
+        sheet.addRecorte("placa_brillante", new java.awt.geom.Rectangle2D.Double(14, 283, 283, 54));
+        sheet.addRecorte("marco_icono", new java.awt.geom.Rectangle2D.Double(39, 488, 44, 44));
+        sheet.addRecorte("marco_panel", new java.awt.geom.Rectangle2D.Double(118, 451, 80, 80));
+        return sheet;
     }
 
     private Eventos eventos() {
@@ -265,18 +333,25 @@ public class VistaJuego extends StackPane implements VistaPartida {
         List<String> descripcionesMejoras
     ) {
         Objects.requireNonNull(descripcionesMejoras, "Las descripciones de mejoras no pueden ser nulas");
-        Label titulo = new Label("¡NIVEL " + nivel + "!");
+        Label subtitulo = new Label("ELIGE UNA BENDICIÓN ARCANA");
+        subtitulo.getStyleClass().add("hud-label");
+        Label titulo = new Label("¡NIVEL " + nivel + " ALCANZADO!");
         titulo.getStyleClass().add("game-over-title");
-        VBox opciones = new VBox(14);
+        VBox opciones = new VBox(12);
+        opciones.getStyleClass().add("rpg-modal-card");
         opciones.setAlignment(Pos.CENTER);
-        opciones.setMaxWidth(340);
-        opciones.getChildren().add(titulo);
+        opciones.setMaxSize(420, Region.USE_PREF_SIZE);
+        opciones.getChildren().addAll(subtitulo, titulo);
 
         for (int indice = 0; indice < descripcionesMejoras.size(); indice++) {
             final int seleccion = indice;
-            Button opcion = new Button(descripcionesMejoras.get(indice));
-            opcion.getStyleClass().add("game-over-button");
-            opcion.setMaxWidth(Double.MAX_VALUE);
+            Button opcion = crearBotonPlacaRpg(
+                descripcionesMejoras.get(indice),
+                "placa_ancha",
+                290,
+                50,
+                "game-over-button"
+            );
             opcion.setOnAction(event -> eventos().seleccionarMejora(seleccion));
             opciones.getChildren().add(opcion);
         }
@@ -284,27 +359,31 @@ public class VistaJuego extends StackPane implements VistaPartida {
         BorderPane contenidoEleccion = new BorderPane(opciones);
         contenidoEleccion.setTop(botonPausarMejora);
         BorderPane.setAlignment(botonPausarMejora, Pos.TOP_RIGHT);
-        BorderPane.setMargin(botonPausarMejora, new Insets(18));
+        BorderPane.setMargin(botonPausarMejora, new Insets(14));
         panelEleccionMejora.getChildren().setAll(contenidoEleccion);
         panelEleccionMejora.setManaged(true);
         panelEleccionMejora.setVisible(true);
     }
 
+    @Override
     public void cerrarPausa() {
         panelPausa.setVisible(false);
         panelPausa.setManaged(false);
     }
 
+    @Override
     public void mostrarPausa() {
         panelPausa.setManaged(true);
         panelPausa.setVisible(true);
     }
 
+    @Override
     public void cerrarEleccionMejora() {
         panelEleccionMejora.setVisible(false);
         panelEleccionMejora.setManaged(false);
     }
 
+    @Override
     public void actualizarVida(double actual, double maxima) {
         int maximaValida = Math.max(0, (int) Math.round(maxima));
         int vidaValida = Math.max(0, Math.min((int) Math.round(actual), maximaValida));
@@ -317,9 +396,10 @@ public class VistaJuego extends StackPane implements VistaPartida {
 
         while (iconosVida.size() < corazonesMaximos) {
             ImageView corazon = new ImageView();
-            corazon.setFitWidth(16);
-            corazon.setFitHeight(16);
+            corazon.setFitWidth(13);
+            corazon.setFitHeight(13);
             corazon.setPreserveRatio(true);
+            corazon.setSmooth(false);
             iconosVida.add(corazon);
             corazones.getChildren().add(corazon);
         }
@@ -332,11 +412,12 @@ public class VistaJuego extends StackPane implements VistaPartida {
         vida.setText(vidaValida + "/" + maximaValida);
     }
 
+    @Override
     public void actualizarProgreso(int nivel, int experiencia, int experienciaSiguiente) {
         int objetivo = Math.max(0, experienciaSiguiente);
         int actual = Math.max(0, Math.min(experiencia, objetivo));
         nivelExperiencia.setText("NIVEL " + nivel);
-        valorExperiencia.setText(actual + " / " + objetivo + " XP");
+        valorExperiencia.setText(actual + "/" + objetivo + " XP");
         double progreso = objetivo == 0 ? 0 : (double) actual / objetivo;
         int gemasLlenas = (int) Math.round(progreso * cantidadGemasExperiencia);
         for (int indice = 0; indice < iconosExperiencia.size(); indice++) {
@@ -345,22 +426,27 @@ public class VistaJuego extends StackPane implements VistaPartida {
         }
     }
 
+    @Override
     public void actualizarTiempo(long segundos) {
         tiempo.setText(String.format("%02d:%02d", segundos / 60, segundos % 60));
     }
 
+    @Override
     public void actualizarEnemigos(int cantidad) {
         enemigos.setText(Integer.toString(cantidad));
     }
 
+    @Override
     public void actualizarOleada(int numero) {
         oleada.setText(Integer.toString(numero));
     }
 
+    @Override
     public void actualizarDanio(int valor) {
         danio.setText(Integer.toString(valor));
     }
 
+    @Override
     public void actualizarPuntos(int actual, int siguiente) {
         puntos.setText(actual + "/" + siguiente);
         indicadorPuntos.setManaged(true);
@@ -373,55 +459,174 @@ public class VistaJuego extends StackPane implements VistaPartida {
         return valor;
     }
 
-    private VBox crearIndicador(String titulo, Node valor,
-                                double anchoMinimo, double anchoPreferido) {
-        Label etiqueta = new Label(titulo);
-        etiqueta.getStyleClass().add("hud-label");
-        VBox tarjeta = new VBox(4, etiqueta, valor);
-        tarjeta.setMinWidth(anchoMinimo);
-        tarjeta.setPrefWidth(anchoPreferido);
-        tarjeta.setMaxWidth(Double.MAX_VALUE);
-        return tarjeta;
+    private Button crearBotonPlacaRpg(
+        String texto,
+        String nombreRecorte,
+        double ancho,
+        double alto,
+        String claseEstilo
+    ) {
+        Button boton = new Button(texto);
+        boton.getStyleClass().add(claseEstilo);
+        boton.setMinSize(ancho, alto);
+        boton.setPrefSize(ancho, alto);
+        boton.setMaxSize(ancho, alto);
+
+        ImageView fondoPlaca = crearRecorteRpg(nombreRecorte, ancho, alto);
+        if (fondoPlaca != null) {
+            boton.setGraphic(fondoPlaca);
+            boton.setContentDisplay(javafx.scene.control.ContentDisplay.CENTER);
+            boton.getStyleClass().add("rpg-plaque-button");
+        }
+        return boton;
     }
 
-    private FlowPane crearGrupoHud(double anchoSalto, Node... indicadores) {
-        FlowPane grupo = new FlowPane(8, 6, indicadores);
-        grupo.getStyleClass().add("hud-group");
-        grupo.setAlignment(Pos.CENTER_LEFT);
-        grupo.setMinWidth(0);
-        grupo.setPrefWrapLength(anchoSalto);
-        grupo.setMaxWidth(Double.MAX_VALUE);
-        return grupo;
+    private StackPane crearPlacaVitalidad() {
+        double anchoPlaca = 264;
+        double altoPlaca = 44;
+
+        corazones.setPrefWrapLength(135);
+        corazones.setAlignment(Pos.CENTER_LEFT);
+        vida.getStyleClass().add("hp-value");
+
+        Label tituloVida = new Label("VITALIDAD");
+        tituloVida.getStyleClass().add("hud-label");
+
+        HBox cabeceraVida = new HBox(8, tituloVida, vida);
+        cabeceraVida.setAlignment(Pos.CENTER_LEFT);
+
+        VBox detalleVida = new VBox(2, cabeceraVida, corazones);
+        detalleVida.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(detalleVida, Priority.ALWAYS);
+
+        StackPane casilleroCorazon = crearCasilleroIcono(corazonLleno, 30, 18);
+        HBox filaContenido = new HBox(8, casilleroCorazon, detalleVida);
+        filaContenido.setAlignment(Pos.CENTER_LEFT);
+        filaContenido.setPadding(new Insets(4, 22, 4, 20));
+
+        return envolverEnPlacaRpg("placa_ancha", filaContenido, anchoPlaca, altoPlaca);
     }
 
-    private HBox crearPanelExperiencia() {
-        ImageView icono = new ImageView(iconoExperiencia);
-        icono.setFitWidth(22);
-        icono.setFitHeight(22);
-        icono.setPreserveRatio(true);
+    private StackPane crearPlacaExperiencia() {
+        double anchoPlaca = 264;
+        double altoPlaca = 44;
 
         for (int indice = 0; indice < cantidadGemasExperiencia; indice++) {
             ImageView gema = new ImageView(gemaExperienciaVacia);
             gema.setFitWidth(11);
             gema.setFitHeight(11);
             gema.setPreserveRatio(true);
+            gema.setSmooth(false);
             iconosExperiencia.add(gema);
             gemasExperiencia.getChildren().add(gema);
         }
+        gemasExperiencia.setAlignment(Pos.CENTER_LEFT);
 
         nivelExperiencia.getStyleClass().add("xp-level");
         valorExperiencia.getStyleClass().add("xp-value");
 
-        HBox etiquetas = new HBox(nivelExperiencia, valorExperiencia);
+        HBox etiquetas = new HBox(8, nivelExperiencia, valorExperiencia);
         etiquetas.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(nivelExperiencia, Priority.ALWAYS);
 
-        VBox informacion = new VBox(3, etiquetas, gemasExperiencia);
-        HBox contenido = new HBox(8, icono, informacion);
-        contenido.setAlignment(Pos.CENTER_LEFT);
-        contenido.setMinSize(180, 56);
-        contenido.setPrefSize(180, 56);
+        VBox informacion = new VBox(2, etiquetas, gemasExperiencia);
+        informacion.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(informacion, Priority.ALWAYS);
-        return contenido;
+
+        StackPane casilleroMagia = crearCasilleroIcono(iconoExperiencia, 30, 20);
+        HBox contenido = new HBox(8, casilleroMagia, informacion);
+        contenido.setAlignment(Pos.CENTER_LEFT);
+        contenido.setPadding(new Insets(4, 22, 4, 20));
+
+        return envolverEnPlacaRpg("placa_ancha", contenido, anchoPlaca, altoPlaca);
+    }
+
+    private StackPane crearMedallonAtributo(
+        String titulo,
+        Node nodoValor,
+        Image iconoAtributo,
+        double ancho,
+        double alto
+    ) {
+        Label etiqueta = new Label(titulo);
+        etiqueta.getStyleClass().add("hud-label");
+
+        VBox textos = new VBox(0, etiqueta, nodoValor);
+        textos.setAlignment(Pos.CENTER_LEFT);
+
+        StackPane casilleroIcono = crearCasilleroIcono(iconoAtributo, 30, 19);
+        HBox contenido = new HBox(7, casilleroIcono, textos);
+        contenido.setAlignment(Pos.CENTER_LEFT);
+        contenido.setPadding(new Insets(4, 12, 4, 10));
+
+        return envolverEnPlacaRpg("placa_recta", contenido, ancho, alto);
+    }
+
+    private StackPane crearCasilleroIcono(Image imagenIcono, double tamanoMarco, double tamanoIcono) {
+        StackPane casillero = new StackPane();
+        casillero.getStyleClass().add("hud-icon-slot");
+        casillero.setMinSize(tamanoMarco, tamanoMarco);
+        casillero.setPrefSize(tamanoMarco, tamanoMarco);
+        casillero.setMaxSize(tamanoMarco, tamanoMarco);
+
+        ImageView marco = crearRecorteRpg("marco_icono", tamanoMarco, tamanoMarco);
+        if (marco != null) {
+            casillero.getChildren().add(marco);
+        }
+
+        if (imagenIcono != null) {
+            ImageView vistaIcono = new ImageView(imagenIcono);
+            vistaIcono.setFitWidth(tamanoIcono);
+            vistaIcono.setFitHeight(tamanoIcono);
+            vistaIcono.setPreserveRatio(true);
+            vistaIcono.setSmooth(false);
+            casillero.getChildren().add(vistaIcono);
+        }
+        return casillero;
+    }
+
+    private StackPane envolverEnPlacaRpg(
+        String nombreRecorte,
+        Node contenido,
+        double ancho,
+        double alto
+    ) {
+        StackPane tarjeta = new StackPane();
+        tarjeta.getStyleClass().add("hud-plaque");
+        tarjeta.setMinSize(ancho, alto);
+        tarjeta.setPrefSize(ancho, alto);
+        tarjeta.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        tarjeta.setMouseTransparent(true);
+
+        ImageView fondoPlaca = crearRecorteRpg(nombreRecorte, ancho, alto);
+        if (fondoPlaca != null) {
+            tarjeta.getChildren().add(fondoPlaca);
+        } else {
+            tarjeta.getStyleClass().add("hud-plaque-fallback");
+        }
+        tarjeta.getChildren().add(contenido);
+        return tarjeta;
+    }
+
+    private ImageView crearRecorteRpg(String nombreRecorte, double ancho, double alto) {
+        if (hojaGuiRpg == null) {
+            return null;
+        }
+        java.awt.geom.Rectangle2D recorteAwt = recortesGui.getRecorte(nombreRecorte);
+        if (recorteAwt == null) {
+            return null;
+        }
+        ImageView vistaRecorte = new ImageView(hojaGuiRpg);
+        vistaRecorte.setViewport(new Rectangle2D(
+            recorteAwt.getX(),
+            recorteAwt.getY(),
+            recorteAwt.getWidth(),
+            recorteAwt.getHeight()
+        ));
+        vistaRecorte.setFitWidth(ancho);
+        vistaRecorte.setFitHeight(alto);
+        vistaRecorte.setPreserveRatio(false);
+        vistaRecorte.setSmooth(true);
+        return vistaRecorte;
     }
 }
+
