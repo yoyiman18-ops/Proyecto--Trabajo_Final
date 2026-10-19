@@ -162,4 +162,131 @@
         radial-gradient(radius 100%, #27352f, #18221f 75%, #111816);
 }
 
+.upgrade-card {
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-width: 2.5px;
+    -fx-padding: 14px 12px;
+    -fx-cursor: hand;
+}
+
+.upgrade-card-common {
+    -fx-background-color: linear-gradient(to bottom, rgba(48, 41, 34, 0.97), rgba(26, 22, 18, 0.99));
+    -fx-border-color: #b89b67;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.85), 10, 0.4, 0, 3);
+}
+
+.upgrade-card-common:hover,
+.upgrade-card-common:focused {
+    -fx-background-color: linear-gradient(to bottom, rgba(64, 54, 43, 0.98), rgba(36, 30, 24, 0.99));
+    -fx-border-color: #ffe39e;
+    -fx-effect: dropshadow(gaussian, rgba(230, 195, 120, 0.55), 14, 0.45, 0, 0);
+}
+
+.upgrade-card-rare {
+    -fx-background-color: linear-gradient(to bottom, rgba(22, 42, 62, 0.97), rgba(13, 24, 38, 0.99));
+    -fx-border-color: #4db8ff;
+    -fx-effect: dropshadow(gaussian, rgba(50, 160, 255, 0.45), 12, 0.45, 0, 2);
+}
+
+.upgrade-card-rare:hover,
+.upgrade-card-rare:focused {
+    -fx-background-color: linear-gradient(to bottom, rgba(30, 56, 84, 0.98), rgba(18, 34, 52, 0.99));
+    -fx-border-color: #9be8ff;
+    -fx-effect: dropshadow(gaussian, rgba(77, 184, 255, 0.78), 18, 0.5, 0, 0);
+}
+
+.upgrade-card-epic {
+    -fx-background-color: linear-gradient(to bottom, rgba(48, 24, 66, 0.97), rgba(26, 12, 38, 0.99));
+    -fx-border-color: #c966ff;
+    -fx-effect: dropshadow(gaussian, rgba(185, 70, 255, 0.5), 14, 0.45, 0, 2);
+}
+
+.upgrade-card-epic:hover,
+.upgrade-card-epic:focused {
+    -fx-background-color: linear-gradient(to bottom, rgba(66, 32, 90, 0.98), rgba(36, 18, 52, 0.99));
+    -fx-border-color: #efb3ff;
+    -fx-effect: dropshadow(gaussian, rgba(205, 102, 255, 0.85), 20, 0.55, 0, 0);
+}
+
+.upgrade-card-legendary {
+    -fx-background-color: linear-gradient(to bottom, rgba(68, 46, 14, 0.98), rgba(36, 22, 6, 0.99));
+    -fx-border-color: #ffbe2e;
+    -fx-effect: dropshadow(gaussian, rgba(255, 185, 35, 0.68), 18, 0.55, 0, 2);
+}
+
+.upgrade-card-legendary:hover,
+.upgrade-card-legendary:focused {
+    -fx-background-color: linear-gradient(to bottom, rgba(92, 62, 18, 0.99), rgba(48, 30, 8, 0.99));
+    -fx-border-color: #fff0a8;
+    -fx-effect: dropshadow(gaussian, rgba(255, 205, 65, 0.95), 24, 0.65, 0, 0);
+}
+
+.upgrade-rarity-badge {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 2px 8px;
+    -fx-background-radius: 3px;
+}
+
+.upgrade-card-common-badge {
+    -fx-text-fill: #e3ceb0;
+    -fx-background-color: rgba(184, 155, 103, 0.22);
+}
+
+.upgrade-card-rare-badge {
+    -fx-text-fill: #8ad8ff;
+    -fx-background-color: rgba(77, 184, 255, 0.22);
+}
+
+.upgrade-card-epic-badge {
+    -fx-text-fill: #e4a6ff;
+    -fx-background-color: rgba(201, 102, 255, 0.24);
+}
+
+.upgrade-card-legendary-badge {
+    -fx-text-fill: #ffe27a;
+    -fx-background-color: rgba(255, 190, 46, 0.28);
+}
+
+.upgrade-attr-title {
+    -fx-text-fill: #fff3da;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 3, 0.5, 0, 1);
+}
+
+.upgrade-bonus-value {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.95), 4, 0.6, 0, 1);
+}
+
+.upgrade-card-common-value {
+    -fx-text-fill: #ffe7ba;
+}
+
+.upgrade-card-rare-value {
+    -fx-text-fill: #7ce0ff;
+}
+
+.upgrade-card-epic-value {
+    -fx-text-fill: #e59eff;
+}
+
+.upgrade-card-legendary-value {
+    -fx-text-fill: #ffd24c;
+}
+
+.upgrade-flavor-text {
+    -fx-text-fill: #cbbca2;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 10px;
+    -fx-text-alignment: center;
+}
+
 

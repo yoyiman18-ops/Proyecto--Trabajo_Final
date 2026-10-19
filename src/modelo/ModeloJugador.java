@@ -14,7 +14,10 @@ public interface ModeloJugador extends ObjetivoEnemigo {
     int getExperienciaSiguiente();
     int getNivelesPendientes();
     double getDanioAtaque();
+    double getVelocidadAtaque();
     double getDefensa();
+    double getProbabilidadCritico();
+    double getProbabilidadMultidisparo();
     Direccion getDireccion();
     VecDouble2D getVectorDireccion();
     VecDouble2D getVelocidad();
@@ -24,10 +27,14 @@ public interface ModeloJugador extends ObjetivoEnemigo {
     void acelerar(Direccion direccion, double dt);
     void frenar(Eje eje, double dt);
     void mover(double dt);
+    boolean intentarAtacar();
     int ganarExperiencia(int cantidad);
     boolean consumirNivelPendiente();
     void aumentarVidaMaxima(double cantidad);
     void aumentarDanioAtaque(double cantidad);
+    void aumentarVelocidadAtaque(double porcentaje);
     void aumentarVelocidadMaxima(double porcentaje);
     void aumentarDefensa(double porcentaje);
+    void aumentarProbabilidadCritico(double porcentaje);
+    void aumentarProbabilidadMultidisparo(double porcentaje);
 }

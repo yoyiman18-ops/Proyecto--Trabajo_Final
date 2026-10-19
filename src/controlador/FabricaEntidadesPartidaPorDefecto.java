@@ -183,14 +183,20 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         double x,
         double y,
         VecDouble2D direccion,
-        double danio
+        double danio,
+        boolean esCritico
     ) {
         Objects.requireNonNull(direccion, "La dirección del proyectil no puede ser nula");
+
+        double tamanoHitbox = esCritico ? 20 : 16;
+        double tamanoVisual = esCritico ? 38 : 30;
+        int filaColor = esCritico ? 7 : 0;
+        double velocidad = esCritico ? 430 : 380;
 
         ModeloProyectil modeloProyectil = new Proyectil(
             "proyectil",
             new HitboxRectangular(
-                new java.awt.geom.Rectangle2D.Double(0, 0, 16, 16),
+                new java.awt.geom.Rectangle2D.Double(0, 0, tamanoHitbox, tamanoHitbox),
                 TipoHitbox.SOLIDA,
                 MascaraColision.of(CategoriaColision.ALIADO),
                 MascaraColision.of(CategoriaColision.ENEMIGO)
@@ -198,17 +204,17 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
             new VecDouble2D(x, y),
             direccion,
             danio,
-            380,
+            velocidad,
             1.2
         );
 
         VistaProyectil vistaProyectil = new ProyectilVista(
             spriteSheetProyectil,
             new Animacion(spriteSheetProyectil, 8, 9, 0.08),
-            0,
-            30,
-            30,
-            16
+            filaColor,
+            tamanoVisual,
+            tamanoVisual,
+            tamanoHitbox
         );
 
         return new ProyectilControlador(modeloProyectil, vistaProyectil);

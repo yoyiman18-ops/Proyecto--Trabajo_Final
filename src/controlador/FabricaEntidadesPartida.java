@@ -42,10 +42,20 @@ public interface FabricaEntidadesPartida {
         double y
     );
 
-    ProyectilControlador crearProyectil(
+    default ProyectilControlador crearProyectil(
         double x,
         double y,
         VecDouble2D direccion,
         double danio
+    ) {
+        return crearProyectil(x, y, direccion, danio, false);
+    }
+
+    ProyectilControlador crearProyectil(
+        double x,
+        double y,
+        VecDouble2D direccion,
+        double danio,
+        boolean esCritico
     );
 }

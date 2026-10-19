@@ -1,7 +1,10 @@
 package modelo;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 
 import motor.EstadoOleadas;
 import motor.util.observer.Notificador;
@@ -164,13 +167,59 @@ public final class Partida implements ModeloPartida {
     @Override
     public List<ItemMejoraAtributo> iniciarEleccionMejora() {
         this.eleccionMejoraActiva = true;
-        this.opcionesMejoraActuales = List.of(
-            new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.VIDA_MAXIMA, 20),
-            new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.DANIO_ATAQUE, 5),
-            new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.VELOCIDAD_MAXIMA, 10),
-            new ItemMejoraAtributo(ItemMejoraAtributo.Atributo.DEFENSA, 5)
+        ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
+        List<ItemMejoraAtributo.Atributo> atributos = new ArrayList<>(
+            List.of(ItemMejoraAtributo.Atributo.values())
         );
+        Collections.shuffle(atributos, aleatorio);
+
+        int cantidadOpciones = Math.min(3, atributos.size());
+        List<ItemMejoraAtributo> generadas = new ArrayList<>(cantidadOpciones);
+        for (int i = 0; i < cantidadOpciones; i++) {
+            ItemMejoraAtributo.Atributo atributo = atributos.get(i);
+            ItemMejoraAtributo.Rareza rareza = sortearRareza(aleatorio);
+            double cantidad = calcularValorMejora(atributo, rareza);
+            generadas.add(new ItemMejoraAtributo(atributo, rareza, cantidad));
+        }
+
+        this.opcionesMejoraActuales = List.copyOf(generadas);
         return this.opcionesMejoraActuales;
+    }
+
+    private ItemMejoraAtributo.Rareza sortearRareza(ThreadLocalRandom aleatorio) {
+        double tirada = aleatorio.nextDouble();
+        if (tirada < 0.50) {
+            return ItemMejoraAtributo.Rareza.COMUN;
+        }
+        if (tirada < 0.80) {
+            return ItemMejoraAtributo.Rareza.RARA;
+        }
+        if (tirada < 0.95) {
+            return ItemMejoraAtributo.Rareza.EPICA;
+        }
+        return ItemMejoraAtributo.Rareza.LEGENDARIA;
+    }
+
+    private double calcularValorMejora(
+        ItemMejoraAtributo.Atributo atributo,
+        ItemMejoraAtributo.Rareza rareza
+    ) {
+        double base = switch (atributo) {
+            case VIDA_MAXIMA -> 15;
+            case DANIO_ATAQUE -> 4;
+            case VELOCIDAD_ATAQUE -> 10;
+            case VELOCIDAD_MAXIMA -> 8;
+            case DEFENSA -> 4;
+            case PROBABILIDAD_CRITICO -> 8;
+            case PROBABILIDAD_MULTIDISPARO -> 8;
+        };
+        double multiplicador = switch (rareza) {
+            case COMUN -> 1.0;
+            case RARA -> 1.6;
+            case EPICA -> 2.4;
+            case LEGENDARIA -> 3.5;
+        };
+        return Math.round(base * multiplicador);
     }
 
     @Override

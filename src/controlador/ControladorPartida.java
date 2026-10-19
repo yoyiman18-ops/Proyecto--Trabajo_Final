@@ -39,7 +39,6 @@ public final class ControladorPartida {
     private final List<EnemigoControlador> enemigos;
     private final List<ProyectilControlador> proyectiles;
     private final List<ExperienciaControlador> experiencias;
-    private final List<MejoraAtributoControlador> mejorasAtributos;
 
     private ModeloJugador personaje;
     private ControladorUsuario jugadorControlador;
@@ -111,7 +110,6 @@ public final class ControladorPartida {
         this.enemigos = new CopyOnWriteArrayList<>();
         this.proyectiles = new CopyOnWriteArrayList<>();
         this.experiencias = new CopyOnWriteArrayList<>();
-        this.mejorasAtributos = new CopyOnWriteArrayList<>();
 
         this.observadorReloj = this::tick;
         this.observadorOleadas = estado -> Platform.runLater(() -> {
@@ -240,7 +238,6 @@ public final class ControladorPartida {
         }
         generarEnemigosPendientes();
         recogerExperiencias();
-        recogerMejorasAtributos();
     }
 
     private void generarEnemigosPendientes() {
@@ -276,25 +273,50 @@ public final class ControladorPartida {
     }
 
     private void dispararProyectil() {
-        if (modeloPartida.isPartidaFinalizada()) {
+        if (modeloPartida.isPartidaFinalizada() || !personaje.intentarAtacar()) {
             return;
         }
 
-        VecDouble2D direccion = personaje.getVectorDireccion();
-        double origenX = personaje.getPosicion().getX() + 17 + direccion.getX() * 16;
-        double origenY = personaje.getPosicion().getY() + 17 + direccion.getY() * 16;
+        ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
+        VecDouble2D direccionBase = personaje.getVectorDireccion();
+        boolean esMultidisparo = aleatorio.nextDouble(100) < personaje.getProbabilidadMultidisparo();
+        double[] angulos = esMultidisparo ? new double[] { -18.0, 0.0, 18.0 } : new double[] { 0.0 };
 
-        ProyectilControlador proyectil = fabricaEntidades.crearProyectil(
-            origenX,
-            origenY,
-            direccion,
-            personaje.getDanioAtaque()
-        );
+        for (double angulo : angulos) {
+            VecDouble2D direccionDisparo = rotarVector(direccionBase, angulo);
+            boolean esCritico = aleatorio.nextDouble(100) < personaje.getProbabilidadCritico();
+            double danioFinal = esCritico
+                ? personaje.getDanioAtaque() * 2.0
+                : personaje.getDanioAtaque();
 
-        proyectiles.add(proyectil);
-        controladores.add(proyectil);
-        motor.colisionables().add(proyectil.getModelo());
-        Platform.runLater(() -> vistaJuego.agregarNodoJuego(proyectil.getVista()));
+            double origenX = personaje.getPosicion().getX() + 17 + direccionDisparo.getX() * 16;
+            double origenY = personaje.getPosicion().getY() + 17 + direccionDisparo.getY() * 16;
+
+            ProyectilControlador proyectil = fabricaEntidades.crearProyectil(
+                origenX,
+                origenY,
+                direccionDisparo,
+                danioFinal,
+                esCritico
+            );
+
+            proyectiles.add(proyectil);
+            controladores.add(proyectil);
+            motor.colisionables().add(proyectil.getModelo());
+            Platform.runLater(() -> vistaJuego.agregarNodoJuego(proyectil.getVista()));
+        }
+    }
+
+    private VecDouble2D rotarVector(VecDouble2D vector, double grados) {
+        if (grados == 0) {
+            return vector.clone();
+        }
+        double radianes = Math.toRadians(grados);
+        double cos = Math.cos(radianes);
+        double sin = Math.sin(radianes);
+        double x = vector.getX() * cos - vector.getY() * sin;
+        double y = vector.getX() * sin + vector.getY() * cos;
+        return new VecDouble2D(x, y);
     }
 
     private void actualizarProyectiles() {
@@ -333,7 +355,6 @@ public final class ControladorPartida {
             Platform.runLater(() -> vistaJuego.removerNodoJuego(enemigo.getVista()));
 
             crearGemaExperiencia(x, y, enemigo.getExperienciaRecompensa());
-            crearMejoraAleatoria(x, y);
 
             modeloPartida.registrarEnemigoDerrotado();
             generarEnemigosPendientes();
@@ -348,22 +369,6 @@ public final class ControladorPartida {
         Platform.runLater(() -> vistaJuego.agregarNodoJuego(expControlador.getVista()));
     }
 
-    private void crearMejoraAleatoria(double x, double y) {
-        if (ThreadLocalRandom.current().nextDouble() >= modeloPartida.getProbabilidadMejoraAtributo()) {
-            return;
-        }
-
-        ItemMejoraAtributo mejora = new ItemMejoraAtributo(
-            ItemMejoraAtributo.Atributo.VIDA_MAXIMA,
-            modeloPartida.getAumentoVidaMaxima()
-        );
-        MejoraAtributoControlador mejoraControlador = fabricaEntidades.crearMejoraAtributo(personaje, mejora, x, y);
-        mejorasAtributos.add(mejoraControlador);
-        controladores.add(mejoraControlador);
-        motor.colisionables().add(mejoraControlador.getModelo());
-        Platform.runLater(() -> vistaJuego.agregarNodoJuego(mejoraControlador.getVista()));
-    }
-
     private void recogerExperiencias() {
         for (ExperienciaControlador exp : experiencias) {
             if (exp.fueRecogida()) {
@@ -375,18 +380,6 @@ public final class ControladorPartida {
             }
         }
         verificarSubidaNivel();
-    }
-
-    private void recogerMejorasAtributos() {
-        for (MejoraAtributoControlador mejora : mejorasAtributos) {
-            if (mejora.fueRecogida()) {
-                mejorasAtributos.remove(mejora);
-                controladores.remove(mejora);
-                motor.colisionables().remove(mejora.getModelo());
-                Platform.runLater(() -> vistaJuego.removerNodoJuego(mejora.getVista()));
-                actualizarProgresoJugador();
-            }
-        }
     }
 
     private void verificarSubidaNivel() {
@@ -444,12 +437,22 @@ public final class ControladorPartida {
     }
 
     private String formatearDescripcionMejora(ItemMejoraAtributo item) {
-        return switch (item.atributo()) {
+        String etiquetaRareza = switch (item.rareza()) {
+            case COMUN -> "[COMÚN]";
+            case RARA -> "[RARA]";
+            case EPICA -> "[ÉPICA]";
+            case LEGENDARIA -> "[LEGENDARIA]";
+        };
+        String efecto = switch (item.atributo()) {
             case VIDA_MAXIMA -> "Vida máxima +" + (int) item.cantidad();
             case DANIO_ATAQUE -> "Daño +" + (int) item.cantidad();
-            case VELOCIDAD_MAXIMA -> "Velocidad máxima +" + (int) item.cantidad() + "%";
-            case DEFENSA -> "Defensa +" + (int) item.cantidad();
+            case VELOCIDAD_ATAQUE -> "Vel. Ataque +" + (int) item.cantidad() + "%";
+            case VELOCIDAD_MAXIMA -> "Velocidad +" + (int) item.cantidad() + "%";
+            case DEFENSA -> "Defensa +" + (int) item.cantidad() + "%";
+            case PROBABILIDAD_CRITICO -> "Crítico +" + (int) item.cantidad() + "%";
+            case PROBABILIDAD_MULTIDISPARO -> "Multidisparo +" + (int) item.cantidad() + "%";
         };
+        return etiquetaRareza + " " + efecto;
     }
 
     public void iniciar() {

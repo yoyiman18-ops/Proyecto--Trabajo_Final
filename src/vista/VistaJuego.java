@@ -52,6 +52,7 @@ public class VistaJuego extends StackPane implements VistaPartida {
     private final Image gemaExperienciaVacia;
     private final Image gemaExperienciaLlena;
     private final Image hojaGuiRpg;
+    private final Map<String, Image> imagenesHud;
     private final SheetLibre recortesGui;
 
     private final Label nivelExperiencia;
@@ -100,6 +101,7 @@ public class VistaJuego extends StackPane implements VistaPartida {
         this.vida = crearValor("100/100");
         this.corazones = new FlowPane(3, 2);
         this.iconosVida = new ArrayList<>();
+        this.imagenesHud = Map.copyOf(imagenesHud);
         this.corazonLleno = imagenesHud.get("corazonLleno");
         this.corazonVacio = imagenesHud.get("corazonVacio");
         this.iconoExperiencia = imagenesHud.get("iconoExperiencia");
@@ -337,32 +339,134 @@ public class VistaJuego extends StackPane implements VistaPartida {
         subtitulo.getStyleClass().add("hud-label");
         Label titulo = new Label("¡NIVEL " + nivel + " ALCANZADO!");
         titulo.getStyleClass().add("game-over-title");
-        VBox opciones = new VBox(12);
-        opciones.getStyleClass().add("rpg-modal-card");
-        opciones.setAlignment(Pos.CENTER);
-        opciones.setMaxSize(420, Region.USE_PREF_SIZE);
-        opciones.getChildren().addAll(subtitulo, titulo);
 
+        HBox filaCartas = new HBox(18);
+        filaCartas.setAlignment(Pos.CENTER);
         for (int indice = 0; indice < descripcionesMejoras.size(); indice++) {
-            final int seleccion = indice;
-            Button opcion = crearBotonPlacaRpg(
-                descripcionesMejoras.get(indice),
-                "placa_ancha",
-                290,
-                50,
-                "game-over-button"
+            filaCartas.getChildren().add(
+                crearCartaMejora(descripcionesMejoras.get(indice), indice)
             );
-            opcion.setOnAction(event -> eventos().seleccionarMejora(seleccion));
-            opciones.getChildren().add(opcion);
         }
 
-        BorderPane contenidoEleccion = new BorderPane(opciones);
+        VBox contenedor = new VBox(16, subtitulo, titulo, filaCartas);
+        contenedor.getStyleClass().add("rpg-modal-card");
+        contenedor.setAlignment(Pos.CENTER);
+        contenedor.setMaxSize(740, Region.USE_PREF_SIZE);
+
+        BorderPane contenidoEleccion = new BorderPane(contenedor);
         contenidoEleccion.setTop(botonPausarMejora);
         BorderPane.setAlignment(botonPausarMejora, Pos.TOP_RIGHT);
         BorderPane.setMargin(botonPausarMejora, new Insets(14));
         panelEleccionMejora.getChildren().setAll(contenidoEleccion);
         panelEleccionMejora.setManaged(true);
         panelEleccionMejora.setVisible(true);
+    }
+
+    private Button crearCartaMejora(String descripcionCompleta, int seleccion) {
+        String rarezaTexto = "COMÚN";
+        String resto = descripcionCompleta;
+        if (descripcionCompleta.startsWith("[") && descripcionCompleta.contains("] ")) {
+            int cierre = descripcionCompleta.indexOf("] ");
+            rarezaTexto = descripcionCompleta.substring(1, cierre);
+            resto = descripcionCompleta.substring(cierre + 2);
+        }
+
+        String nombreAtributo = resto;
+        String valorBonus = "";
+        int indiceMas = resto.lastIndexOf('+');
+        if (indiceMas > 0) {
+            nombreAtributo = resto.substring(0, indiceMas).trim();
+            valorBonus = resto.substring(indiceMas).trim();
+        }
+
+        String claseRareza = switch (rarezaTexto) {
+            case "RARA" -> "upgrade-card-rare";
+            case "ÉPICA" -> "upgrade-card-epic";
+            case "LEGENDARIA" -> "upgrade-card-legendary";
+            default -> "upgrade-card-common";
+        };
+        String textoInsignia = rarezaTexto.equals("LEGENDARIA")
+            ? "★ LEGENDARIA ★"
+            : rarezaTexto;
+
+        Label insigniaRareza = new Label(textoInsignia);
+        insigniaRareza.getStyleClass().addAll("upgrade-rarity-badge", claseRareza + "-badge");
+
+        Image icono = obtenerIconoMejora(nombreAtributo);
+        StackPane casilleroIcono = crearCasilleroIcono(icono, 54, 34);
+
+        Label etiquetaAtributo = new Label(nombreAtributo.toUpperCase());
+        etiquetaAtributo.getStyleClass().add("upgrade-attr-title");
+        etiquetaAtributo.setWrapText(true);
+
+        Label etiquetaValor = new Label(valorBonus);
+        etiquetaValor.getStyleClass().addAll("upgrade-bonus-value", claseRareza + "-value");
+
+        Label descripcionBreve = new Label(obtenerSubtextoMejora(nombreAtributo));
+        descripcionBreve.getStyleClass().add("upgrade-flavor-text");
+        descripcionBreve.setWrapText(true);
+
+        VBox contenidoCarta = new VBox(10,
+            insigniaRareza,
+            casilleroIcono,
+            etiquetaAtributo,
+            etiquetaValor,
+            descripcionBreve
+        );
+        contenidoCarta.setAlignment(Pos.CENTER);
+
+        Button carta = new Button();
+        carta.setGraphic(contenidoCarta);
+        carta.getStyleClass().addAll("upgrade-card", claseRareza);
+        carta.setMinSize(195, 235);
+        carta.setPrefSize(195, 235);
+        carta.setMaxSize(195, 235);
+        carta.setOnAction(event -> eventos().seleccionarMejora(seleccion));
+        return carta;
+    }
+
+    private Image obtenerIconoMejora(String nombreAtributo) {
+        if (nombreAtributo.contains("Vida")) {
+            return corazonLleno;
+        }
+        if (nombreAtributo.contains("Daño") || nombreAtributo.contains("Crítico")) {
+            return imagenesHud.get("iconoDanio");
+        }
+        if (nombreAtributo.contains("Vel. Ataque") || nombreAtributo.contains("Multidisparo")) {
+            return iconoExperiencia;
+        }
+        if (nombreAtributo.contains("Velocidad")) {
+            return imagenesHud.get("iconoTiempo");
+        }
+        if (nombreAtributo.contains("Defensa")) {
+            return imagenesHud.get("iconoOleada");
+        }
+        return iconoExperiencia;
+    }
+
+    private String obtenerSubtextoMejora(String nombreAtributo) {
+        if (nombreAtributo.contains("Vida")) {
+            return "Aumenta y restaura tu vitalidad";
+        }
+        if (nombreAtributo.contains("Daño")) {
+            return "Mayor impacto por proyectil";
+        }
+        if (nombreAtributo.contains("Vel. Ataque")) {
+            return "Disparás con mayor frecuencia";
+        }
+        if (nombreAtributo.contains("Crítico")) {
+            return "Chance de disparo carmesí x2 daño";
+        }
+        if (nombreAtributo.contains("Multidisparo")) {
+            return "Chance de lanzar 3 orbes en abanico";
+        }
+        if (nombreAtributo.contains("Velocidad")) {
+            return "Mayor agilidad en la mazmorra";
+        }
+        if (nombreAtributo.contains("Defensa")) {
+            return "Reduce el daño recibido";
+        }
+        return "Bendición ancestral";
     }
 
     @Override
