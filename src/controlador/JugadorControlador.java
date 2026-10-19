@@ -91,8 +91,10 @@ public class JugadorControlador implements ControladorUsuario {
 
         double vx = modelo.getVelocidad().getX();
         double vy = modelo.getVelocidad().getY();
+        boolean enMovimiento = vx != 0 || vy != 0;
+        Direccion direccionActual = enMovimiento ? direccionMovimiento(vx, vy) : modelo.getDireccion();
         vista.actualizarPosicion(modelo.getPosicion().getX(), modelo.getPosicion().getY());
-        vista.actualizarAnimacion(direccionMovimiento(vx, vy), vx != 0 || vy != 0, dt);
+        vista.actualizarAnimacion(direccionActual, enMovimiento, dt);
 
         if (estadoAcciones != null && estadoAcciones.activa(Accion.ATACAR)) {
             accionAtaque.run();

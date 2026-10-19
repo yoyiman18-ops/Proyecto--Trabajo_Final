@@ -3,6 +3,7 @@ package modelo;
 import java.util.Objects;
 
 import motor.colisiones.hitboxes.Hitbox;
+import motor.modelo.Direccion;
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
@@ -19,6 +20,9 @@ public class Personaje extends Entidad implements ModeloJugador {
     private int experienciaSiguiente;
     private int nivelesPendientes;
     private double danioAtaque;
+    private Direccion direccion;
+    private final VecDouble2D vectorDireccion;
+    private final VecDouble2D acumuladorDireccionTick;
     
     private Personaje(Builder b) {
         super(
@@ -40,7 +44,42 @@ public class Personaje extends Entidad implements ModeloJugador {
         this.experienciaSiguiente = b.experienciaSiguienteInicial;
         this.nivelesPendientes = 0;
         this.danioAtaque = b.danioAtaque;
+        this.direccion = Direccion.ABAJO;
+        this.vectorDireccion = new VecDouble2D(0, 1);
+        this.acumuladorDireccionTick = new VecDouble2D(0, 0);
         this.notificadorVida = Objects.requireNonNull(b.notificadorVida, "El notificador de vida no puede ser nulo");
+    }
+
+    @Override
+    public void acelerar(Direccion direccion, double dt) {
+        this.direccion = Objects.requireNonNull(direccion, "La dirección no puede ser nula");
+        switch (direccion) {
+            case ARRIBA -> acumuladorDireccionTick.setY(-1);
+            case ABAJO -> acumuladorDireccionTick.setY(1);
+            case IZQUIERDA -> acumuladorDireccionTick.setX(-1);
+            case DERECHA -> acumuladorDireccionTick.setX(1);
+        }
+        VecDouble2D normalizada = acumuladorDireccionTick.clone().normalizado();
+        vectorDireccion.setX(normalizada.getX());
+        vectorDireccion.setY(normalizada.getY());
+        super.acelerar(direccion, dt);
+    }
+
+    @Override
+    public void mover(double dt) {
+        super.mover(dt);
+        acumuladorDireccionTick.setX(0);
+        acumuladorDireccionTick.setY(0);
+    }
+
+    @Override
+    public Direccion getDireccion() {
+        return direccion;
+    }
+
+    @Override
+    public VecDouble2D getVectorDireccion() {
+        return vectorDireccion.clone();
     }
 
     public double getVida() {

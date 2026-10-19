@@ -84,6 +84,7 @@ public final class Proyectil extends Entidad implements ModeloProyectil {
 
         this.danio = danio;
         this.tiempoVida = tiempoVida;
+        hitbox.actualizarTransformacion(posicion);
     }
 
     @Override

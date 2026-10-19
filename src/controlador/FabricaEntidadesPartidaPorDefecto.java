@@ -10,8 +10,10 @@ import modelo.Enemigo;
 import modelo.ItemMejoraAtributo;
 import modelo.ModeloEnemigo;
 import modelo.ModeloJugador;
+import modelo.ModeloProyectil;
 import modelo.ObjetivoEnemigo;
 import modelo.Personaje;
+import modelo.Proyectil;
 import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.HitboxRectangular;
 import motor.colisiones.hitboxes.MascaraColision;
@@ -25,13 +27,16 @@ import motor.util.observer.Observador;
 import vista.Animacion;
 import vista.EnemigoVista;
 import vista.ItemVista;
+import vista.ProyectilVista;
 import vista.SpriteVista;
 import vista.VistaEnemigo;
 import vista.VistaItem;
 import vista.VistaJugador;
+import vista.VistaProyectil;
 
 public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidadesPartida {
     private final Image spriteSheetJugador;
+    private final Image spriteSheetProyectil;
     private final Image frameEnemigoIdle1;
     private final Image frameEnemigoIdle2;
     private final Image frameEnemigoGolpe;
@@ -39,6 +44,10 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
     public FabricaEntidadesPartidaPorDefecto(GestorRecursos gestorRecursos) {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
         this.spriteSheetJugador = gestorRecursos.getImagen("zorro_sheet", Imagen.PNG);
+        this.spriteSheetProyectil = gestorRecursos.getImagen(
+            "RPG Effect All Free/Free/Part 16/766",
+            Imagen.PNG
+        );
         this.frameEnemigoIdle1 = gestorRecursos.getImagen("Transparent PNG/idle/frame-1", Imagen.PNG);
         this.frameEnemigoIdle2 = gestorRecursos.getImagen("Transparent PNG/idle/frame-2", Imagen.PNG);
         this.frameEnemigoGolpe = gestorRecursos.getImagen("Transparent PNG/got hit/frame", Imagen.PNG);
@@ -100,7 +109,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
                 new java.awt.geom.Rectangle2D.Double(0, 0, 32, 32),
                 TipoHitbox.SOLIDA,
                 MascaraColision.of(CategoriaColision.ENEMIGO),
-                MascaraColision.of(CategoriaColision.JUGADOR)
+                MascaraColision.of(CategoriaColision.JUGADOR, CategoriaColision.ALIADO)
             ),
             new VecDouble2D(x, y),
             velocidad,
@@ -167,5 +176,41 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
 
         VistaItem vistaMejora = new ItemVista(11, Color.web("#e8bd45"), Color.web("#fff0a6"), 2);
         return new MejoraAtributoControlador(jugador, mejora, modeloMejora, vistaMejora);
+    }
+
+    @Override
+    public ProyectilControlador crearProyectil(
+        double x,
+        double y,
+        VecDouble2D direccion,
+        double danio
+    ) {
+        Objects.requireNonNull(direccion, "La dirección del proyectil no puede ser nula");
+
+        ModeloProyectil modeloProyectil = new Proyectil(
+            "proyectil",
+            new HitboxRectangular(
+                new java.awt.geom.Rectangle2D.Double(0, 0, 16, 16),
+                TipoHitbox.SOLIDA,
+                MascaraColision.of(CategoriaColision.ALIADO),
+                MascaraColision.of(CategoriaColision.ENEMIGO)
+            ),
+            new VecDouble2D(x, y),
+            direccion,
+            danio,
+            380,
+            1.2
+        );
+
+        VistaProyectil vistaProyectil = new ProyectilVista(
+            spriteSheetProyectil,
+            new Animacion(spriteSheetProyectil, 8, 9, 0.08),
+            0,
+            30,
+            30,
+            16
+        );
+
+        return new ProyectilControlador(modeloProyectil, vistaProyectil);
     }
 }

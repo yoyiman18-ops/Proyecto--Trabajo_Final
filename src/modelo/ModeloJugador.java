@@ -15,6 +15,8 @@ public interface ModeloJugador extends ObjetivoEnemigo {
     int getNivelesPendientes();
     double getDanioAtaque();
     double getDefensa();
+    Direccion getDireccion();
+    VecDouble2D getVectorDireccion();
     VecDouble2D getVelocidad();
     Hitbox getHitbox();
     Notificador<ModeloJugador> getNotificadorVida();

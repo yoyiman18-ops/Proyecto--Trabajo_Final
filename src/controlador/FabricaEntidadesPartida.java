@@ -6,6 +6,7 @@ import modelo.ItemMejoraAtributo;
 import modelo.ModeloJugador;
 import modelo.ObjetivoEnemigo;
 import motor.mvc.ControladorUsuario;
+import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
 
 public interface FabricaEntidadesPartida {
@@ -39,5 +40,12 @@ public interface FabricaEntidadesPartida {
         ItemMejoraAtributo mejora,
         double x,
         double y
+    );
+
+    ProyectilControlador crearProyectil(
+        double x,
+        double y,
+        VecDouble2D direccion,
+        double danio
     );
 }

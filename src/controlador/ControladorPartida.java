@@ -15,6 +15,7 @@ import motor.Motor;
 import motor.mvc.Controlador;
 import motor.mvc.ControladorUsuario;
 import motor.recursos.GestorRecursos;
+import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
 import vista.VistaFondo;
 import vista.VistaJuego;
@@ -36,6 +37,7 @@ public final class ControladorPartida {
 
     private final List<Controlador> controladores;
     private final List<EnemigoControlador> enemigos;
+    private final List<ProyectilControlador> proyectiles;
     private final List<ExperienciaControlador> experiencias;
     private final List<MejoraAtributoControlador> mejorasAtributos;
 
@@ -107,6 +109,7 @@ public final class ControladorPartida {
 
         this.controladores = new CopyOnWriteArrayList<>();
         this.enemigos = new CopyOnWriteArrayList<>();
+        this.proyectiles = new CopyOnWriteArrayList<>();
         this.experiencias = new CopyOnWriteArrayList<>();
         this.mejorasAtributos = new CopyOnWriteArrayList<>();
 
@@ -195,7 +198,7 @@ public final class ControladorPartida {
                     finalizarPartida("FIN DE LA PARTIDA");
                 }
             }),
-            this::atacarEnemigoMasCercano
+            this::dispararProyectil
         );
 
         controladores.add(jugadorControlador);
@@ -228,6 +231,8 @@ public final class ControladorPartida {
         for (Controlador c : controladores) {
             c.tick(dt);
         }
+
+        actualizarProyectiles();
 
         if (modeloPartida.actualizarOleadas(dt)) {
             finalizarPartida("¡VICTORIA! OLEADAS COMPLETADAS");
@@ -270,37 +275,64 @@ public final class ControladorPartida {
         }
     }
 
-    private void atacarEnemigoMasCercano() {
+    private void dispararProyectil() {
         if (modeloPartida.isPartidaFinalizada()) {
             return;
         }
 
-        EnemigoControlador objetivoAtaque = null;
-        double distanciaMinima = modeloPartida.getDistanciaMaxAtaque();
-        double jugadorX = personaje.getPosicion().getX() + 25;
-        double jugadorY = personaje.getPosicion().getY() + 25;
+        VecDouble2D direccion = personaje.getVectorDireccion();
+        double origenX = personaje.getPosicion().getX() + 17 + direccion.getX() * 16;
+        double origenY = personaje.getPosicion().getY() + 17 + direccion.getY() * 16;
 
-        for (EnemigoControlador enemigo : enemigos) {
-            double dx = enemigo.getModelo().getPosicion().getX() + 16 - jugadorX;
-            double dy = enemigo.getModelo().getPosicion().getY() + 16 - jugadorY;
-            double distancia = Math.hypot(dx, dy);
-            if (distancia < distanciaMinima) {
-                distanciaMinima = distancia;
-                objetivoAtaque = enemigo;
+        ProyectilControlador proyectil = fabricaEntidades.crearProyectil(
+            origenX,
+            origenY,
+            direccion,
+            personaje.getDanioAtaque()
+        );
+
+        proyectiles.add(proyectil);
+        controladores.add(proyectil);
+        motor.colisionables().add(proyectil.getModelo());
+        Platform.runLater(() -> vistaJuego.agregarNodoJuego(proyectil.getVista()));
+    }
+
+    private void actualizarProyectiles() {
+        for (ProyectilControlador proyectil : proyectiles) {
+            if (proyectil.estaActivo()) {
+                for (EnemigoControlador enemigo : enemigos) {
+                    if (proyectil.getModelo().getHitbox().intersecta(enemigo.getModelo().getHitbox())) {
+                        proyectil.registrarImpacto();
+                        aplicarDanioEnemigo(enemigo, proyectil.getDanio());
+                        break;
+                    }
+                }
+            }
+
+            if (!proyectil.estaActivo()) {
+                removerProyectil(proyectil);
             }
         }
+    }
 
-        if (objetivoAtaque != null && objetivoAtaque.recibirDanio(personaje.getDanioAtaque())) {
-            EnemigoControlador derrotado = objetivoAtaque;
-            double x = derrotado.getModelo().getPosicion().getX() + 16;
-            double y = derrotado.getModelo().getPosicion().getY() + 16;
+    private void removerProyectil(ProyectilControlador proyectil) {
+        proyectiles.remove(proyectil);
+        controladores.remove(proyectil);
+        motor.colisionables().remove(proyectil.getModelo());
+        Platform.runLater(() -> vistaJuego.removerNodoJuego(proyectil.getVista()));
+    }
 
-            enemigos.remove(derrotado);
-            controladores.remove(derrotado);
-            motor.colisionables().remove(derrotado.getModelo());
-            Platform.runLater(() -> vistaJuego.removerNodoJuego(derrotado.getVista()));
+    private void aplicarDanioEnemigo(EnemigoControlador enemigo, double danio) {
+        if (enemigo.recibirDanio(danio)) {
+            double x = enemigo.getModelo().getPosicion().getX() + 16;
+            double y = enemigo.getModelo().getPosicion().getY() + 16;
 
-            crearGemaExperiencia(x, y, derrotado.getExperienciaRecompensa());
+            enemigos.remove(enemigo);
+            controladores.remove(enemigo);
+            motor.colisionables().remove(enemigo.getModelo());
+            Platform.runLater(() -> vistaJuego.removerNodoJuego(enemigo.getVista()));
+
+            crearGemaExperiencia(x, y, enemigo.getExperienciaRecompensa());
             crearMejoraAleatoria(x, y);
 
             modeloPartida.registrarEnemigoDerrotado();
