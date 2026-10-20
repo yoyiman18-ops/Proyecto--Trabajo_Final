@@ -10,6 +10,8 @@ import motor.recursos.cache.CacheRecursos;
 import motor.recursos.cache.CacheSonido;
 
 public class GestorRecursos {
+    private static GestorRecursos instancia;
+
     private final CacheRecursos<Image> imagenes;
     private final CacheRecursos<AudioClip> sonido;
     private final CacheRecursos<Media> musica;
@@ -19,12 +21,17 @@ public class GestorRecursos {
     private static final String CARPETA_SONIDO = "sonido";
     private static final String CARPETA_MUSICA = "musica";
 
-    public GestorRecursos() {
+    private GestorRecursos() {
         this.logger = Logger.getLogger(getClass().getName());
         logger.log(Level.INFO,"Creado: "+ getClass().getName());
         this.imagenes = new CacheImagenes(CARPETA_IMAGENES);
         this.sonido = new CacheSonido(CARPETA_SONIDO);
         this.musica = new CacheMusica(CARPETA_MUSICA);
+    }
+
+    public static GestorRecursos getInstancia() {
+        if (GestorRecursos.instancia == null) { GestorRecursos.instancia = new GestorRecursos(); }
+        return GestorRecursos.instancia;
     }
 
     public Image getImagen(String nombre, Extension.Imagen ext) { return imagenes.getRecurso(nombre, ext); }

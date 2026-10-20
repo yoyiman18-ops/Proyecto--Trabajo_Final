@@ -8,15 +8,16 @@ import java.util.List;
 import javafx.application.Platform;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
+import motor.persistencia.dao.sqlite.Conexion;
 import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.GestorRecursos;
 
 public class Test {
 
     public static void main(String[] args) throws Exception {
-        Platform.startup(() -> {});
-        GestorRecursos recursos = new GestorRecursos();
-
+        Platform.startup(() -> {}); //necesario iniciar javafx para cargar imagenes
+        Conexion conexion = Conexion.getInstancia();
+        GestorRecursos gestorRecursos = GestorRecursos.getInstancia();
         /*
         // test 1: ram
         try (Connection conexion = DriverManager.getConnection("jdbc:sqlite::memory:")) {
@@ -89,13 +90,10 @@ public class Test {
 
         //test 2: cargar de una bd
 
-        try (Connection conexion = DriverManager.getConnection("jdbc:sqlite:imagenes_test.db")) {
-            DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(conexion, recursos);
-            List<Sheet> sheets = sheetDAO.cargarTodos();
-            System.out.printf("Se han hallado %d spritesheets en la base de datos de sqlite.", sheets.size());
-        } finally {
-            Platform.exit();;
-        }
+        DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(conexion.get(), gestorRecursos);
+        List<Sheet> sheets = sheetDAO.cargarTodos();
+        System.out.printf("Se han cargado %d spritesheets en la base de datos de sqlite.", sheets.size());
+        Platform.exit();
     }
 
 }
