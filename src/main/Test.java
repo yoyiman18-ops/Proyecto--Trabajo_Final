@@ -3,19 +3,12 @@ package main;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javafx.application.Platform;
-import javafx.scene.image.Image;
-import motor.modelo.graficos.Animacion;
-import motor.modelo.graficos.Frame;
-import motor.modelo.graficos.Recorte;
 import motor.modelo.graficos.Sheet;
-import motor.persistencia.dao.DAO;
-import motor.persistencia.dao.SheetDAOSQLite;
-import motor.recursos.Extension;
+import motor.persistencia.dao.DAOSoloLectura;
+import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.GestorRecursos;
 
 public class Test {
@@ -96,9 +89,10 @@ public class Test {
 
         //test 2: cargar de una bd
 
-        try (Connection conexion = DriverManager.getConnection("jdbc:sqlite::imagenes_test.bd")) {
-            DAO<Sheet,Integer> sheetDAO = new SheetDAOSQLite(conexion, recursos);
-            System.out.println(sheetDAO.aJson());
+        try (Connection conexion = DriverManager.getConnection("jdbc:sqlite:imagenes_test.db")) {
+            DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(conexion, recursos);
+            List<Sheet> sheets = sheetDAO.cargarTodos();
+            System.out.printf("Se han hallado %d spritesheets en la base de datos de sqlite.", sheets.size());
         } finally {
             Platform.exit();;
         }

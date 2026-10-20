@@ -1,4 +1,4 @@
-package motor.persistencia.dao;
+package motor.persistencia.dao.sqlite;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,18 +12,19 @@ import motor.modelo.graficos.Animacion;
 import motor.modelo.graficos.Frame;
 import motor.persistencia.PKAnimacion;
 import motor.persistencia.PKFrame;
+import motor.persistencia.dao.AnimacionDAO;
+import motor.persistencia.dao.DAO;
 
-public class AnimacionDAOSQLite implements DAO<Animacion, PKAnimacion> {
+public class AnimacionDAOSQLite extends AnimacionDAO {
 
     private final Connection conexion;
-    private final int idSheet;
 
     public AnimacionDAOSQLite(Connection conexion, int idSheet) {
+        super(idSheet);
         if (conexion == null) {
             throw new IllegalArgumentException("Conexion no puede ser nula");
         }
         this.conexion = conexion;
-        this.idSheet = idSheet;
     }
 
     @Override
@@ -54,9 +55,9 @@ public class AnimacionDAOSQLite implements DAO<Animacion, PKAnimacion> {
                 sentencia.setInt(3, objeto.esBucle() ? 1 : 0);
                 int filas = sentencia.executeUpdate();
                 if (filas > 0) {
-                    DAO<Frame, PKFrame> frameDAO = new FrameDAOSQLite(
+                    DAO<PKFrame,Frame> frameDAO = new FrameDAOSQLite(
                         this.conexion,
-                        this.idSheet,
+                        getIdSheet(),
                         objeto.getNombreAnimacion()
                     );
                     if (objeto.getFrames() != null) {
@@ -89,7 +90,7 @@ public class AnimacionDAOSQLite implements DAO<Animacion, PKAnimacion> {
                     String nombreAnimacion = rs.getString("nombre_animacion");
                     boolean esBucle = rs.getInt("es_bucle") == 1;
 
-                    DAO<Frame, PKFrame> frameDAO = new FrameDAOSQLite(
+                    DAO<PKFrame,Frame> frameDAO = new FrameDAOSQLite(
                         this.conexion,
                         clave.idSheet(),
                         clave.nombreAnimacion()
@@ -131,16 +132,16 @@ public class AnimacionDAOSQLite implements DAO<Animacion, PKAnimacion> {
             ORDER BY nombre_animacion ASC;
             """;
         try (PreparedStatement sentencia = conexion.prepareStatement(sql)) {
-            sentencia.setInt(1, this.idSheet);
+            sentencia.setInt(1, this.getIdSheet());
             try (ResultSet rs = sentencia.executeQuery()) {
                 while (rs.next()) {
                     int idAnimacion = rs.getInt("id_sheet");
                     String nombreAnimacion = rs.getString("nombre_animacion");
                     boolean esBucle = rs.getInt("es_bucle") == 1;
 
-                    DAO<Frame, PKFrame> frameDAO = new FrameDAOSQLite(
+                    DAO<PKFrame,Frame> frameDAO = new FrameDAOSQLite(
                         this.conexion,
-                        this.idSheet,
+                        this.getIdSheet(),
                         nombreAnimacion
                     );
                     List<Frame> frames = frameDAO.cargarTodos(); // nota: puede llegar a estar vacia, en ese caso el error se resuelve en el constructor de animacion
@@ -170,9 +171,9 @@ public class AnimacionDAOSQLite implements DAO<Animacion, PKAnimacion> {
             int filas = sentencia.executeUpdate();
             if (filas > 0) {
                 if (objeto.getFrames() != null) {
-                    DAO<Frame, PKFrame> frameDAO = new FrameDAOSQLite(
+                    DAO<PKFrame,Frame> frameDAO = new FrameDAOSQLite(
                         this.conexion,
-                        this.idSheet,
+                        this.getIdSheet(),
                         objeto.getNombreAnimacion()
                     );
                     for (Frame f : objeto.getFrames()) {
@@ -185,41 +186,5 @@ public class AnimacionDAOSQLite implements DAO<Animacion, PKAnimacion> {
         } catch (SQLException e) {
             return false;
         }
-    }
-
-    @Override
-    public String aJson(PKAnimacion clave) {
-        Animacion a = cargar(clave);
-        if (a == null) {
-            return "null";
-        }
-        DAO<Frame, PKFrame> frameDAO = new FrameDAOSQLite(
-            this.conexion,
-            a.getIdSheet(),
-            a.getNombreAnimacion()
-        );
-        return String.format(
-            "{\n        \"idSheet\": %d,\n        \"nombreAnimacion\": \"%s\",\n        \"esBucle\": %b,\n        \"frames\": %s\n      }",
-            a.getIdSheet(), a.getNombreAnimacion(), a.esBucle(), frameDAO.aJson()
-        );
-    }
-
-    @Override
-    public String aJson() {
-        List<Animacion> animaciones = cargarTodos();
-        if (animaciones == null || animaciones.isEmpty()) {
-            return "[]";
-        }
-        StringBuilder sb = new StringBuilder("[\n");
-        for (int i = 0; i < animaciones.size(); i++) {
-            Animacion a = animaciones.get(i);
-            sb.append("      ").append(aJson(new PKAnimacion(a.getIdSheet(), a.getNombreAnimacion())));
-            if (i < animaciones.size() - 1) {
-                sb.append(",");
-            }
-            sb.append("\n");
-        }
-        sb.append("    ]");
-        return sb.toString();
     }
 }
