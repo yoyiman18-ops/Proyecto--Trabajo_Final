@@ -4,7 +4,6 @@
 
 - Durante Baldessari Valentín
 - Gomez Lautaro
-- Ibarrola Enzo
 - Rodríguez Joel
 
 ## 2. Dominio y Alcance del Sistema
