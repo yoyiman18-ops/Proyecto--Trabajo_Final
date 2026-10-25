@@ -1,5 +1,4 @@
-E1 = id_sheet(pk) + path + extension + { nombre_recorte(pk) + offset_x + offset_y + ancho + alto }
-+ { nombre_animacion(pk) + esBucle + { nro_frame(pk) + nombre_recorte + duracion }}
+E1 = id_sheet(pk) + path + extension + { nombre_recorte(pk) + offset_x + offset_y + ancho + alto } + { nombre_animacion(pk) + esBucle + { nro_frame(pk) + nombre_recorte + duracion }}
 
 1FN
 

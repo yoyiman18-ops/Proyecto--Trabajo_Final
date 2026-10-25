@@ -1,4 +1,4 @@
-package motor.persistencia.dao;
+package motor.persistencia.dao.sqlite;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,10 +16,12 @@ import motor.modelo.graficos.Recorte;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.PKAnimacion;
 import motor.persistencia.PKRecorte;
+import motor.persistencia.dao.DAO;
+import motor.persistencia.dao.SheetDAO;
 import motor.recursos.Extension;
 import motor.recursos.GestorRecursos;
 
-public class SheetDAOSQLite implements DAO<Sheet, Integer> {
+public class SheetDAOSQLite extends SheetDAO {
 
     private final Connection conexion;
     private final GestorRecursos gestorRecursos;
@@ -63,13 +65,13 @@ public class SheetDAOSQLite implements DAO<Sheet, Integer> {
                 int filas = sentencia.executeUpdate();
                 if (filas > 0) {
                     if (objeto.getRecortes() != null) {
-                        DAO<Recorte, PKRecorte> recorteDAO = new RecorteDAOSQLite(this.conexion, objeto.getIdSheet());
+                        DAO<PKRecorte,Recorte> recorteDAO = new RecorteDAOSQLite(this.conexion, objeto.getIdSheet());
                         for (Recorte r : objeto.getRecortes()) {
                             recorteDAO.guardar(r);
                         }
                     }
                     if (objeto.getAnimaciones() != null) {
-                        DAO<Animacion, PKAnimacion> animacionDAO = new AnimacionDAOSQLite(this.conexion, objeto.getIdSheet());
+                        DAO<PKAnimacion, Animacion> animacionDAO = new AnimacionDAOSQLite(this.conexion, objeto.getIdSheet());
                         for (Animacion a : objeto.getAnimaciones()) {
                             animacionDAO.guardar(a);
                         }
@@ -98,7 +100,7 @@ public class SheetDAOSQLite implements DAO<Sheet, Integer> {
                     Extension.Imagen extension = Extension.Imagen.fromString(rs.getString("extension"));
                     Image imagen = this.gestorRecursos.getImagen(path, extension);
 
-                    DAO<Recorte, PKRecorte> recorteDAO = new RecorteDAOSQLite(this.conexion, idSheet);
+                    DAO<PKRecorte,Recorte> recorteDAO = new RecorteDAOSQLite(this.conexion, idSheet);
                     List<Recorte> recortesList = recorteDAO.cargarTodos();
                     Map<String, Recorte> recortesMap = new HashMap<>();
                     if (recortesList != null) {
@@ -107,7 +109,7 @@ public class SheetDAOSQLite implements DAO<Sheet, Integer> {
                         }
                     }
 
-                    DAO<Animacion, PKAnimacion> animacionDAO = new AnimacionDAOSQLite(this.conexion, idSheet);
+                    DAO<PKAnimacion,Animacion> animacionDAO = new AnimacionDAOSQLite(this.conexion, idSheet);
                     List<Animacion> animacionesList = animacionDAO.cargarTodos();
                     Map<String, Animacion> animacionesMap = new HashMap<>();
                     if (animacionesList != null) {
@@ -151,7 +153,7 @@ public class SheetDAOSQLite implements DAO<Sheet, Integer> {
                 Extension.Imagen extension = Extension.Imagen.fromString(rs.getString("extension"));
                 Image imagen = this.gestorRecursos.getImagen(path, extension);
 
-                DAO<Recorte, PKRecorte> recorteDAO = new RecorteDAOSQLite(this.conexion, idSheet);
+                DAO<PKRecorte,Recorte> recorteDAO = new RecorteDAOSQLite(this.conexion, idSheet);
                 List<Recorte> recortesList = recorteDAO.cargarTodos();
                 Map<String, Recorte> recortesMap = new HashMap<>();
                 if (recortesList != null) {
@@ -160,7 +162,7 @@ public class SheetDAOSQLite implements DAO<Sheet, Integer> {
                     }
                 }
 
-                DAO<Animacion, PKAnimacion> animacionDAO = new AnimacionDAOSQLite(this.conexion, idSheet);
+                DAO<PKAnimacion,Animacion> animacionDAO = new AnimacionDAOSQLite(this.conexion, idSheet);
                 List<Animacion> animacionesList = animacionDAO.cargarTodos();
                 Map<String, Animacion> animacionesMap = new HashMap<>();
                 if (animacionesList != null) {
@@ -194,13 +196,13 @@ public class SheetDAOSQLite implements DAO<Sheet, Integer> {
             int filas = sentencia.executeUpdate();
             if (filas > 0) {
                 if (objeto.getRecortes() != null) {
-                    DAO<Recorte, PKRecorte> recorteDAO = new RecorteDAOSQLite(this.conexion, objeto.getIdSheet());
+                    DAO<PKRecorte,Recorte> recorteDAO = new RecorteDAOSQLite(this.conexion, objeto.getIdSheet());
                     for (Recorte r : objeto.getRecortes()) {
                         recorteDAO.modificar(r);
                     }
                 }
                 if (objeto.getAnimaciones() != null) {
-                    DAO<Animacion, PKAnimacion> animacionDAO = new AnimacionDAOSQLite(this.conexion, objeto.getIdSheet());
+                    DAO<PKAnimacion,Animacion> animacionDAO = new AnimacionDAOSQLite(this.conexion, objeto.getIdSheet());
                     for (Animacion a : objeto.getAnimaciones()) {
                         animacionDAO.modificar(a);
                     }
@@ -213,36 +215,4 @@ public class SheetDAOSQLite implements DAO<Sheet, Integer> {
         }
     }
 
-    @Override
-    public String aJson(Integer clave) {
-        Sheet s = cargar(clave);
-        if (s == null) {
-            return "null";
-        }
-        DAO<Recorte, PKRecorte> recorteDAO = new RecorteDAOSQLite(this.conexion, s.getIdSheet());
-        DAO<Animacion, PKAnimacion> animacionDAO = new AnimacionDAOSQLite(this.conexion, s.getIdSheet());
-        return String.format(
-            "{\n    \"idSheet\": %d,\n    \"path\": \"%s\",\n    \"extension\": \"%s\",\n    \"recortes\": %s,\n    \"animaciones\": %s\n  }",
-            s.getIdSheet(), s.getPath(), s.getExtension().name(), recorteDAO.aJson(), animacionDAO.aJson()
-        );
-    }
-
-    @Override
-    public String aJson() {
-        List<Sheet> sheets = cargarTodos();
-        if (sheets == null || sheets.isEmpty()) {
-            return "[]";
-        }
-        StringBuilder sb = new StringBuilder("[\n");
-        for (int i = 0; i < sheets.size(); i++) {
-            Sheet s = sheets.get(i);
-            sb.append("  ").append(aJson(s.getIdSheet()));
-            if (i < sheets.size() - 1) {
-                sb.append(",");
-            }
-            sb.append("\n");
-        }
-        sb.append("]");
-        return sb.toString();
-    }
 }

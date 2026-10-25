@@ -1,4 +1,4 @@
-package motor.persistencia.dao;
+package motor.persistencia.dao.sqlite;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -7,29 +7,21 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import motor.modelo.graficos.Frame;
 import motor.modelo.graficos.Recorte;
 import motor.persistencia.PKFrame;
+import motor.persistencia.dao.FrameDAO;
 
-public class FrameDAOSQLite 
-implements DAO<Frame,PKFrame> {
+public class FrameDAOSQLite extends FrameDAO {
 
     private final Connection conexion;
 
-    private final String nombreAnimacion;
-    private final int idSheet;
-
 
     public FrameDAOSQLite(Connection conexion, int idSheet, String nombreAnimacion) {
+        super(nombreAnimacion,idSheet);
         if (conexion == null) { throw new IllegalArgumentException("Conexion nula invalida"); }
-        if (nombreAnimacion == null || nombreAnimacion.isEmpty() || nombreAnimacion.isBlank()) {
-            throw new IllegalArgumentException("NombreAnimacion no puede ser nulo ni vacio.");
-        }
         this.conexion = conexion;
-        this.idSheet = idSheet;
-        this.nombreAnimacion = nombreAnimacion;
     }
 
     @Override
@@ -147,8 +139,8 @@ implements DAO<Frame,PKFrame> {
             ORDER BY nro_frame ASC;
             """;
         try (PreparedStatement sentencia = conexion.prepareStatement(sql)) {
-            sentencia.setInt(1, this.idSheet);
-            sentencia.setString(2, this.nombreAnimacion);
+            sentencia.setInt(1, getIdSheet());
+            sentencia.setString(2, getNombreAnimacion());
             try (ResultSet rs = sentencia.executeQuery()) {
                 // mientras haya frames correspondientes, los 
                 while (rs.next()) {
@@ -207,44 +199,6 @@ implements DAO<Frame,PKFrame> {
         } catch (SQLException e) {
             return false;
         }
-    }
-
-    @Override
-    public String aJson(PKFrame clave) {
-        Frame f = cargar(clave);
-        if (f == null) {
-            return "null";
-        }
-        Recorte r = f.getRecorte();
-        String recorteJson = String.format(
-            Locale.US,
-            "{\"idSheet\": %d, \"nombreRecorte\": \"%s\", \"offsetX\": %.2f, \"offsetY\": %.2f, \"ancho\": %.2f, \"alto\": %.2f}",
-            r.getIdSheet(), r.getNombreRecorte(), r.getOffsetX(), r.getOffsetY(), r.getAncho(), r.getAlto()
-        );
-        return String.format(
-            Locale.US,
-            "{\"idSheet\": %d, \"nombreAnimacion\": \"%s\", \"nroFrame\": %d, \"nombreRecorte\": \"%s\", \"duracion\": %d, \"recorte\": %s}",
-            f.getIdSheet(), f.getNombreAnimacion(), f.getNroFrame(), f.getNombreRecorte(), f.getDuracion(), recorteJson
-        );
-    }
-
-    @Override
-    public String aJson() {
-        List<Frame> frames = cargarTodos();
-        if (frames == null || frames.isEmpty()) {
-            return "[]";
-        }
-        StringBuilder sb = new StringBuilder("[\n");
-        for (int i = 0; i < frames.size(); i++) {
-            Frame f = frames.get(i);
-            sb.append("          ").append(aJson(new PKFrame(f.getIdSheet(), f.getNombreAnimacion(), f.getNroFrame())));
-            if (i < frames.size() - 1) {
-                sb.append(",");
-            }
-            sb.append("\n");
-        }
-        sb.append("        ]");
-        return sb.toString();
     }
     
 }

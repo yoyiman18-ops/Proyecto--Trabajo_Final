@@ -16,7 +16,7 @@ public class CacheImagenes extends CacheRecursos<Image> {
                 imagen.getException();
                 loggearCarga(k);
                 return imagen; 
-            } catch (Exception e) { throw new RuntimeException(e.getMessage()); }}
+            } catch (Exception e) { throw new RuntimeException(e.getMessage() + " : " + resolverPathRecurso(nombre, ext)  ); }}
         );
     }
 }

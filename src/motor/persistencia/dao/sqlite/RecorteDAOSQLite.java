@@ -1,4 +1,4 @@
-package motor.persistencia.dao;
+package motor.persistencia.dao.sqlite;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -7,22 +7,21 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import motor.modelo.graficos.Recorte;
 import motor.persistencia.PKRecorte;
+import motor.persistencia.dao.RecorteDAO;
 
-public class RecorteDAOSQLite implements DAO<Recorte, PKRecorte> {
+public class RecorteDAOSQLite extends RecorteDAO {
 
     private final Connection conexion;
-    private final int idSheet;
 
     public RecorteDAOSQLite(Connection conexion, int idSheet) {
+        super(idSheet);
         if (conexion == null) {
             throw new IllegalArgumentException("Conexion no puede ser nula");
         }
         this.conexion = conexion;
-        this.idSheet = idSheet;
     }
 
     @Override
@@ -51,7 +50,7 @@ public class RecorteDAOSQLite implements DAO<Recorte, PKRecorte> {
                 sentencia.execute(sqlCrearTabla);
             }
             try (PreparedStatement sentencia = conexion.prepareStatement(sqlInsertar)) {
-                sentencia.setInt(1, this.idSheet);
+                sentencia.setInt(1, getIdSheet());
                 sentencia.setString(2, objeto.getNombreRecorte());
                 sentencia.setDouble(3, objeto.getOffsetX());
                 sentencia.setDouble(4, objeto.getOffsetY());
@@ -115,7 +114,7 @@ public class RecorteDAOSQLite implements DAO<Recorte, PKRecorte> {
             ORDER BY nombre_recorte ASC;
             """;
         try (PreparedStatement sentencia = conexion.prepareStatement(sql)) {
-            sentencia.setInt(1, this.idSheet);
+            sentencia.setInt(1, getIdSheet());
             try (ResultSet rs = sentencia.executeQuery()) {
                 while (rs.next()) {
                     int idSheet = rs.getInt("id_sheet");
@@ -148,43 +147,11 @@ public class RecorteDAOSQLite implements DAO<Recorte, PKRecorte> {
             sentencia.setDouble(2, objeto.getOffsetY());
             sentencia.setDouble(3, objeto.getAncho());
             sentencia.setDouble(4, objeto.getAlto());
-            sentencia.setInt(5, this.idSheet);
+            sentencia.setInt(5, getIdSheet());
             sentencia.setString(6, objeto.getNombreRecorte());
             return sentencia.executeUpdate() > 0;
         } catch (SQLException e) {
             return false;
         }
-    }
-
-    @Override
-    public String aJson(PKRecorte clave) {
-        Recorte r = cargar(clave);
-        if (r == null) {
-            return "null";
-        }
-        return String.format(
-            Locale.US,
-            "{\"idSheet\": %d, \"nombreRecorte\": \"%s\", \"offsetX\": %.2f, \"offsetY\": %.2f, \"ancho\": %.2f, \"alto\": %.2f}",
-            r.getIdSheet(), r.getNombreRecorte(), r.getOffsetX(), r.getOffsetY(), r.getAncho(), r.getAlto()
-        );
-    }
-
-    @Override
-    public String aJson() {
-        List<Recorte> recortes = cargarTodos();
-        if (recortes == null || recortes.isEmpty()) {
-            return "[]";
-        }
-        StringBuilder sb = new StringBuilder("[\n");
-        for (int i = 0; i < recortes.size(); i++) {
-            Recorte r = recortes.get(i);
-            sb.append("      ").append(aJson(new PKRecorte(r.getIdSheet(), r.getNombreRecorte())));
-            if (i < recortes.size() - 1) {
-                sb.append(",");
-            }
-            sb.append("\n");
-        }
-        sb.append("    ]");
-        return sb.toString();
     }
 }

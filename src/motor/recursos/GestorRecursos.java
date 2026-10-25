@@ -11,6 +11,8 @@ import motor.recursos.cache.CacheRecursos;
 import motor.recursos.cache.CacheSonido;
 
 public class GestorRecursos {
+    private static GestorRecursos instancia;
+
     private final CacheRecursos<Image> imagenes;
     private final CacheRecursos<AudioClip> sonido;
     private final CacheRecursos<Media> musica;
