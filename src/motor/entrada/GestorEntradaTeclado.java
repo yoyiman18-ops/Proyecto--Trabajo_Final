@@ -1,6 +1,7 @@
 package motor.entrada;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,9 +19,13 @@ public class GestorEntradaTeclado {
     private Scene escenaRoot;
 
     public GestorEntradaTeclado() {
+        this(new CapturadorEntradaTeclado());
+    }
+
+    public GestorEntradaTeclado(CapturadorEntradaTeclado capturador) {
+        this.capturador = Objects.requireNonNull(capturador, "El capturador de entrada de teclado no puede ser nulo");
         this.mapeos = new CopyOnWriteArrayList<>();
         this.acciones = EnumSet.noneOf(Accion.class);
-        this.capturador = new CapturadorEntradaTeclado();
         this.notificador = new NotificadorDebil<EstadoAcciones>();
     }
     public void setEscenaRoot(Scene escenaRoot) { this.escenaRoot = escenaRoot; capturador.registrar(escenaRoot); }

@@ -2,113 +2,291 @@
     -fx-background-color: #10161b;
 }
 
-.game-hud {
-    -fx-background-color: rgba(12, 18, 16, 0.88);
-    -fx-border-color: transparent transparent rgba(178, 190, 177, 0.28) transparent;
-    -fx-border-width: 0 0 1px 0;
+.game-hud-overlay {
+    -fx-background-color: linear-gradient(
+        to bottom,
+        rgba(8, 10, 12, 0.58) 0%,
+        rgba(8, 10, 12, 0.22) 72%,
+        transparent 100%
+    );
 }
 
-.hud-group {
-    -fx-background-color: rgba(30, 42, 36, 0.72);
-    -fx-background-radius: 3px;
-    -fx-border-color: rgba(178, 190, 177, 0.22);
-    -fx-border-radius: 3px;
-    -fx-border-width: 1px;
-    -fx-padding: 8px;
+.hud-plaque {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.85), 8, 0.45, 0, 2);
+}
+
+.hud-plaque-fallback {
+    -fx-background-color: linear-gradient(to bottom, rgba(46, 38, 30, 0.94), rgba(28, 23, 18, 0.94));
+    -fx-background-radius: 4px;
+    -fx-border-color: #c8a862;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1.5px;
+}
+
+.hud-icon-slot {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.75), 4, 0.4, 0, 1);
 }
 
 .game-title {
     -fx-text-fill: #f1e7cd;
-    -fx-font-family: "System";
+    -fx-font-family: "Georgia";
     -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 4, 0.4, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.85), 4, 0.4, 0, 1);
 }
 
 .hud-label {
-    -fx-text-fill: #9eada7;
-    -fx-font-size: 10px;
+    -fx-text-fill: #dec58b;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 9px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 3, 0.5, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.95), 3, 0.65, 0, 1);
 }
 
 .hud-value {
-    -fx-text-fill: #f1e7cd;
-    -fx-font-size: 15px;
+    -fx-text-fill: #fff6df;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 3, 0.5, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.95), 3, 0.65, 0, 1);
+}
+
+.hp-value {
+    -fx-text-fill: #ffd8cf;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.95), 3, 0.65, 0, 1);
 }
 
 .xp-level {
-    -fx-text-fill: #fff0c8;
+    -fx-text-fill: #ffe89e;
+    -fx-font-family: "Georgia";
     -fx-font-size: 10px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 2, 0.5, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.95), 3, 0.65, 0, 1);
 }
 
 .xp-value {
-    -fx-text-fill: #fff0c8;
-    -fx-font-size: 11px;
+    -fx-text-fill: #c8f5d4;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 10px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 2, 0.5, 0, 1);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.95), 3, 0.65, 0, 1);
 }
 
-.game-over-overlay {
-    -fx-background-color: rgba(8, 10, 10, 0.78);
-}
-
-.pause-overlay {
-    -fx-background-color: rgba(8, 10, 10, 0.82);
-}
-
+.game-over-overlay,
+.pause-overlay,
 .level-up-overlay {
-    -fx-background-color: rgba(8, 10, 10, 0.84);
+    -fx-background-color: rgba(8, 10, 12, 0.78);
+}
+
+.rpg-modal-card {
+    -fx-background-color: linear-gradient(to bottom, rgba(38, 32, 27, 0.96), rgba(22, 18, 15, 0.98));
+    -fx-border-color: #d5bd82;
+    -fx-border-width: 2px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 26px 30px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.92), 18, 0.5, 0, 4);
 }
 
 .game-over-title {
-    -fx-text-fill: #f5e8c9;
-    -fx-font-size: 38px;
+    -fx-text-fill: #fff0c7;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 30px;
     -fx-font-weight: bold;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 8, 0.5, 0, 2);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.95), 8, 0.5, 0, 2);
 }
 
 .game-over-button {
-    -fx-background-color: rgba(31, 45, 39, 0.96);
-    -fx-border-color: #bba36e;
-    -fx-border-width: 1px;
-    -fx-text-fill: #f5e8c9;
-    -fx-font-size: 16px;
+    -fx-background-color: linear-gradient(to bottom, rgba(58, 47, 37, 0.96), rgba(34, 27, 21, 0.98));
+    -fx-border-color: #c8a862;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-text-fill: #fff2d2;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 15px;
     -fx-font-weight: bold;
-    -fx-padding: 12px 18px;
+    -fx-padding: 11px 18px;
     -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.75), 5, 0.4, 0, 1);
 }
 
 .game-over-button:hover,
 .game-over-button:focused {
-    -fx-background-color: #52694d;
-    -fx-border-color: #f0d98d;
+    -fx-background-color: linear-gradient(to bottom, #64513b, #433526);
+    -fx-border-color: #ffe394;
 }
 
 .pause-button {
-    -fx-background-color: rgba(31, 45, 39, 0.96);
-    -fx-border-color: rgba(178, 190, 177, 0.45);
-    -fx-border-width: 1px;
-    -fx-text-fill: #f5e8c9;
+    -fx-background-color: linear-gradient(to bottom, rgba(56, 46, 36, 0.96), rgba(32, 26, 20, 0.98));
+    -fx-border-color: #d5bd82;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-text-fill: #fff2d2;
+    -fx-font-family: "Georgia";
     -fx-font-size: 12px;
     -fx-font-weight: bold;
-    -fx-padding: 8px 12px;
+    -fx-padding: 11px 14px;
     -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.85), 6, 0.45, 0, 2);
 }
 
 .pause-button:hover,
 .pause-button:focused {
-    -fx-background-color: #52694d;
-    -fx-border-color: #f0d98d;
+    -fx-background-color: linear-gradient(to bottom, #68543d, #463828);
+    -fx-border-color: #ffe394;
+}
+
+.rpg-plaque-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.85), 8, 0.45, 0, 2);
+}
+
+.rpg-plaque-button:hover,
+.rpg-plaque-button:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #ffe89e;
+    -fx-effect: dropshadow(gaussian, rgba(255, 215, 110, 0.55), 12, 0.45, 0, 0);
 }
 
 .game-area {
     -fx-background-color:
         radial-gradient(radius 100%, #27352f, #18221f 75%, #111816);
-    -fx-border-color: #71866f;
-    -fx-border-width: 2px;
 }
+
+.upgrade-card {
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-width: 2.5px;
+    -fx-padding: 14px 12px;
+    -fx-cursor: hand;
+}
+
+.upgrade-card-common {
+    -fx-background-color: linear-gradient(to bottom, rgba(48, 41, 34, 0.97), rgba(26, 22, 18, 0.99));
+    -fx-border-color: #b89b67;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.85), 10, 0.4, 0, 3);
+}
+
+.upgrade-card-common:hover,
+.upgrade-card-common:focused {
+    -fx-background-color: linear-gradient(to bottom, rgba(64, 54, 43, 0.98), rgba(36, 30, 24, 0.99));
+    -fx-border-color: #ffe39e;
+    -fx-effect: dropshadow(gaussian, rgba(230, 195, 120, 0.55), 14, 0.45, 0, 0);
+}
+
+.upgrade-card-rare {
+    -fx-background-color: linear-gradient(to bottom, rgba(22, 42, 62, 0.97), rgba(13, 24, 38, 0.99));
+    -fx-border-color: #4db8ff;
+    -fx-effect: dropshadow(gaussian, rgba(50, 160, 255, 0.45), 12, 0.45, 0, 2);
+}
+
+.upgrade-card-rare:hover,
+.upgrade-card-rare:focused {
+    -fx-background-color: linear-gradient(to bottom, rgba(30, 56, 84, 0.98), rgba(18, 34, 52, 0.99));
+    -fx-border-color: #9be8ff;
+    -fx-effect: dropshadow(gaussian, rgba(77, 184, 255, 0.78), 18, 0.5, 0, 0);
+}
+
+.upgrade-card-epic {
+    -fx-background-color: linear-gradient(to bottom, rgba(48, 24, 66, 0.97), rgba(26, 12, 38, 0.99));
+    -fx-border-color: #c966ff;
+    -fx-effect: dropshadow(gaussian, rgba(185, 70, 255, 0.5), 14, 0.45, 0, 2);
+}
+
+.upgrade-card-epic:hover,
+.upgrade-card-epic:focused {
+    -fx-background-color: linear-gradient(to bottom, rgba(66, 32, 90, 0.98), rgba(36, 18, 52, 0.99));
+    -fx-border-color: #efb3ff;
+    -fx-effect: dropshadow(gaussian, rgba(205, 102, 255, 0.85), 20, 0.55, 0, 0);
+}
+
+.upgrade-card-legendary {
+    -fx-background-color: linear-gradient(to bottom, rgba(68, 46, 14, 0.98), rgba(36, 22, 6, 0.99));
+    -fx-border-color: #ffbe2e;
+    -fx-effect: dropshadow(gaussian, rgba(255, 185, 35, 0.68), 18, 0.55, 0, 2);
+}
+
+.upgrade-card-legendary:hover,
+.upgrade-card-legendary:focused {
+    -fx-background-color: linear-gradient(to bottom, rgba(92, 62, 18, 0.99), rgba(48, 30, 8, 0.99));
+    -fx-border-color: #fff0a8;
+    -fx-effect: dropshadow(gaussian, rgba(255, 205, 65, 0.95), 24, 0.65, 0, 0);
+}
+
+.upgrade-rarity-badge {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 2px 8px;
+    -fx-background-radius: 3px;
+}
+
+.upgrade-card-common-badge {
+    -fx-text-fill: #e3ceb0;
+    -fx-background-color: rgba(184, 155, 103, 0.22);
+}
+
+.upgrade-card-rare-badge {
+    -fx-text-fill: #8ad8ff;
+    -fx-background-color: rgba(77, 184, 255, 0.22);
+}
+
+.upgrade-card-epic-badge {
+    -fx-text-fill: #e4a6ff;
+    -fx-background-color: rgba(201, 102, 255, 0.24);
+}
+
+.upgrade-card-legendary-badge {
+    -fx-text-fill: #ffe27a;
+    -fx-background-color: rgba(255, 190, 46, 0.28);
+}
+
+.upgrade-attr-title {
+    -fx-text-fill: #fff3da;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.9), 3, 0.5, 0, 1);
+}
+
+.upgrade-bonus-value {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.95), 4, 0.6, 0, 1);
+}
+
+.upgrade-card-common-value {
+    -fx-text-fill: #ffe7ba;
+}
+
+.upgrade-card-rare-value {
+    -fx-text-fill: #7ce0ff;
+}
+
+.upgrade-card-epic-value {
+    -fx-text-fill: #e59eff;
+}
+
+.upgrade-card-legendary-value {
+    -fx-text-fill: #ffd24c;
+}
+
+.upgrade-flavor-text {
+    -fx-text-fill: #cbbca2;
+    -fx-font-family: "Georgia";
+    -fx-font-size: 10px;
+    -fx-text-alignment: center;
+}
+
+

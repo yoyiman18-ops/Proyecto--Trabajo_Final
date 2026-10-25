@@ -11,7 +11,7 @@ al notificador con referencias débiles
 
 public abstract class Notificador<T> {
     private final Set<Observador<T>> observadores;
-    private final Queue<Runnable> colaModificaciones;
+    private final ConcurrentLinkedQueue<Runnable> colaModificaciones;
 
     protected Notificador(Set<Observador<T>> observadores) {
         this.observadores = observadores;
@@ -21,7 +21,10 @@ public abstract class Notificador<T> {
     public void notificar(T estado) { 
         Runnable modificacion;
         while ((modificacion = colaModificaciones.poll()) != null) { modificacion.run(); }
-        for (Observador<T> o : observadores) { o.cambio(estado);}
+        for (Observador<T> o : observadores) {
+            if (!(o == null)) {
+            o.cambio(estado);
+        }}
     }
 
     public void suscribirObservador(Observador<T> o) { colaModificaciones.add(() -> observadores.add(o)); }

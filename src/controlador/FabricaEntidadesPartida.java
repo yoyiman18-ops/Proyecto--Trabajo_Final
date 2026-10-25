@@ -1,0 +1,61 @@
+package controlador;
+
+import java.util.function.DoubleSupplier;
+
+import modelo.ItemMejoraAtributo;
+import modelo.ModeloJugador;
+import modelo.ObjetivoEnemigo;
+import motor.mvc.ControladorUsuario;
+import motor.util.VecDouble2D;
+import motor.util.observer.Observador;
+
+public interface FabricaEntidadesPartida {
+    ModeloJugador crearModeloJugador();
+
+    ControladorUsuario crearControladorJugador(
+        ModeloJugador modelo,
+        DoubleSupplier anchoArea,
+        DoubleSupplier altoArea,
+        JugadorControlador.LimitesArea limites,
+        Observador<ModeloJugador> observadorVida,
+        Runnable accionAtaque
+    );
+
+    EnemigoControlador crearEnemigo(
+        double x,
+        double y,
+        double velocidad,
+        ObjetivoEnemigo objetivo
+    );
+
+    ExperienciaControlador crearExperiencia(
+        ModeloJugador jugador,
+        double x,
+        double y,
+        int cantidad
+    );
+
+    MejoraAtributoControlador crearMejoraAtributo(
+        ModeloJugador jugador,
+        ItemMejoraAtributo mejora,
+        double x,
+        double y
+    );
+
+    default ProyectilControlador crearProyectil(
+        double x,
+        double y,
+        VecDouble2D direccion,
+        double danio
+    ) {
+        return crearProyectil(x, y, direccion, danio, false);
+    }
+
+    ProyectilControlador crearProyectil(
+        double x,
+        double y,
+        VecDouble2D direccion,
+        double danio,
+        boolean esCritico
+    );
+}

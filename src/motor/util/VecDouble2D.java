@@ -4,7 +4,6 @@ import java.util.Objects;
 
 public class VecDouble2D implements Cloneable {
 
-    public static final VecDouble2D ORIGEN = new VecDouble2D();
     private double x,y;
 
     public VecDouble2D() { 

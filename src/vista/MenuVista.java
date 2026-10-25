@@ -1,8 +1,12 @@
 package vista;
 
+import java.util.Objects;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
@@ -11,18 +15,18 @@ import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-public final class MenuVista extends StackPane {
-    private final Button botonJugar = new Button("JUGAR");
-    private final Button botonSalir = new Button("SALIR");
+public final class MenuVista extends StackPane implements VistaMenu {
+    private final Button botonJugar;
+    private final Button botonSalir;
 
-    public MenuVista() {
-        var recurso = MenuVista.class.getResource("/recursos/imagenes/menu.png");
-        if (recurso == null) {
-            throw new IllegalStateException("No se encontró el fondo del menú: menu.png");
-        }
+    public MenuVista(Image imagenFondo, String hojaEstilosUrl) {
+        Objects.requireNonNull(imagenFondo, "La imagen de fondo del menú no puede ser nula");
+        Objects.requireNonNull(hojaEstilosUrl, "La URL de la hoja de estilos del menú no puede ser nula");
+        this.botonJugar = new Button("JUGAR");
+        this.botonSalir = new Button("SALIR");
 
         BackgroundImage fondo = new BackgroundImage(
-            new javafx.scene.image.Image(recurso.toExternalForm()),
+            imagenFondo,
             BackgroundRepeat.NO_REPEAT,
             BackgroundRepeat.NO_REPEAT,
             BackgroundPosition.CENTER,
@@ -42,18 +46,23 @@ public final class MenuVista extends StackPane {
         StackPane.setAlignment(botones, Pos.BOTTOM_CENTER);
         StackPane.setMargin(botones, new Insets(0, 0, 48, 0));
 
-        var hojaEstilos = MenuVista.class.getResource("menu-vista.css");
-        if (hojaEstilos == null) {
-            throw new IllegalStateException("No se encontró menu-vista.css");
-        }
-        getStylesheets().add(hojaEstilos.toExternalForm());
+        getStylesheets().add(hojaEstilosUrl);
     }
 
-    public Button getBotonJugar() {
-        return botonJugar;
+    @Override
+    public Parent getRaiz() {
+        return this;
     }
 
-    public Button getBotonSalir() {
-        return botonSalir;
+    @Override
+    public void setOnJugar(Runnable accion) {
+        Objects.requireNonNull(accion, "La acción de jugar no puede ser nula");
+        botonJugar.setOnAction(event -> accion.run());
     }
-}
+
+    @Override
+    public void setOnSalir(Runnable accion) {
+        Objects.requireNonNull(accion, "La acción de salir no puede ser nula");
+        botonSalir.setOnAction(event -> accion.run());
+    }
+}

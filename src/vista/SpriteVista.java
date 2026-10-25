@@ -2,14 +2,13 @@ package vista;
 
 import java.util.List;
 
-import motor.modelo.Entidad;
-import motor.util.VecDouble2D;
-import motor.util.observer.Observador;
+import javafx.scene.Node;
+import motor.modelo.Direccion;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-public class SpriteVista extends ImageView implements Observador<Entidad> {
+public class SpriteVista extends ImageView implements VistaJugador {
     private final Animacion animacion;
 
     public SpriteVista(Image imagen, Rectangle2D recorte, double ancho, double alto) {
@@ -61,11 +60,43 @@ public class SpriteVista extends ImageView implements Observador<Entidad> {
         }
     }
 
-    @Override 
-    public void cambio(Entidad entidad) {
-        VecDouble2D posicion = entidad.getPosicion();
-        setLayoutX(posicion.getX());
-        setLayoutY(posicion.getY());
+    @Override
+    public Node getNodo() {
+        return this;
+    }
+
+    @Override
+    public double getAncho() {
+        return getLayoutBounds().getWidth();
+    }
+
+    @Override
+    public double getAlto() {
+        return getLayoutBounds().getHeight();
+    }
+
+    @Override
+    public void actualizarPosicion(double x, double y) {
+        setLayoutX(x);
+        setLayoutY(y);
+    }
+
+    @Override
+    public void actualizarAnimacion(Direccion direccion, boolean activa, double dt) {
+        if (animacion == null) {
+            return;
+        }
+        if (animacion.esSecuenciaImagenes()) {
+            actualizarAnimacion(activa, dt);
+            return;
+        }
+        int fila = switch (direccion) {
+            case ABAJO -> 0;
+            case ARRIBA -> 1;
+            case DERECHA -> 2;
+            case IZQUIERDA -> 3;
+        };
+        actualizarAnimacion(fila, activa, dt);
     }
 
 }

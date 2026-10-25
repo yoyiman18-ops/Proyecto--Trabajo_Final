@@ -1,4 +1,5 @@
 package motor.recursos;
+import java.util.Objects;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import javafx.scene.image.Image;
@@ -21,17 +22,24 @@ public class GestorRecursos {
     private static final String CARPETA_SONIDO = "sonido";
     private static final String CARPETA_MUSICA = "musica";
 
-    private GestorRecursos() {
-        this.logger = Logger.getLogger(getClass().getName());
-        logger.log(Level.INFO,"Creado: "+ getClass().getName());
-        this.imagenes = new CacheImagenes(CARPETA_IMAGENES);
-        this.sonido = new CacheSonido(CARPETA_SONIDO);
-        this.musica = new CacheMusica(CARPETA_MUSICA);
+    public GestorRecursos() {
+        this(
+            new CacheImagenes(CARPETA_IMAGENES),
+            new CacheSonido(CARPETA_SONIDO),
+            new CacheMusica(CARPETA_MUSICA)
+        );
     }
 
-    public static GestorRecursos getInstancia() {
-        if (GestorRecursos.instancia == null) { GestorRecursos.instancia = new GestorRecursos(); }
-        return GestorRecursos.instancia;
+    public GestorRecursos(
+        CacheRecursos<Image> imagenes,
+        CacheRecursos<AudioClip> sonido,
+        CacheRecursos<Media> musica
+    ) {
+        this.imagenes = Objects.requireNonNull(imagenes, "El caché de imágenes no puede ser nulo");
+        this.sonido = Objects.requireNonNull(sonido, "El caché de sonido no puede ser nulo");
+        this.musica = Objects.requireNonNull(musica, "El caché de música no puede ser nulo");
+        this.logger = Logger.getLogger(getClass().getName());
+        logger.log(Level.INFO,"Creado: "+ getClass().getName());
     }
 
     public Image getImagen(String nombre, Extension.Imagen ext) { return imagenes.getRecurso(nombre, ext); }
