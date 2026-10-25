@@ -22,7 +22,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import motor.util.graficos.SheetLibre;
+import java.util.Collections;
+import java.util.HashMap;
+import motor.modelo.graficos.Recorte;
+import motor.modelo.graficos.Sheet;
+import motor.recursos.Extension;
 
 /**
  * Vista principal de la pantalla de juego y su interfaz gráfica (HUD integrado, menús de pausa, mejoras y fin de partida).
@@ -53,7 +57,7 @@ public class VistaJuego extends StackPane implements VistaPartida {
     private final Image gemaExperienciaLlena;
     private final Image hojaGuiRpg;
     private final Map<String, Image> imagenesHud;
-    private final SheetLibre recortesGui;
+    private final Sheet recortesGui;
 
     private final Label nivelExperiencia;
     private final Label valorExperiencia;
@@ -84,16 +88,16 @@ public class VistaJuego extends StackPane implements VistaPartida {
     private Eventos eventos;
 
     public VistaJuego(Map<String, Image> imagenesHud, String hojaEstilosUrl) {
-        this(imagenesHud, crearSheetPorDefecto(), hojaEstilosUrl);
+        this(imagenesHud, crearSheetPorDefecto(imagenesHud != null ? imagenesHud.get("hojaGuiRpg") : null), hojaEstilosUrl);
     }
 
     public VistaJuego(
         Map<String, Image> imagenesHud,
-        SheetLibre recortesGui,
+        Sheet recortesGui,
         String hojaEstilosUrl
     ) {
         Objects.requireNonNull(imagenesHud, "El mapa de imágenes de HUD no puede ser nulo");
-        Objects.requireNonNull(recortesGui, "El SheetLibre de recortes GUI no puede ser nulo");
+        Objects.requireNonNull(recortesGui, "El Sheet de recortes GUI no puede ser nulo");
         Objects.requireNonNull(hojaEstilosUrl, "La URL de la hoja de estilos no puede ser nula");
         this.vidaPorCorazon = 10;
         this.cantidadGemasExperiencia = 10;
@@ -260,14 +264,16 @@ public class VistaJuego extends StackPane implements VistaPartida {
         getStylesheets().add(hojaEstilosUrl);
     }
 
-    private static SheetLibre crearSheetPorDefecto() {
-        SheetLibre sheet = new SheetLibre();
-        sheet.addRecorte("placa_ancha", new java.awt.geom.Rectangle2D.Double(14, 127, 283, 54));
-        sheet.addRecorte("placa_recta", new java.awt.geom.Rectangle2D.Double(39, 127, 232, 54));
-        sheet.addRecorte("placa_brillante", new java.awt.geom.Rectangle2D.Double(14, 283, 283, 54));
-        sheet.addRecorte("marco_icono", new java.awt.geom.Rectangle2D.Double(39, 488, 44, 44));
-        sheet.addRecorte("marco_panel", new java.awt.geom.Rectangle2D.Double(118, 451, 80, 80));
-        return sheet;
+    private static Sheet crearSheetPorDefecto(Image imagenGui) {
+        int idSheet = 1;
+        String path = "rpg_gui_v1/RPG_GUI_v1";
+        Map<String, Recorte> recortes = new HashMap<>();
+        recortes.put("placa_ancha", new Recorte(idSheet, "placa_ancha", 14, 127, 283, 54));
+        recortes.put("placa_recta", new Recorte(idSheet, "placa_recta", 39, 127, 232, 54));
+        recortes.put("placa_brillante", new Recorte(idSheet, "placa_brillante", 14, 283, 283, 54));
+        recortes.put("marco_icono", new Recorte(idSheet, "marco_icono", 39, 488, 44, 44));
+        recortes.put("marco_panel", new Recorte(idSheet, "marco_panel", 118, 451, 80, 80));
+        return new Sheet(idSheet, path, imagenGui, Extension.Imagen.PNG, Collections.emptyMap(), recortes);
     }
 
     private Eventos eventos() {
@@ -712,20 +718,19 @@ public class VistaJuego extends StackPane implements VistaPartida {
     }
 
     private ImageView crearRecorteRpg(String nombreRecorte, double ancho, double alto) {
-        if (hojaGuiRpg == null) {
+        if (recortesGui == null) {
             return null;
         }
-        java.awt.geom.Rectangle2D recorteAwt = recortesGui.getRecorte(nombreRecorte);
-        if (recorteAwt == null) {
+        Recorte recorte = recortesGui.getRecorte(nombreRecorte);
+        if (recorte == null) {
             return null;
         }
-        ImageView vistaRecorte = new ImageView(hojaGuiRpg);
-        vistaRecorte.setViewport(new Rectangle2D(
-            recorteAwt.getX(),
-            recorteAwt.getY(),
-            recorteAwt.getWidth(),
-            recorteAwt.getHeight()
-        ));
+        Image imagenSheet = recortesGui.getImagen() != null ? recortesGui.getImagen() : hojaGuiRpg;
+        if (imagenSheet == null) {
+            return null;
+        }
+        ImageView vistaRecorte = new ImageView(imagenSheet);
+        vistaRecorte.setViewport(recorte.getRectangulo());
         vistaRecorte.setFitWidth(ancho);
         vistaRecorte.setFitHeight(alto);
         vistaRecorte.setPreserveRatio(false);

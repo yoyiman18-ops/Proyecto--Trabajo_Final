@@ -1,15 +1,16 @@
 package controlador;
 
-import java.awt.geom.Rectangle2D;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import javafx.scene.Node;
 import javafx.scene.image.Image;
+import motor.modelo.graficos.Recorte;
+import motor.modelo.graficos.Sheet;
 import motor.recursos.Extension;
 import motor.recursos.GestorRecursos;
-import motor.util.graficos.SheetLibre;
 import vista.VistaFondo;
 import vista.VistaJuego;
 import vista.VistaPartida;
@@ -36,6 +37,15 @@ public final class ControladorVistaJuego {
         String hojaEstilosUrl,
         double tamanoTile
     ) {
+        this(gestorRecursos, crearSheetHud(gestorRecursos), hojaEstilosUrl, tamanoTile);
+    }
+
+    public ControladorVistaJuego(
+        GestorRecursos gestorRecursos,
+        Sheet sheetHud,
+        String hojaEstilosUrl,
+        double tamanoTile
+    ) {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
         Objects.requireNonNull(hojaEstilosUrl, "La URL de la hoja de estilos no puede ser nula");
         this.nombresImagenesHud = crearNombresImagenesHud();
@@ -47,7 +57,7 @@ public final class ControladorVistaJuego {
                 gestorRecursos.getImagen(nombresImagenesHud[indice], Extension.Imagen.PNG)
             );
         }
-        SheetLibre recortesHud = crearSheetLibreHud();
+        Sheet recortesHud = sheetHud != null ? sheetHud : crearSheetHud(gestorRecursos);
         this.vista = new VistaJuego(Map.copyOf(imagenesHud), recortesHud, hojaEstilosUrl);
         ControladorFondoMazmorra controladorFondo = new ControladorFondoMazmorra(
             this.vista.getAreaJuego(),
@@ -90,14 +100,18 @@ public final class ControladorVistaJuego {
         };
     }
 
-    private static SheetLibre crearSheetLibreHud() {
-        SheetLibre sheet = new SheetLibre();
-        sheet.addRecorte("placa_ancha", new Rectangle2D.Double(14, 127, 283, 54));
-        sheet.addRecorte("placa_recta", new Rectangle2D.Double(39, 127, 232, 54));
-        sheet.addRecorte("placa_brillante", new Rectangle2D.Double(14, 283, 283, 54));
-        sheet.addRecorte("marco_icono", new Rectangle2D.Double(39, 488, 44, 44));
-        sheet.addRecorte("marco_panel", new Rectangle2D.Double(118, 451, 80, 80));
-        return sheet;
+    public static Sheet crearSheetHud(GestorRecursos gestorRecursos) {
+        String path = "rpg_gui_v1/RPG_GUI_v1";
+        Extension.Imagen extension = Extension.Imagen.PNG;
+        Image imagen = gestorRecursos != null ? gestorRecursos.getImagen(path, extension) : null;
+        int idSheet = 1;
+        Map<String, Recorte> recortes = new HashMap<>();
+        recortes.put("placa_ancha", new Recorte(idSheet, "placa_ancha", 14, 127, 283, 54));
+        recortes.put("placa_recta", new Recorte(idSheet, "placa_recta", 39, 127, 232, 54));
+        recortes.put("placa_brillante", new Recorte(idSheet, "placa_brillante", 14, 283, 283, 54));
+        recortes.put("marco_icono", new Recorte(idSheet, "marco_icono", 39, 488, 44, 44));
+        recortes.put("marco_panel", new Recorte(idSheet, "marco_panel", 118, 451, 80, 80));
+        return new Sheet(idSheet, path, imagen, extension, Collections.emptyMap(), recortes);
     }
 
     public VistaPartida getVistaJuego() {
@@ -112,5 +126,3 @@ public final class ControladorVistaJuego {
         return vista.getRaiz();
     }
 }
-
-
