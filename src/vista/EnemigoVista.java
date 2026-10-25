@@ -7,13 +7,21 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 public final class EnemigoVista extends ImageView implements VistaEnemigo {
-    private final double duracionReaccionGolpe;
+    public static final double ANCHO_DEFAULT = 48;
+    public static final double ALTO_DEFAULT = 52;
+    public static final double TAMANO_MODELO_DEFAULT = 32;
+    public static final double DURACION_REACCION_GOLPE_DEFAULT = 0.22;
+    public static final double OPACIDAD_BASE = 0.55;
+    public static final double FACTOR_OPACIDAD_VIDA = 0.45;
+
     private final Animacion animacionIdle;
     private final Image frameGolpe;
+    private final double tamanoModelo;
+    private final double duracionReaccionGolpe;
     private double tiempoReaccionGolpe;
 
     public EnemigoVista(Animacion animacionIdle, Image frameGolpe) {
-        this(animacionIdle, frameGolpe, 48, 52, 32, 0.22);
+        this(animacionIdle, frameGolpe, ANCHO_DEFAULT, ALTO_DEFAULT, TAMANO_MODELO_DEFAULT, DURACION_REACCION_GOLPE_DEFAULT);
     }
 
     public EnemigoVista(
@@ -32,15 +40,13 @@ public final class EnemigoVista extends ImageView implements VistaEnemigo {
             || !Double.isFinite(duracionReaccionGolpe) || duracionReaccionGolpe <= 0) {
             throw new IllegalArgumentException("Las dimensiones y la duración deben ser positivas y finitas.");
         }
+        this.tamanoModelo = tamanoModelo;
         this.duracionReaccionGolpe = duracionReaccionGolpe;
         setFitWidth(ancho);
         setFitHeight(alto);
         setPreserveRatio(true);
-        this.tamanoModelo = tamanoModelo;
-        setImage(animacionIdle.actualizarSecuencia(false, 0));
+        animacionIdle.aplicar(this, false, 0);
     }
-
-    private final double tamanoModelo;
 
     @Override
     public Node getNodo() {
@@ -61,11 +67,11 @@ public final class EnemigoVista extends ImageView implements VistaEnemigo {
         if (tiempoReaccionGolpe > 0) {
             tiempoReaccionGolpe = Math.max(0, tiempoReaccionGolpe - dt);
             if (tiempoReaccionGolpe == 0) {
-                setImage(animacionIdle.actualizarSecuencia(false, 0));
+                animacionIdle.aplicar(this, false, 0);
             }
             return;
         }
-        setImage(animacionIdle.actualizarSecuencia(true, dt));
+        animacionIdle.aplicar(this, true, dt);
     }
 
     @Override
@@ -74,8 +80,9 @@ public final class EnemigoVista extends ImageView implements VistaEnemigo {
             throw new IllegalArgumentException("La proporción de vida debe ser finita.");
         }
         double proporcionValida = Math.max(0, Math.min(1, proporcionVida));
-        setOpacity(0.55 + 0.45 * proporcionValida);
+        setOpacity(OPACIDAD_BASE + FACTOR_OPACIDAD_VIDA * proporcionValida);
         tiempoReaccionGolpe = duracionReaccionGolpe;
         setImage(frameGolpe);
+        setViewport(null);
     }
 }

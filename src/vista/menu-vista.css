@@ -15,3 +15,17 @@
     -fx-background-color: #52694d;
     -fx-border-color: #f0d98d;
 }
+
+.config-panel {
+    -fx-background-color: rgba(24, 33, 43, 0.96);
+    -fx-background-radius: 12px;
+    -fx-border-color: #526779;
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+}
+
+.config-title {
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}

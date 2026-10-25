@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.IntConsumer;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -22,26 +22,39 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import java.util.Collections;
-import java.util.HashMap;
 import motor.modelo.graficos.Recorte;
 import motor.modelo.graficos.Sheet;
-import motor.recursos.Extension;
 
 /**
  * Vista principal de la pantalla de juego y su interfaz gráfica (HUD integrado, menús de pausa, mejoras y fin de partida).
  * Cumple con MVC puro: solo contiene elementos y lógica de presentación,
- * sin acoplamiento a las clases del modelo de dominio.
+ * sin acoplamiento a las clases del modelo de dominio ni rutas físicas de recursos.
  */
 public class VistaJuego extends StackPane implements VistaPartida {
-    public interface Eventos {
-        void solicitarPausa();
-        void solicitarReanudacion();
-        void solicitarVolverAlMenuDesdePausa();
-        void seleccionarMejora(int indice);
-        void solicitarReintento();
-        void solicitarVolverAlMenuDesdeFinPartida();
-    }
+
+    public static final int VIDA_POR_CORAZON_DEFAULT = 10;
+    public static final int CANTIDAD_GEMAS_EXP_DEFAULT = 10;
+
+    public static final double ANCHO_PLACA_ESTADO = 264;
+    public static final double ALTO_PLACA_ESTADO = 44;
+    public static final double ANCHO_BOTON_MENU = 260;
+    public static final double ALTO_BOTON_MENU = 48;
+    public static final double ANCHO_BOTON_PAUSA = 112;
+    public static final double ALTO_BOTON_PAUSA = 44;
+
+    public static final double ANCHO_CARTA_MEJORA = 195;
+    public static final double ALTO_CARTA_MEJORA = 235;
+
+    public static final double TAMANO_CORAZON = 13;
+    public static final double TAMANO_GEMA_EXP = 11;
+    public static final double TAMANO_MARCO_ICONO = 30;
+
+    public static final double ALTO_MEDALLON = 44;
+    public static final double ANCHO_MEDALLON_OLEADA = 118;
+    public static final double ANCHO_MEDALLON_TIEMPO = 126;
+    public static final double ANCHO_MEDALLON_ENEMIGOS = 126;
+    public static final double ANCHO_MEDALLON_DANIO = 116;
+    public static final double ANCHO_MEDALLON_PUNTOS = 116;
 
     private final int vidaPorCorazon;
     private final int cantidadGemasExperiencia;
@@ -85,10 +98,10 @@ public class VistaJuego extends StackPane implements VistaPartida {
 
     private final StackPane panelEleccionMejora;
 
-    private Eventos eventos;
+    private IntConsumer onSeleccionarMejora;
 
     public VistaJuego(Map<String, Image> imagenesHud, String hojaEstilosUrl) {
-        this(imagenesHud, crearSheetPorDefecto(imagenesHud != null ? imagenesHud.get("hojaGuiRpg") : null), hojaEstilosUrl);
+        this(imagenesHud, null, hojaEstilosUrl);
     }
 
     public VistaJuego(
@@ -96,11 +109,23 @@ public class VistaJuego extends StackPane implements VistaPartida {
         Sheet recortesGui,
         String hojaEstilosUrl
     ) {
+        this(imagenesHud, recortesGui, hojaEstilosUrl, VIDA_POR_CORAZON_DEFAULT, CANTIDAD_GEMAS_EXP_DEFAULT);
+    }
+
+    public VistaJuego(
+        Map<String, Image> imagenesHud,
+        Sheet recortesGui,
+        String hojaEstilosUrl,
+        int vidaPorCorazon,
+        int cantidadGemasExperiencia
+    ) {
         Objects.requireNonNull(imagenesHud, "El mapa de imágenes de HUD no puede ser nulo");
-        Objects.requireNonNull(recortesGui, "El Sheet de recortes GUI no puede ser nulo");
         Objects.requireNonNull(hojaEstilosUrl, "La URL de la hoja de estilos no puede ser nula");
-        this.vidaPorCorazon = 10;
-        this.cantidadGemasExperiencia = 10;
+        if (vidaPorCorazon <= 0 || cantidadGemasExperiencia <= 0) {
+            throw new IllegalArgumentException("La vida por corazón y la cantidad de gemas deben ser positivas.");
+        }
+        this.vidaPorCorazon = vidaPorCorazon;
+        this.cantidadGemasExperiencia = cantidadGemasExperiencia;
         this.areaJuego = new Pane();
         this.vida = crearValor("100/100");
         this.corazones = new FlowPane(3, 2);
@@ -127,18 +152,18 @@ public class VistaJuego extends StackPane implements VistaPartida {
             "PUNTOS",
             this.puntos,
             imagenesHud.get("iconoPuntos"),
-            116,
-            44
+            ANCHO_MEDALLON_PUNTOS,
+            ALTO_MEDALLON
         );
-        this.botonPausar = crearBotonPlacaRpg("II  PAUSA", "placa_brillante", 112, 44, "pause-button");
-        this.botonPausarMejora = crearBotonPlacaRpg("II  PAUSA", "placa_brillante", 112, 44, "pause-button");
+        this.botonPausar = crearBotonPlacaRpg("II  PAUSA", "placa_brillante", ANCHO_BOTON_PAUSA, ALTO_BOTON_PAUSA, "pause-button");
+        this.botonPausarMejora = crearBotonPlacaRpg("II  PAUSA", "placa_brillante", ANCHO_BOTON_PAUSA, ALTO_BOTON_PAUSA, "pause-button");
         this.textoPausa = new Label("PARTIDA EN PAUSA");
-        this.botonReanudar = crearBotonPlacaRpg("CONTINUAR", "placa_ancha", 260, 48, "game-over-button");
-        this.botonSalirPausa = crearBotonPlacaRpg("VOLVER AL MENÚ", "placa_ancha", 260, 48, "game-over-button");
+        this.botonReanudar = crearBotonPlacaRpg("CONTINUAR", "placa_ancha", ANCHO_BOTON_MENU, ALTO_BOTON_MENU, "game-over-button");
+        this.botonSalirPausa = crearBotonPlacaRpg("VOLVER AL MENÚ", "placa_ancha", ANCHO_BOTON_MENU, ALTO_BOTON_MENU, "game-over-button");
         this.panelPausa = new StackPane();
         this.textoFinPartida = new Label("FIN DE LA PARTIDA");
-        this.botonReintentar = crearBotonPlacaRpg("REINTENTAR", "placa_ancha", 260, 48, "game-over-button");
-        this.botonVolverMenu = crearBotonPlacaRpg("VOLVER AL MENÚ", "placa_ancha", 260, 48, "game-over-button");
+        this.botonReintentar = crearBotonPlacaRpg("REINTENTAR", "placa_ancha", ANCHO_BOTON_MENU, ALTO_BOTON_MENU, "game-over-button");
+        this.botonVolverMenu = crearBotonPlacaRpg("VOLVER AL MENÚ", "placa_ancha", ANCHO_BOTON_MENU, ALTO_BOTON_MENU, "game-over-button");
         this.panelFinPartida = new StackPane();
         this.panelEleccionMejora = new StackPane();
 
@@ -154,22 +179,22 @@ public class VistaJuego extends StackPane implements VistaPartida {
             "OLEADA",
             oleada,
             imagenesHud.get("iconoOleada"),
-            118,
-            44
+            ANCHO_MEDALLON_OLEADA,
+            ALTO_MEDALLON
         );
         StackPane medallonTiempo = crearMedallonAtributo(
             "TIEMPO",
             tiempo,
             imagenesHud.get("iconoTiempo"),
-            126,
-            44
+            ANCHO_MEDALLON_TIEMPO,
+            ALTO_MEDALLON
         );
         StackPane medallonEnemigos = crearMedallonAtributo(
             "ENEMIGOS",
             enemigos,
             imagenesHud.get("iconoEnemigos"),
-            126,
-            44
+            ANCHO_MEDALLON_ENEMIGOS,
+            ALTO_MEDALLON
         );
         HBox grupoPartida = new HBox(8, medallonOleada, medallonTiempo, medallonEnemigos);
         grupoPartida.setAlignment(Pos.TOP_CENTER);
@@ -180,17 +205,14 @@ public class VistaJuego extends StackPane implements VistaPartida {
             "PODER",
             danio,
             imagenesHud.get("iconoDanio"),
-            116,
-            44
+            ANCHO_MEDALLON_DANIO,
+            ALTO_MEDALLON
         );
         indicadorPuntos.setVisible(false);
         indicadorPuntos.setManaged(false);
 
         botonPausar.setFocusTraversable(false);
-        botonPausar.setOnAction(event -> eventos().solicitarPausa());
-
         botonPausarMejora.setFocusTraversable(false);
-        botonPausarMejora.setOnAction(event -> eventos().solicitarPausa());
 
         HBox grupoDerecho = new HBox(8, medallonDanio, indicadorPuntos, botonPausar);
         grupoDerecho.setAlignment(Pos.TOP_RIGHT);
@@ -228,8 +250,6 @@ public class VistaJuego extends StackPane implements VistaPartida {
         panelPausa.getChildren().add(opcionesPausa);
         panelPausa.setVisible(false);
         panelPausa.setManaged(false);
-        botonReanudar.setOnAction(event -> eventos().solicitarReanudacion());
-        botonSalirPausa.setOnAction(event -> eventos().solicitarVolverAlMenuDesdePausa());
 
         areaJuego.getStyleClass().add("game-area");
         areaJuego.setMinSize(0, 0);
@@ -249,8 +269,6 @@ public class VistaJuego extends StackPane implements VistaPartida {
         panelFinPartida.getChildren().add(opcionesFinPartida);
         panelFinPartida.setVisible(false);
         panelFinPartida.setManaged(false);
-        botonReintentar.setOnAction(event -> eventos().solicitarReintento());
-        botonVolverMenu.setOnAction(event -> eventos().solicitarVolverAlMenuDesdeFinPartida());
 
         panelEleccionMejora.getStyleClass().add("level-up-overlay");
         panelEleccionMejora.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -262,22 +280,6 @@ public class VistaJuego extends StackPane implements VistaPartida {
         getStyleClass().add("game-root");
 
         getStylesheets().add(hojaEstilosUrl);
-    }
-
-    private static Sheet crearSheetPorDefecto(Image imagenGui) {
-        int idSheet = 1;
-        String path = "rpg_gui_v1/RPG_GUI_v1";
-        Map<String, Recorte> recortes = new HashMap<>();
-        recortes.put("placa_ancha", new Recorte(idSheet, "placa_ancha", 14, 127, 283, 54));
-        recortes.put("placa_recta", new Recorte(idSheet, "placa_recta", 39, 127, 232, 54));
-        recortes.put("placa_brillante", new Recorte(idSheet, "placa_brillante", 14, 283, 283, 54));
-        recortes.put("marco_icono", new Recorte(idSheet, "marco_icono", 39, 488, 44, 44));
-        recortes.put("marco_panel", new Recorte(idSheet, "marco_panel", 118, 451, 80, 80));
-        return new Sheet(idSheet, path, imagenGui, Extension.Imagen.PNG, Collections.emptyMap(), recortes);
-    }
-
-    private Eventos eventos() {
-        return Objects.requireNonNull(eventos, "Los eventos de VistaJuego no han sido configurados");
     }
 
     @Override
@@ -318,8 +320,39 @@ public class VistaJuego extends StackPane implements VistaPartida {
     }
 
     @Override
-    public void configurarEventos(Eventos eventos) {
-        this.eventos = Objects.requireNonNull(eventos, "Los eventos de VistaJuego no pueden ser nulos");
+    public void setOnPausa(Runnable accion) {
+        Objects.requireNonNull(accion, "La acción de pausa no puede ser nula");
+        botonPausar.setOnAction(event -> accion.run());
+        botonPausarMejora.setOnAction(event -> accion.run());
+    }
+
+    @Override
+    public void setOnReanudar(Runnable accion) {
+        Objects.requireNonNull(accion, "La acción de reanudación no puede ser nula");
+        botonReanudar.setOnAction(event -> accion.run());
+    }
+
+    @Override
+    public void setOnVolverAlMenuDesdePausa(Runnable accion) {
+        Objects.requireNonNull(accion, "La acción de volver al menú no puede ser nula");
+        botonSalirPausa.setOnAction(event -> accion.run());
+    }
+
+    @Override
+    public void setOnSeleccionarMejora(IntConsumer accion) {
+        this.onSeleccionarMejora = Objects.requireNonNull(accion, "La acción de seleccionar mejora no puede ser nula");
+    }
+
+    @Override
+    public void setOnReintentar(Runnable accion) {
+        Objects.requireNonNull(accion, "La acción de reintentar no puede ser nula");
+        botonReintentar.setOnAction(event -> accion.run());
+    }
+
+    @Override
+    public void setOnVolverAlMenuDesdeFinPartida(Runnable accion) {
+        Objects.requireNonNull(accion, "La acción de volver al menú no puede ser nula");
+        botonVolverMenu.setOnAction(event -> accion.run());
     }
 
     @Override
@@ -338,9 +371,9 @@ public class VistaJuego extends StackPane implements VistaPartida {
     @Override
     public void mostrarEleccionMejora(
         int nivel,
-        List<String> descripcionesMejoras
+        List<OpcionMejoraVisual> descripcionesMejoras
     ) {
-        Objects.requireNonNull(descripcionesMejoras, "Las descripciones de mejoras no pueden ser nulas");
+        Objects.requireNonNull(descripcionesMejoras, "Las opciones de mejora no pueden ser nulas");
         Label subtitulo = new Label("ELIGE UNA BENDICIÓN ARCANA");
         subtitulo.getStyleClass().add("hud-label");
         Label titulo = new Label("¡NIVEL " + nivel + " ALCANZADO!");
@@ -368,23 +401,8 @@ public class VistaJuego extends StackPane implements VistaPartida {
         panelEleccionMejora.setVisible(true);
     }
 
-    private Button crearCartaMejora(String descripcionCompleta, int seleccion) {
-        String rarezaTexto = "COMÚN";
-        String resto = descripcionCompleta;
-        if (descripcionCompleta.startsWith("[") && descripcionCompleta.contains("] ")) {
-            int cierre = descripcionCompleta.indexOf("] ");
-            rarezaTexto = descripcionCompleta.substring(1, cierre);
-            resto = descripcionCompleta.substring(cierre + 2);
-        }
-
-        String nombreAtributo = resto;
-        String valorBonus = "";
-        int indiceMas = resto.lastIndexOf('+');
-        if (indiceMas > 0) {
-            nombreAtributo = resto.substring(0, indiceMas).trim();
-            valorBonus = resto.substring(indiceMas).trim();
-        }
-
+    private Button crearCartaMejora(OpcionMejoraVisual opcion, int seleccion) {
+        String rarezaTexto = opcion.rareza();
         String claseRareza = switch (rarezaTexto) {
             case "RARA" -> "upgrade-card-rare";
             case "ÉPICA" -> "upgrade-card-epic";
@@ -398,17 +416,17 @@ public class VistaJuego extends StackPane implements VistaPartida {
         Label insigniaRareza = new Label(textoInsignia);
         insigniaRareza.getStyleClass().addAll("upgrade-rarity-badge", claseRareza + "-badge");
 
-        Image icono = obtenerIconoMejora(nombreAtributo);
+        Image icono = resolverIconoMejora(opcion.claveIcono());
         StackPane casilleroIcono = crearCasilleroIcono(icono, 54, 34);
 
-        Label etiquetaAtributo = new Label(nombreAtributo.toUpperCase());
+        Label etiquetaAtributo = new Label(opcion.nombreAtributo().toUpperCase());
         etiquetaAtributo.getStyleClass().add("upgrade-attr-title");
         etiquetaAtributo.setWrapText(true);
 
-        Label etiquetaValor = new Label(valorBonus);
+        Label etiquetaValor = new Label(opcion.valorBonus());
         etiquetaValor.getStyleClass().addAll("upgrade-bonus-value", claseRareza + "-value");
 
-        Label descripcionBreve = new Label(obtenerSubtextoMejora(nombreAtributo));
+        Label descripcionBreve = new Label(opcion.descripcion());
         descripcionBreve.getStyleClass().add("upgrade-flavor-text");
         descripcionBreve.setWrapText(true);
 
@@ -424,55 +442,28 @@ public class VistaJuego extends StackPane implements VistaPartida {
         Button carta = new Button();
         carta.setGraphic(contenidoCarta);
         carta.getStyleClass().addAll("upgrade-card", claseRareza);
-        carta.setMinSize(195, 235);
-        carta.setPrefSize(195, 235);
-        carta.setMaxSize(195, 235);
-        carta.setOnAction(event -> eventos().seleccionarMejora(seleccion));
+        carta.setMinSize(ANCHO_CARTA_MEJORA, ALTO_CARTA_MEJORA);
+        carta.setPrefSize(ANCHO_CARTA_MEJORA, ALTO_CARTA_MEJORA);
+        carta.setMaxSize(ANCHO_CARTA_MEJORA, ALTO_CARTA_MEJORA);
+        carta.setOnAction(event -> {
+            if (onSeleccionarMejora != null) {
+                onSeleccionarMejora.accept(seleccion);
+            }
+        });
         return carta;
     }
 
-    private Image obtenerIconoMejora(String nombreAtributo) {
-        if (nombreAtributo.contains("Vida")) {
-            return corazonLleno;
-        }
-        if (nombreAtributo.contains("Daño") || nombreAtributo.contains("Crítico")) {
-            return imagenesHud.get("iconoDanio");
-        }
-        if (nombreAtributo.contains("Vel. Ataque") || nombreAtributo.contains("Multidisparo")) {
+    private Image resolverIconoMejora(String claveIcono) {
+        if (claveIcono == null) {
             return iconoExperiencia;
         }
-        if (nombreAtributo.contains("Velocidad")) {
-            return imagenesHud.get("iconoTiempo");
-        }
-        if (nombreAtributo.contains("Defensa")) {
-            return imagenesHud.get("iconoOleada");
-        }
-        return iconoExperiencia;
-    }
-
-    private String obtenerSubtextoMejora(String nombreAtributo) {
-        if (nombreAtributo.contains("Vida")) {
-            return "Aumenta y restaura tu vitalidad";
-        }
-        if (nombreAtributo.contains("Daño")) {
-            return "Mayor impacto por proyectil";
-        }
-        if (nombreAtributo.contains("Vel. Ataque")) {
-            return "Disparás con mayor frecuencia";
-        }
-        if (nombreAtributo.contains("Crítico")) {
-            return "Chance de disparo carmesí x2 daño";
-        }
-        if (nombreAtributo.contains("Multidisparo")) {
-            return "Chance de lanzar 3 orbes en abanico";
-        }
-        if (nombreAtributo.contains("Velocidad")) {
-            return "Mayor agilidad en la mazmorra";
-        }
-        if (nombreAtributo.contains("Defensa")) {
-            return "Reduce el daño recibido";
-        }
-        return "Bendición ancestral";
+        return switch (claveIcono) {
+            case "corazon" -> corazonLleno;
+            case "danio" -> imagenesHud.get("iconoDanio");
+            case "tiempo" -> imagenesHud.get("iconoTiempo");
+            case "defensa" -> imagenesHud.get("iconoOleada");
+            default -> iconoExperiencia;
+        };
     }
 
     @Override
@@ -506,8 +497,8 @@ public class VistaJuego extends StackPane implements VistaPartida {
 
         while (iconosVida.size() < corazonesMaximos) {
             ImageView corazon = new ImageView();
-            corazon.setFitWidth(13);
-            corazon.setFitHeight(13);
+            corazon.setFitWidth(TAMANO_CORAZON);
+            corazon.setFitHeight(TAMANO_CORAZON);
             corazon.setPreserveRatio(true);
             corazon.setSmooth(false);
             iconosVida.add(corazon);
@@ -592,8 +583,8 @@ public class VistaJuego extends StackPane implements VistaPartida {
     }
 
     private StackPane crearPlacaVitalidad() {
-        double anchoPlaca = 264;
-        double altoPlaca = 44;
+        double anchoPlaca = ANCHO_PLACA_ESTADO;
+        double altoPlaca = ALTO_PLACA_ESTADO;
 
         corazones.setPrefWrapLength(135);
         corazones.setAlignment(Pos.CENTER_LEFT);
@@ -609,7 +600,7 @@ public class VistaJuego extends StackPane implements VistaPartida {
         detalleVida.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(detalleVida, Priority.ALWAYS);
 
-        StackPane casilleroCorazon = crearCasilleroIcono(corazonLleno, 30, 18);
+        StackPane casilleroCorazon = crearCasilleroIcono(corazonLleno, TAMANO_MARCO_ICONO, 18);
         HBox filaContenido = new HBox(8, casilleroCorazon, detalleVida);
         filaContenido.setAlignment(Pos.CENTER_LEFT);
         filaContenido.setPadding(new Insets(4, 22, 4, 20));
@@ -618,13 +609,13 @@ public class VistaJuego extends StackPane implements VistaPartida {
     }
 
     private StackPane crearPlacaExperiencia() {
-        double anchoPlaca = 264;
-        double altoPlaca = 44;
+        double anchoPlaca = ANCHO_PLACA_ESTADO;
+        double altoPlaca = ALTO_PLACA_ESTADO;
 
         for (int indice = 0; indice < cantidadGemasExperiencia; indice++) {
             ImageView gema = new ImageView(gemaExperienciaVacia);
-            gema.setFitWidth(11);
-            gema.setFitHeight(11);
+            gema.setFitWidth(TAMANO_GEMA_EXP);
+            gema.setFitHeight(TAMANO_GEMA_EXP);
             gema.setPreserveRatio(true);
             gema.setSmooth(false);
             iconosExperiencia.add(gema);
@@ -642,7 +633,7 @@ public class VistaJuego extends StackPane implements VistaPartida {
         informacion.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(informacion, Priority.ALWAYS);
 
-        StackPane casilleroMagia = crearCasilleroIcono(iconoExperiencia, 30, 20);
+        StackPane casilleroMagia = crearCasilleroIcono(iconoExperiencia, TAMANO_MARCO_ICONO, 20);
         HBox contenido = new HBox(8, casilleroMagia, informacion);
         contenido.setAlignment(Pos.CENTER_LEFT);
         contenido.setPadding(new Insets(4, 22, 4, 20));
@@ -663,7 +654,7 @@ public class VistaJuego extends StackPane implements VistaPartida {
         VBox textos = new VBox(0, etiqueta, nodoValor);
         textos.setAlignment(Pos.CENTER_LEFT);
 
-        StackPane casilleroIcono = crearCasilleroIcono(iconoAtributo, 30, 19);
+        StackPane casilleroIcono = crearCasilleroIcono(iconoAtributo, TAMANO_MARCO_ICONO, 19);
         HBox contenido = new HBox(7, casilleroIcono, textos);
         contenido.setAlignment(Pos.CENTER_LEFT);
         contenido.setPadding(new Insets(4, 12, 4, 10));
@@ -738,4 +729,3 @@ public class VistaJuego extends StackPane implements VistaPartida {
         return vistaRecorte;
     }
 }
-

@@ -7,12 +7,17 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 public final class ProyectilVista extends ImageView implements VistaProyectil {
+    public static final double ANCHO_DEFAULT = 28;
+    public static final double ALTO_DEFAULT = 28;
+    public static final double TAMANO_MODELO_DEFAULT = 16;
+    public static final int FILA_ANIMACION_DEFAULT = 0;
+
     private final Animacion animacion;
     private final int filaAnimacion;
     private final double tamanoModelo;
 
     public ProyectilVista(Animacion animacion) {
-        this(animacion, 28, 28, 16);
+        this(animacion, FILA_ANIMACION_DEFAULT, ANCHO_DEFAULT, ALTO_DEFAULT, TAMANO_MODELO_DEFAULT);
     }
 
     public ProyectilVista(
@@ -21,24 +26,7 @@ public final class ProyectilVista extends ImageView implements VistaProyectil {
         double alto,
         double tamanoModelo
     ) {
-        this.animacion = Objects.requireNonNull(animacion, "La animación del proyectil no puede ser nula");
-        this.filaAnimacion = 0;
-        if (!Double.isFinite(ancho) || ancho <= 0
-            || !Double.isFinite(alto) || alto <= 0
-            || !Double.isFinite(tamanoModelo) || tamanoModelo <= 0) {
-            throw new IllegalArgumentException("Las dimensiones del proyectil deben ser positivas y finitas.");
-        }
-        this.tamanoModelo = tamanoModelo;
-        setFitWidth(ancho);
-        setFitHeight(alto);
-        setPreserveRatio(true);
-        if (animacion.esSecuenciaImagenes()) {
-            setImage(animacion.actualizarSecuencia(false, 0));
-        } else {
-            throw new IllegalArgumentException(
-                "Para una hoja de sprites se debe indicar la imagen base en el constructor."
-            );
-        }
+        this(animacion, FILA_ANIMACION_DEFAULT, ancho, alto, tamanoModelo);
     }
 
     public ProyectilVista(
@@ -48,7 +36,18 @@ public final class ProyectilVista extends ImageView implements VistaProyectil {
         double alto,
         double tamanoModelo
     ) {
-        this(hojaSprites, animacion, 0, ancho, alto, tamanoModelo);
+        this(hojaSprites, animacion, FILA_ANIMACION_DEFAULT, ancho, alto, tamanoModelo);
+    }
+
+    public ProyectilVista(
+        Animacion animacion,
+        int filaAnimacion,
+        double ancho,
+        double alto,
+        double tamanoModelo
+    ) {
+        this(Objects.requireNonNull(animacion, "La animación del proyectil no puede ser nula").getHoja(),
+             animacion, filaAnimacion, ancho, alto, tamanoModelo);
     }
 
     public ProyectilVista(
@@ -59,7 +58,7 @@ public final class ProyectilVista extends ImageView implements VistaProyectil {
         double alto,
         double tamanoModelo
     ) {
-        super(Objects.requireNonNull(hojaSprites, "La hoja de sprites no puede ser nula"));
+        super(hojaSprites);
         this.animacion = Objects.requireNonNull(animacion, "La animación del proyectil no puede ser nula");
         if (filaAnimacion < 0) {
             throw new IllegalArgumentException("La fila de animación no puede ser negativa.");
@@ -74,11 +73,7 @@ public final class ProyectilVista extends ImageView implements VistaProyectil {
         setFitWidth(ancho);
         setFitHeight(alto);
         setPreserveRatio(true);
-        if (animacion.esSecuenciaImagenes()) {
-            setImage(animacion.actualizarSecuencia(false, 0));
-        } else {
-            setViewport(animacion.actualizar(filaAnimacion, true, 0));
-        }
+        this.animacion.aplicar(this, filaAnimacion, false, 0);
     }
 
     @Override
@@ -97,10 +92,6 @@ public final class ProyectilVista extends ImageView implements VistaProyectil {
         if (!Double.isFinite(dt) || dt < 0) {
             throw new IllegalArgumentException("El delta tiempo debe ser finito y no negativo.");
         }
-        if (animacion.esSecuenciaImagenes()) {
-            setImage(animacion.actualizarSecuencia(true, dt));
-        } else {
-            setViewport(animacion.actualizar(filaAnimacion, true, dt));
-        }
+        animacion.aplicar(this, filaAnimacion, true, dt);
     }
 }

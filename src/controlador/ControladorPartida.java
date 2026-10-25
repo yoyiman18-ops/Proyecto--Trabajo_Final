@@ -18,7 +18,7 @@ import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
 import vista.VistaFondo;
-import vista.VistaJuego;
+import vista.OpcionMejoraVisual;
 import vista.VistaPartida;
 
 /**
@@ -127,55 +127,42 @@ public final class ControladorPartida {
     }
 
     private void configurarVistas() {
-        vistaJuego.configurarEventos(new VistaJuego.Eventos() {
-            @Override
-            public void solicitarPausa() {
-                if (modeloPartida.isPartidaFinalizada() || modeloPartida.isEnPausa()) {
-                    return;
-                }
-                modeloPartida.setEnPausa(true);
-                motor.detener();
-                vistaJuego.mostrarPausa();
-            }
+        vistaJuego.setOnPausa(this::solicitarPausa);
+        vistaJuego.setOnReanudar(this::solicitarReanudacion);
+        vistaJuego.setOnVolverAlMenuDesdePausa(this::volverAlMenu);
+        vistaJuego.setOnSeleccionarMejora(this::elegirMejora);
+        vistaJuego.setOnReintentar(this::reintentarPartida);
+        vistaJuego.setOnVolverAlMenuDesdeFinPartida(this::volverAlMenu);
+    }
 
-            @Override
-            public void solicitarReanudacion() {
-                if (!modeloPartida.isEnPausa()) {
-                    return;
-                }
-                modeloPartida.setEnPausa(false);
-                vistaJuego.cerrarPausa();
-                if (!modeloPartida.isEleccionMejoraActiva() && !modeloPartida.isPartidaFinalizada()) {
-                    motor.iniciar();
-                }
-            }
+    private void solicitarPausa() {
+        if (modeloPartida.isPartidaFinalizada() || modeloPartida.isEnPausa()) {
+            return;
+        }
+        modeloPartida.setEnPausa(true);
+        motor.detener();
+        vistaJuego.mostrarPausa();
+    }
 
-            @Override
-            public void solicitarVolverAlMenuDesdePausa() {
-                volverAlMenu();
-            }
+    private void solicitarReanudacion() {
+        if (!modeloPartida.isEnPausa()) {
+            return;
+        }
+        modeloPartida.setEnPausa(false);
+        vistaJuego.cerrarPausa();
+        if (!modeloPartida.isEleccionMejoraActiva() && !modeloPartida.isPartidaFinalizada()) {
+            motor.iniciar();
+        }
+    }
 
-            @Override
-            public void seleccionarMejora(int seleccionIndice) {
-                elegirMejora(seleccionIndice);
-            }
+    private void reintentarPartida() {
+        detener();
+        onReintentar.run();
+    }
 
-            @Override
-            public void solicitarReintento() {
-                detener();
-                onReintentar.run();
-            }
-
-            @Override
-            public void solicitarVolverAlMenuDesdeFinPartida() {
-                volverAlMenu();
-            }
-
-            private void volverAlMenu() {
-                detener();
-                onVolverAlMenu.run();
-            }
-        });
+    private void volverAlMenu() {
+        detener();
+        onVolverAlMenu.run();
     }
 
     private void inicializarJugador() {
@@ -392,14 +379,14 @@ public final class ControladorPartida {
         motor.detener();
 
         List<ItemMejoraAtributo> opciones = modeloPartida.iniciarEleccionMejora();
-        List<String> descripciones = opciones.stream()
-            .map(this::formatearDescripcionMejora)
+        List<OpcionMejoraVisual> opcionesVisuales = opciones.stream()
+            .map(this::mapearOpcionMejora)
             .toList();
 
         int nivelActual = personaje.getNivel();
         Platform.runLater(() -> {
             if (!modeloPartida.isPartidaFinalizada()) {
-                vistaJuego.mostrarEleccionMejora(nivelActual, descripciones);
+                vistaJuego.mostrarEleccionMejora(nivelActual, opcionesVisuales);
             }
         });
     }
@@ -436,23 +423,43 @@ public final class ControladorPartida {
         });
     }
 
-    private String formatearDescripcionMejora(ItemMejoraAtributo item) {
-        String etiquetaRareza = switch (item.rareza()) {
-            case COMUN -> "[COMÚN]";
-            case RARA -> "[RARA]";
-            case EPICA -> "[ÉPICA]";
-            case LEGENDARIA -> "[LEGENDARIA]";
+    private OpcionMejoraVisual mapearOpcionMejora(ItemMejoraAtributo item) {
+        String rareza = switch (item.rareza()) {
+            case COMUN -> "COMÚN";
+            case RARA -> "RARA";
+            case EPICA -> "ÉPICA";
+            case LEGENDARIA -> "LEGENDARIA";
         };
-        String efecto = switch (item.atributo()) {
-            case VIDA_MAXIMA -> "Vida máxima +" + (int) item.cantidad();
-            case DANIO_ATAQUE -> "Daño +" + (int) item.cantidad();
-            case VELOCIDAD_ATAQUE -> "Vel. Ataque +" + (int) item.cantidad() + "%";
-            case VELOCIDAD_MAXIMA -> "Velocidad +" + (int) item.cantidad() + "%";
-            case DEFENSA -> "Defensa +" + (int) item.cantidad() + "%";
-            case PROBABILIDAD_CRITICO -> "Crítico +" + (int) item.cantidad() + "%";
-            case PROBABILIDAD_MULTIDISPARO -> "Multidisparo +" + (int) item.cantidad() + "%";
+        String nombre = switch (item.atributo()) {
+            case VIDA_MAXIMA -> "Vida máxima";
+            case DANIO_ATAQUE -> "Daño";
+            case VELOCIDAD_ATAQUE -> "Vel. Ataque";
+            case VELOCIDAD_MAXIMA -> "Velocidad";
+            case DEFENSA -> "Defensa";
+            case PROBABILIDAD_CRITICO -> "Crítico";
+            case PROBABILIDAD_MULTIDISPARO -> "Multidisparo";
         };
-        return etiquetaRareza + " " + efecto;
+        String bonus = switch (item.atributo()) {
+            case VIDA_MAXIMA, DANIO_ATAQUE -> "+" + (int) item.cantidad();
+            default -> "+" + (int) item.cantidad() + "%";
+        };
+        String descripcion = switch (item.atributo()) {
+            case VIDA_MAXIMA -> "Aumenta y restaura tu vitalidad";
+            case DANIO_ATAQUE -> "Mayor impacto por proyectil";
+            case VELOCIDAD_ATAQUE -> "Disparás con mayor frecuencia";
+            case VELOCIDAD_MAXIMA -> "Mayor agilidad en la mazmorra";
+            case DEFENSA -> "Reduce el daño recibido";
+            case PROBABILIDAD_CRITICO -> "Chance de disparo carmesí x2 daño";
+            case PROBABILIDAD_MULTIDISPARO -> "Chance de lanzar 3 orbes en abanico";
+        };
+        String claveIcono = switch (item.atributo()) {
+            case VIDA_MAXIMA -> "corazon";
+            case DANIO_ATAQUE, PROBABILIDAD_CRITICO -> "danio";
+            case VELOCIDAD_MAXIMA -> "tiempo";
+            case DEFENSA -> "defensa";
+            case VELOCIDAD_ATAQUE, PROBABILIDAD_MULTIDISPARO -> "experiencia";
+        };
+        return new OpcionMejoraVisual(rareza, nombre, bonus, descripcion, claveIcono);
     }
 
     public void iniciar() {

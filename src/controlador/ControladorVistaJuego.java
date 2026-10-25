@@ -11,6 +11,7 @@ import motor.modelo.graficos.Recorte;
 import motor.modelo.graficos.Sheet;
 import motor.recursos.Extension;
 import motor.recursos.GestorRecursos;
+import vista.ConfiguracionMazmorra;
 import vista.VistaFondo;
 import vista.VistaJuego;
 import vista.VistaPartida;
@@ -46,8 +47,18 @@ public final class ControladorVistaJuego {
         String hojaEstilosUrl,
         double tamanoTile
     ) {
+        this(gestorRecursos, sheetHud, hojaEstilosUrl, new ConfiguracionMazmorra(tamanoTile));
+    }
+
+    public ControladorVistaJuego(
+        GestorRecursos gestorRecursos,
+        Sheet sheetHud,
+        String hojaEstilosUrl,
+        ConfiguracionMazmorra configuracionMazmorra
+    ) {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
         Objects.requireNonNull(hojaEstilosUrl, "La URL de la hoja de estilos no puede ser nula");
+        Objects.requireNonNull(configuracionMazmorra, "La configuración de mazmorra no puede ser nula");
         this.nombresImagenesHud = crearNombresImagenesHud();
         this.clavesImagenesHud = crearClavesImagenesHud();
         Map<String, Image> imagenesHud = new HashMap<>();
@@ -62,7 +73,7 @@ public final class ControladorVistaJuego {
         ControladorFondoMazmorra controladorFondo = new ControladorFondoMazmorra(
             this.vista.getAreaJuego(),
             gestorRecursos,
-            tamanoTile
+            configuracionMazmorra
         );
         this.fondoMazmorra = controladorFondo.getVista();
         this.vista.agregarNodoJuego(this.fondoMazmorra.getNodo());

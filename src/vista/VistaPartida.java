@@ -1,6 +1,7 @@
 package vista;
 
 import java.util.List;
+import java.util.function.IntConsumer;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -14,10 +15,18 @@ public interface VistaPartida {
     void agregarNodoJuego(Node nodo);
     void removerNodoJuego(Node nodo);
     void solicitarFoco();
-    void configurarEventos(VistaJuego.Eventos eventos);
+
+    // Callbacks de interacción del usuario (estilo funcional / MVC pasivo)
+    void setOnPausa(Runnable accion);
+    void setOnReanudar(Runnable accion);
+    void setOnVolverAlMenuDesdePausa(Runnable accion);
+    void setOnSeleccionarMejora(IntConsumer accion);
+    void setOnReintentar(Runnable accion);
+    void setOnVolverAlMenuDesdeFinPartida(Runnable accion);
+
     void setPausaHabilitada(boolean habilitada);
     void mostrarFinPartida(String mensaje);
-    void mostrarEleccionMejora(int nivel, List<String> descripcionesMejoras);
+    void mostrarEleccionMejora(int nivel, List<OpcionMejoraVisual> opciones);
     void cerrarEleccionMejora();
     void mostrarPausa();
     void cerrarPausa();

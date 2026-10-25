@@ -11,6 +11,10 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
 public class ConfiguracionVista extends VBox implements VistaConfiguracion {
+    public static final double ANCHO_DEFAULT = 360;
+    public static final double ALTO_DEFAULT = 460;
+    public static final String RUTA_ESTILOS_DEFAULT = "/vista/menu-vista.css";
+
     private final double ancho;
     private final double alto;
 
@@ -19,8 +23,15 @@ public class ConfiguracionVista extends VBox implements VistaConfiguracion {
     private final Button botonVolver;
 
     public ConfiguracionVista() {
-        this.ancho = 360;
-        this.alto = 460;
+        this(ANCHO_DEFAULT, ALTO_DEFAULT, null);
+    }
+
+    public ConfiguracionVista(double ancho, double alto, String hojaEstilosUrl) {
+        if (!Double.isFinite(ancho) || ancho <= 0 || !Double.isFinite(alto) || alto <= 0) {
+            throw new IllegalArgumentException("Las dimensiones de la vista de configuración deben ser positivas y finitas.");
+        }
+        this.ancho = ancho;
+        this.alto = alto;
         this.titulo = new Label("Configuración");
         this.opciones = new VBox();
         this.botonVolver = new Button("VOLVER");
@@ -30,13 +41,19 @@ public class ConfiguracionVista extends VBox implements VistaConfiguracion {
         setSpacing(18);
         setPadding(new Insets(24));
         setAlignment(Pos.TOP_LEFT);
-        setStyle("-fx-background-color: rgba(24,33,43,0.96);"
-                + "-fx-background-radius: 12;"
-                + "-fx-border-color: #526779;"
-                + "-fx-border-width: 1;"
-                + "-fx-border-radius: 12;");
 
-        titulo.setStyle("-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;");
+        getStyleClass().add("config-panel");
+        titulo.getStyleClass().add("config-title");
+        botonVolver.getStyleClass().add("menu-button");
+
+        if (hojaEstilosUrl != null && !hojaEstilosUrl.isBlank()) {
+            getStylesheets().add(hojaEstilosUrl);
+        } else {
+            var resource = getClass().getResource(RUTA_ESTILOS_DEFAULT);
+            if (resource != null) {
+                getStylesheets().add(resource.toExternalForm());
+            }
+        }
 
         opciones.setSpacing(12);
         opciones.setFillWidth(true);
