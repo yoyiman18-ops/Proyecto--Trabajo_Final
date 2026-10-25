@@ -42,6 +42,13 @@ public class GestorRecursos {
         logger.log(Level.INFO,"Creado: "+ getClass().getName());
     }
 
+    public static GestorRecursos getInstancia() {
+        if (GestorRecursos.instancia == null) {
+            GestorRecursos.instancia = new GestorRecursos();
+        }
+        return GestorRecursos.instancia;
+    }
+
     public Image getImagen(String nombre, Extension.Imagen ext) { return imagenes.getRecurso(nombre, ext); }
     public Media getMusica(String nombre, Extension.Sonido ext) { return musica.getRecurso(nombre, ext); }
     public AudioClip getSonido(String nombre, Extension.Sonido ext) { return sonido.getRecurso(nombre, ext); } 
