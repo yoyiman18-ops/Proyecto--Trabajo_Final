@@ -51,7 +51,6 @@ import controlador.MenuControlador;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import modelo.ModeloPartida;
@@ -63,11 +62,8 @@ import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.Accion;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
-import motor.recursos.Extension;
 import motor.recursos.GestorRecursos;
-import vista.MenuVista;
 import vista.VistaFondo;
-import vista.VistaMenu;
 import vista.VistaPartida;
 
 // nota: en esta clase se prueban de forma arbitraria las características añadidas.
@@ -90,14 +86,13 @@ public class App extends Application {
             partidaActual.detener();
             partidaActual = null;
         }
-        Image imagenMenu = gestorRecursos.getImagen("menu", Extension.Imagen.PNG);
         URL hojaEstilosMenu = App.class.getResource("/vista/menu-vista.css");
         if (hojaEstilosMenu == null) {
             throw new IllegalStateException("No se encontró menu-vista.css");
         }
-        VistaMenu vistaMenu = new MenuVista(imagenMenu, hojaEstilosMenu.toExternalForm());
         MenuControlador menuControlador = new MenuControlador(
-            vistaMenu,
+            gestorRecursos,
+            hojaEstilosMenu.toExternalForm(),
             () -> iniciarPartida(stage),
             Platform::exit
         );
