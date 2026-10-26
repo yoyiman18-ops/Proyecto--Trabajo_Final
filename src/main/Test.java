@@ -6,16 +6,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
+import motor.modelo.graficos.GestorSheetAnimada;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
 import motor.persistencia.dao.sqlite.Conexion;
 import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.GestorRecursos;
+import motor.util.ContadorSegundos;
+import motor.util.RelojDelta;
+import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorFuerte;
+import motor.util.observer.Observador;
 
 public class Test {
 
     public static void main(String[] args) throws Exception {
-        Platform.startup(() -> {}); //necesario iniciar javafx para cargar imagenes
+
+        Platform.startup(() -> {});
+        /*
         Conexion conexion = Conexion.getInstancia();
         GestorRecursos gestorRecursos = GestorRecursos.getInstancia();
         /*
@@ -90,10 +99,40 @@ public class Test {
 
         //test 2: cargar de una bd
 
+    /*
         DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(conexion.get(), gestorRecursos);
         List<Sheet> sheets = sheetDAO.cargarTodos();
         System.out.printf("Se han cargado %d spritesheets en la base de datos de sqlite.", sheets.size());
         Platform.exit();
-    }
+    */
+    
+    /*
+    // test: reloj delta y contador de segundos
+    RelojDelta rd = new RelojDelta(new NotificadorFuerte<>());
+    ContadorSegundos cs = new ContadorSegundos(1);
+    cs.suscribirObservador(s -> System.out.printf("Han pasado %d segundos%n", s));
+    rd.suscribirObservador(dt -> cs.tick(dt));
+    rd.iniciar();
+    */
 
+    // test: sheet animada
+    GestorRecursos gr = new GestorRecursos();
+    DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(Conexion.getInstancia().get(), gr);
+    RelojDelta rd = new RelojDelta(new NotificadorFuerte<>());
+    GestorSheetAnimada gestorSheetAnimada = new GestorSheetAnimada(sheetDAO.cargar(1));
+    Observador<Rectangle2D> parlante = r ->
+        System.out.printf(
+            "offset_x: %5.2f | offset_y: %5.2f | alto: %5.2f | ancho: %5.2f %n",
+            r.getMinX(),
+            r.getMinY(),
+            r.getHeight(),
+            r.getWidth()
+        );
+
+    rd.suscribirObservador(dt -> gestorSheetAnimada.tick(dt));
+    gestorSheetAnimada.setAnimacion("caminar_izquierda", true);
+    gestorSheetAnimada.suscribir(parlante);
+    rd.iniciar();
+
+    }
 }

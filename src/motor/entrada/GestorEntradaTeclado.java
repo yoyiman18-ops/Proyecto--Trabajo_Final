@@ -7,10 +7,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
+import motor.util.Ticking;
 import motor.util.observer.NotificadorDebil;
 import motor.util.observer.Observador;
 
-public class GestorEntradaTeclado {
+public class GestorEntradaTeclado implements Ticking {
     private static final Logger logger = Logger.getLogger(GestorEntradaTeclado.class.getName());
     private final CapturadorEntradaTeclado capturador;
     private final List<MapeoTeclado> mapeos;
@@ -33,7 +34,7 @@ public class GestorEntradaTeclado {
     public void eliminarMapeo(MapeoTeclado mapeo) { this.mapeos.remove(mapeo); }
     public void suscribir(Observador<EstadoAcciones> o) { this.notificador.suscribirObservador(o); }
     public void desuscribir(Observador<EstadoAcciones> o) { this.notificador.desuscribirObservador(o); }
-    public void tick() {
+    @Override public void tick(double dt) {
         if (this.escenaRoot == null) { return; }
         capturador.iniciarFrame();
         EstadoEntradaTeclado estado = capturador.getEstado();
