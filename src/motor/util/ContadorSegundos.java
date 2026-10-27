@@ -27,10 +27,10 @@ implements Ticking {
     @Override
     public void tick(double dt) {
         tiempoActual += dt;
-        double segundos = tiempoActual / intervaloSegundos;
-        if (segundos >= 1.0f) {
-            tiempoActual -= segundos;
-            notificar((int) segundos);
+        double cociente = tiempoActual / intervaloSegundos;
+        if (cociente >= 1) {
+            tiempoActual -= cociente * intervaloSegundos;
+            notificar((int) cociente);
             }
         }
 }

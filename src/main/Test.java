@@ -109,8 +109,8 @@ public class Test {
     /*
     // test: reloj delta y contador de segundos
     RelojDelta rd = new RelojDelta(new NotificadorFuerte<>());
-    ContadorSegundos cs = new ContadorSegundos(1);
-    cs.suscribirObservador(s -> System.out.printf("Han pasado %d segundos%n", s));
+    ContadorSegundos cs = new ContadorSegundos(2);
+    cs.suscribirObservador(c -> System.out.printf("Hola x%d%n", c));
     rd.suscribirObservador(dt -> cs.tick(dt));
     rd.iniciar();
     */
@@ -130,9 +130,10 @@ public class Test {
         );
 
     rd.suscribirObservador(dt -> gestorSheetAnimada.tick(dt));
-    gestorSheetAnimada.setAnimacion("caminar_izquierda", true);
+    gestorSheetAnimada.setAnimacion("caminar_arriba", true);
     gestorSheetAnimada.suscribir(parlante);
     rd.iniciar();
+
 
     }
 }
