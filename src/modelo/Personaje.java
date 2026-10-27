@@ -84,7 +84,7 @@ public class Personaje extends Entidad implements ModeloJugador {
     }
 
     @Override
-    public boolean atacar() {
+    public boolean intentarAtacar() {
         if (tiempoEnfriamientoAtaque > 0) { return false; }
         tiempoEnfriamientoAtaque = 1.0 / velocidadAtaque;
         return true;
@@ -98,10 +98,7 @@ public class Personaje extends Entidad implements ModeloJugador {
     public int getExperiencia() { return experiencia; }
     public int getNivel() { return nivel; }
     public int getExperienciaSiguiente() { return experienciaSiguiente;}
-    public int getNivelesPendientes() { return nivelesPendientes; }
     public double getDanioAtaque() { return danioAtaque; }
-    public double getVelocidadAtaque() { return velocidadAtaque; }
-    public double getDefensa() { return defensaPorcentual; }
     public double getProbabilidadCritico() { return probabilidadCritico; }
     public double getProbabilidadMultidisparo() { return probabilidadMultidisparo; }
 
@@ -113,8 +110,12 @@ public class Personaje extends Entidad implements ModeloJugador {
     }
 
     public void aumentarDanioAtaque(double cantidad) {
-        validarCantidadVida(cantidad);
-        danioAtaque += cantidad;
+        validarCantidadNoNegativa(cantidad);
+        double nuevoDanio = danioAtaque + cantidad;
+        if (!Double.isFinite(nuevoDanio)) {
+            throw new IllegalArgumentException("El daño de ataque resultante debe ser finito.");
+        }
+        danioAtaque = nuevoDanio;
     }
 
     @Override
@@ -122,7 +123,23 @@ public class Personaje extends Entidad implements ModeloJugador {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de velocidad de ataque debe ser finito y no negativo.");
         }
-        velocidadAtaque *= 1 + porcentaje / 100;
+        double nuevaVelocidadAtaque = velocidadAtaque * (1 + porcentaje / 100);
+        if (!Double.isFinite(nuevaVelocidadAtaque)) {
+            throw new IllegalArgumentException("La velocidad de ataque resultante debe ser finita.");
+        }
+        velocidadAtaque = nuevaVelocidadAtaque;
+    }
+
+    @Override
+    public void aumentarVelocidadMaxima(double porcentaje) {
+        if (!Double.isFinite(porcentaje) || porcentaje < 0) {
+            throw new IllegalArgumentException("El porcentaje de velocidad debe ser finito y no negativo.");
+        }
+        double nuevaVelocidadMaxima = getVelocidadMax() * (1 + porcentaje / 100);
+        if (!Double.isFinite(nuevaVelocidadMaxima)) {
+            throw new IllegalArgumentException("La velocidad máxima resultante debe ser finita.");
+        }
+        setVelocidadMax(nuevaVelocidadMaxima);
     }
 
     @Override
@@ -153,14 +170,15 @@ public class Personaje extends Entidad implements ModeloJugador {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La experiencia no puede ser negativa.");
         }
-        experiencia += cantidad;
+        long experienciaAcumulada = (long) experiencia + cantidad;
         int nivelesGanados = 0;
-        while (experiencia >= experienciaSiguiente) {
-            experiencia -= experienciaSiguiente;
+        while (experienciaAcumulada >= experienciaSiguiente) {
+            experienciaAcumulada -= experienciaSiguiente;
             nivel++;
             experienciaSiguiente = 30 + (nivel - 1) * 25;
             nivelesGanados++;
         }
+        experiencia = (int) experienciaAcumulada;
         nivelesPendientes += nivelesGanados;
         return nivelesGanados;
     }
@@ -174,8 +192,9 @@ public class Personaje extends Entidad implements ModeloJugador {
         return this;
     }
 
+    @Override
     public void recibirDanio(double cantidad) {
-        validarCantidadVida(cantidad);
+        validarCantidadNoNegativa(cantidad);
         if (cantidad == 0 || vida == 0) {
             return;
         }
@@ -185,7 +204,7 @@ public class Personaje extends Entidad implements ModeloJugador {
     }
 
     public void curar(double cantidad) {
-        validarCantidadVida(cantidad);
+        validarCantidadNoNegativa(cantidad);
         if (cantidad == 0 || vida == vidaMax) {
             return;
         }
@@ -194,18 +213,23 @@ public class Personaje extends Entidad implements ModeloJugador {
     }
 
     public void aumentarVidaMaxima(double cantidad) {
-        validarCantidadVida(cantidad);
+        validarCantidadNoNegativa(cantidad);
         if (cantidad == 0) {
             return;
         }
-        vidaMax += cantidad;
-        vida += cantidad;
+        double nuevaVidaMaxima = vidaMax + cantidad;
+        double nuevaVida = vida + cantidad;
+        if (!Double.isFinite(nuevaVidaMaxima) || !Double.isFinite(nuevaVida)) {
+            throw new IllegalArgumentException("La vida resultante debe ser finita.");
+        }
+        vidaMax = nuevaVidaMaxima;
+        vida = nuevaVida;
         notificadorVida.notificar(this);
     }
 
-    private void validarCantidadVida(double cantidad) {
+    private void validarCantidadNoNegativa(double cantidad) {
         if (!Double.isFinite(cantidad) || cantidad < 0) {
-            throw new IllegalArgumentException("La cantidad de vida debe ser finita y no negativa.");
+            throw new IllegalArgumentException("La cantidad debe ser finita y no negativa.");
         }
     }
 
@@ -229,8 +253,8 @@ public class Personaje extends Entidad implements ModeloJugador {
         private Notificador<ModeloJugador> notificadorVida;
 
         public Builder(String nombre, Hitbox hitbox) {
-            this.nombre = nombre;
-            this.hitbox = hitbox;
+            this.nombre = Objects.requireNonNull(nombre, "El nombre no puede ser nulo");
+            this.hitbox = Objects.requireNonNull(hitbox, "La hitbox no puede ser nula");
             this.posicion = new VecDouble2D(0, 0);
             this.velocidad = new VecDouble2D(0, 0);
             this.aceleracion = 1;
@@ -250,40 +274,59 @@ public class Personaje extends Entidad implements ModeloJugador {
         }
 
         public Builder posicion(VecDouble2D posicion) {
-            this.posicion = posicion;
+            Objects.requireNonNull(posicion, "La posición no puede ser nula");
+            if (!Double.isFinite(posicion.getX()) || !Double.isFinite(posicion.getY())) {
+                throw new IllegalArgumentException("La posición debe tener coordenadas finitas.");
+            }
+            this.posicion = posicion.clone();
             return this;
         }
 
         public Builder velocidad(VecDouble2D velocidad) {
-            this.velocidad = velocidad;
+            Objects.requireNonNull(velocidad, "La velocidad no puede ser nula");
+            if (!Double.isFinite(velocidad.getX()) || !Double.isFinite(velocidad.getY())) {
+                throw new IllegalArgumentException("La velocidad debe tener componentes finitos.");
+            }
+            this.velocidad = velocidad.clone();
             return this;
         }
 
         public Builder aceleracion(double aceleracion) {
-            if (aceleracion < 0) { throw new IllegalArgumentException("Aceleracion negativa no es valida"); }
+            if (!Double.isFinite(aceleracion) || aceleracion < 0) {
+                throw new IllegalArgumentException("La aceleración debe ser finita y no negativa.");
+            }
             this.aceleracion = aceleracion;
             return this;
         }
 
         public Builder friccion(double friccion) {
-            if (friccion < 0) { throw new IllegalArgumentException("Friccion negativa no es valida"); }
+            if (!Double.isFinite(friccion) || friccion < 0) {
+                throw new IllegalArgumentException("La fricción debe ser finita y no negativa.");
+            }
             this.friccion = friccion;
             return this;
         }
 
         public Builder velocidadMax(double velocidadMax) {
+            if (!Double.isFinite(velocidadMax) || velocidadMax < 0) {
+                throw new IllegalArgumentException("La velocidad máxima debe ser finita y no negativa.");
+            }
             this.velocidadMax = velocidadMax;
             return this;
         }
 
         public Builder vidaMax(double vidaMax) {
-            if (vidaMax <= 0) { throw new IllegalArgumentException("Vida maxima menor o igual a 0 no es valida"); }
+            if (!Double.isFinite(vidaMax) || vidaMax <= 0) {
+                throw new IllegalArgumentException("La vida máxima debe ser positiva y finita.");
+            }
             this.vidaMax = vidaMax;
             return this;
         }
 
         public Builder vida(double vida) {
-            if (vida < 0) { throw new IllegalArgumentException("Vida negativa no es valida"); }
+            if (!Double.isFinite(vida) || vida < 0) {
+                throw new IllegalArgumentException("La vida debe ser finita y no negativa.");
+            }
             this.vida = vida;
             return this;
         }
@@ -353,4 +396,3 @@ public class Personaje extends Entidad implements ModeloJugador {
 
 
 }
-

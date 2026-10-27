@@ -12,10 +12,7 @@ public interface ModeloJugador extends ObjetivoEnemigo {
     int getExperiencia();
     int getNivel();
     int getExperienciaSiguiente();
-    int getNivelesPendientes();
     double getDanioAtaque();
-    double getVelocidadAtaque();
-    double getDefensa();
     double getProbabilidadCritico();
     double getProbabilidadMultidisparo();
     Direccion getDireccion();
