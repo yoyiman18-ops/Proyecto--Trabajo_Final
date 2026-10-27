@@ -98,7 +98,7 @@ public class Motor {
         this.colisionables = new ArrayList<>();
         
         this.relojDelta.suscribirObservador(e -> {
-            this.gestorEntradaTeclado.tick();
+            this.gestorEntradaTeclado.tick(e);
             this.sistemaColisiones.resolverColisiones(colisionables);
         });
     }

@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Test",
+            "request": "launch",
+            "mainClass": "main.Test",
+            "projectName": "Proyecto--Trabajo_Final_5ff23185"
+        },
+        {
+            "type": "java",
             "name": "App",
             "request": "launch",
             "mainClass": "main.App",
