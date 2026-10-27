@@ -113,14 +113,14 @@ public class Entidad implements Colisionable {
     public VecDouble2D getPosicion() { return this.posicion; }
     public double getAceleracion() { return this.aceleracion; }
     public double getFriccion() { return this.friccion; }
-    public double getVelocidadMaxima() { return this.velocidadMax; }
+    public double getVelocidadMax() { return this.velocidadMax; }
     public Notificador<Entidad> getNotificador() { return this.notificador; }
 
-    public void aumentarVelocidadMaxima(double porcentaje) {
-        if (!Double.isFinite(porcentaje) || porcentaje < 0) {
-            throw new IllegalArgumentException("El porcentaje de velocidad debe ser finito y no negativo.");
+    public void setVelocidadMax(double velocidadMax) {
+        if (!Double.isFinite(velocidadMax) || velocidadMax < 0) {
+            throw new IllegalArgumentException("La velocidad maxima debe ser finita y no negativa.");
         }
-        velocidadMax *= 1 + porcentaje / 100;
+        this.velocidadMax = velocidadMax;
     }
 
     @Override public Hitbox getHitbox() { return this.hitbox; }

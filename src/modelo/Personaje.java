@@ -84,7 +84,7 @@ public class Personaje extends Entidad implements ModeloJugador {
     }
 
     @Override
-    public boolean intentarAtacar() {
+    public boolean atacar() {
         if (tiempoEnfriamientoAtaque > 0) {
             return false;
         }

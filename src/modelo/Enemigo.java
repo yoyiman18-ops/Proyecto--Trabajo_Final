@@ -59,32 +59,11 @@ public final class Enemigo extends Entidad implements ModeloEnemigo {
         this.experienciaRecompensa = experienciaRecompensa;
     }
 
-    @Override
-    public double getVida() {
-        return vida;
-    }
-
-    @Override
-    public double getVidaMaxima() {
-        return vidaMaxima;
-    }
-
-    @Override
-    public double getDanio() {
-        return danio;
-    }
-
-    @Override
-    public int getExperienciaRecompensa() {
-        return experienciaRecompensa;
-    }
-
-    @Override
-    public Entidad getEntidad() {
-        return this;
-    }
-
-    @Override
+    public double getVida() { return vida; }
+    public double getVidaMaxima() { return vidaMaxima; }
+    public double getDanio() { return danio; }
+    public int getExperienciaRecompensa() { return experienciaRecompensa; }
+    public Entidad getEntidad() { return this; }
     public boolean recibirDanio(double cantidad) {
         if (!Double.isFinite(cantidad) || cantidad < 0) {
             throw new IllegalArgumentException("El daño recibido debe ser finito y no negativo.");

@@ -16,10 +16,8 @@ public abstract class GestorSheet {
 
     public void suscribir(Observador<Rectangle2D> o) { this.notificador.suscribirObservador(o); o.cambio(getRectangulo()); }
     public void desuscribir(Observador<Rectangle2D> o) { this.notificador.desuscribirObservador(o); }
-    protected void notificar() { this.notificador.notificar(getRectangulo()); };
-
     protected void notificar() { this.notificador.notificar(getRectangulo()); }
-    protected abstract Rectangle2D getRectangulo();
     protected Sheet getSheet() { return this.spriteSheet; }
+
     protected abstract Rectangle2D getRectangulo();
 }
