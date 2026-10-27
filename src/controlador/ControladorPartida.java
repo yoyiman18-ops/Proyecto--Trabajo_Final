@@ -10,7 +10,7 @@ import modelo.ItemMejoraAtributo;
 import modelo.ModeloJugador;
 import modelo.ModeloPartida;
 import modelo.Partida;
-import motor.EstadoOleadas;
+import modelo.EstadoOleadas;
 import motor.Motor;
 import motor.mvc.Controlador;
 import motor.mvc.ControladorUsuario;

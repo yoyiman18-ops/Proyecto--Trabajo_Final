@@ -2,7 +2,6 @@ package modelo;
 
 import java.util.List;
 
-import motor.EstadoOleadas;
 import motor.util.observer.Notificador;
 
 public interface ModeloPartida {

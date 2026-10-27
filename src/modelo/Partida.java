@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
-import motor.EstadoOleadas;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
