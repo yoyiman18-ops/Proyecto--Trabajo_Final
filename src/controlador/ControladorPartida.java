@@ -1,5 +1,6 @@
 package controlador;
 
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -362,15 +363,23 @@ public final class ControladorPartida {
     }
 
     private void recogerExperiencias() {
+        List<ExperienciaControlador> recogidas = new ArrayList<>();
         for (ExperienciaControlador exp : experiencias) {
             if (exp.fueRecogida()) {
-                experiencias.remove(exp);
-                controladores.remove(exp);
-                motor.colisionables().remove(exp.getModelo());
-                Platform.runLater(() -> vistaJuego.removerNodoJuego(exp.getVista()));
-                actualizarProgresoJugador();
+                recogidas.add(exp);
             }
         }
+
+        if (!recogidas.isEmpty()) {
+            experiencias.removeAll(recogidas);
+            controladores.removeAll(recogidas);
+            for (ExperienciaControlador exp : recogidas) {
+                motor.colisionables().remove(exp.getModelo());
+                Platform.runLater(() -> vistaJuego.removerNodoJuego(exp.getVista()));
+            }
+            actualizarProgresoJugador();
+        }
+
         verificarSubidaNivel();
     }
 
