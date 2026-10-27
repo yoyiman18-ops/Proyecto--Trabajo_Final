@@ -57,6 +57,4 @@ implements Ticking
     protected Rectangle2D getRectangulo() {
         return animacionActual.getFrames().get(indiceActual).getRecorte().getRectangulo();
     }
-    
-
 }
