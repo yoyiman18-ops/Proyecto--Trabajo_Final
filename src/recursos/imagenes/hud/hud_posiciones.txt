@@ -1,0 +1,158 @@
+punto_desmarcado_default 27;20		22x22
+punto_desmarcado_hover 62;20 		22x22
+punto_desmarcado_disabled 97;20		22x22
+punto_marcado_default 27;56		22x22
+punto_marcado_hover 62;56		22x22
+punto_marcado_disabled 97;56		22x22
+
+cuadro_desmarcado_default 158;20 	22x22
+cuadro_desmarcado_hover 203;20 		22x22
+cuadro_desmarcado_disabled 248;20 	22x22
+cuadro_marcado_default 158;62	27x24	
+cuadro_marcado_hover 203;62	27x24
+cuadro_marcado_disabled 248;62	27x24
+
+flecha_izquierda_menos_default 336;24	27x28
+flecha_izquierda_menos_checked 336;76	27x28
+flecha_izquierda_menos_hover 336;128	27x28
+flecha_izquierda_menos_disabled 336;180	27x28
+
+
+flecha_derecha_mas_default 374;24	27x28
+flecha_derecha_mas_checked 374;76	27x28
+flecha_derecha_mas_hover 374;128	27x28
+flecha_derecha_mas_disabled    374;180		27x28
+
+
+flecha_abajo_menos_default 432;24	28x27
+flecha_abajo_menos_checked 432;76	28x27
+flecha_abajo_menos_hover 432;128	28x27
+flecha_abajo_menos_disabled 432;180	28x27
+
+flecha_arriba_default 470;26	28x27
+flecha_arriba_mas_checked 470;78	28x27
+flecha_arriba_mas_hover 470;130	28x27
+flecha_arriba_mas_disabled  470;182	28x27
+
+flecha_izquierda_default 570;24	26x28
+flecha_izquierda_checked 570;76	26x28
+flecha_izquierda_hover 570;128	26x28
+flecha_izquierda_disabled   570;180	26x28
+
+flecha_derecha_default 609;24	26x27
+flecha_derecha_checked 609;76	26x28
+flecha_derecha_hover 609;128	26x28
+flecha_derecha_disabled 609;180	26x28
+
+flecha_abajo_default 666;24	28x27
+flecha_abajo_checked 666;76	28x27
+flecha_abajo_hover 666;128	28x27
+flecha_abajo_disabled 666;180	28x27
+
+flecha_arriba_default 704;26	28x27
+flecha_arriba_checked 704;78	28x27
+flecha_arriba_hover 704;130	28x27
+flecha_arriba_disabled 704;182	28x27
+
+boton_largo 23;133	282x54
+boton_largo_marcado 23;211	282x54
+boton_largo_hover   23;289	282x54
+boton_largo_presionado 23;367	282x54
+
+boton_cuadrado_pequeño  48;494	44x44
+boton_cuadrado_grande 118;451	80x80
+
+flecha_izquierda_grande	 379;258	34x36
+flecha_izquierda_pequeño 383;319	26x28
+
+flecha_arriba_grande 461;258	36x34
+flecha_arriba_pequeña 465;320	28x26
+
+flecha_derecha_grande 554;277	34x36
+flecha_derecha_pequeña 569;345	26x28
+
+flecha_abajo_grande 617;259	36x24
+flecha_abajo_pequeña 621;319	28x26
+
+
+rectangulo_vertical_pequeño 816x20 16x28
+rectangulo_vertical_grande 892x19	21x40
+rectangulo_horizontal 942x31	40x22
+
+
+borde_horizontal_grueso 796;74	204x16
+borde_horizontal_delgado 796;113 203x11
+
+	
+doble_remate_izquierdo 851;157	13x13
+doble_remate_derecho 897;157		13x13
+doble_remate_arriba 937;156		13x13
+doble_remate_abajo 973;159		13x13
+
+doble_unionT_arriba 775;169		31x22
+doble_unionT_izquierda 784;208	22x31
+doble_unionT_abajo 775;257		31x22
+doble_unionT_derecha 775;296		22x31
+
+doble_esquina_superior_izquierda 858;191	22x22
+doble_esquina_superior_derecha 978;191		22x22
+doble_esquina_inferior_izquierda 858;294	22x22
+doble_esquina_inferior_derecha 978;294		22x22
+
+doble_borde_arriba 893;191 		73x13
+doble_borde_izquierdo 858;227		13x55
+doble_borde_derecho 987;227		13x55
+doble_borde_abajo 893;303		73x13
+
+doble_cruz 914;237	31x31
+
+remate_izquierdo 848;365	12x8
+remate_derecho	887;365		12x8
+remate_arriba 941;361		8x12
+remate_abajo 977;362		8x12
+
+unionT_arriba 780;383		26x17
+unionT_izquierda 789;409	17x26
+unionT_abajo 780;450		26x17
+unionT_derecha 780;479		17x26
+
+esquina_superior_izquierda 867;400	17x17
+esquina_superior_derecha 982;400	17x17
+esquina_inferior_izquierda 867;498	17x17
+esquina_inferior_derecha 982;498	17x17
+
+borde_arriba 899;400 		74x8
+borde_izquierdo 867;428		8x59
+borde_derecho 991;428		8x59
+borde_abajo 899;507		74x8
+
+cruz 923;444	26x26
+
+marco_izquierdo 795;550		16x36
+marco_superior 831;550		129x8
+marco_inferior 831;578		129x8
+marco_derecho 980;550		16x36
+
+marco_izquierdo_apuntado 794;615	17x28
+marco_superior_apuntado 831;615		129x8
+marco_inferior_apuntado 831;635		129x8
+marco_derecho_apuntaro 980;615		17x28
+	
+
+cuadro_corazon 17;561		16x16
+cuadro_plata 18;592		16x16
+cuadro_rayo 17;642		16x16
+cuadro_experiencia 88;561	16x16
+gema_roja 50;561		20x16
+gema_azul 50;592		20x16
+gema_negra 50;625		20x16
+
+corazon 132;571			13x12
+medio_corazon 150;564		13x12
+corazon_vacio 129;591		13x12
+oleada 88;592			16x16
+pocion_azul 173;565		10x11
+pocion_amarilla 190;565		10x11
+calavera 212;568		6x6
+baston 93;615			8x30
+
