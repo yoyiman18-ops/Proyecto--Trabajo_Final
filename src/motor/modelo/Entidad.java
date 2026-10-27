@@ -58,6 +58,9 @@ public class Entidad implements Colisionable {
         this.velocidadMax = velocidadMax;
         this.notificador = Objects.requireNonNull(notificador, "El notificador no puede ser nulo");
         this.notificadorColision = new NotificadorDebil<>();
+        if (this.hitbox != null && this.posicion != null) {
+            this.hitbox.actualizarTransformacion(this.posicion);
+        }
     }
 
     public void mover(double dt) {

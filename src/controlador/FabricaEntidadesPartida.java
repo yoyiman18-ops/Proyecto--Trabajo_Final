@@ -3,7 +3,6 @@ package controlador;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
-import modelo.ItemMejoraAtributo;
 import modelo.ModeloJugador;
 import modelo.ObjetivoEnemigo;
 import motor.colisiones.Colisionable;
@@ -35,13 +34,6 @@ public interface FabricaEntidadesPartida {
         double x,
         double y,
         int cantidad
-    );
-
-    MejoraAtributoControlador crearMejoraAtributo(
-        ModeloJugador jugador,
-        ItemMejoraAtributo mejora,
-        double x,
-        double y
     );
 
     ProyectilControlador crearProyectil(

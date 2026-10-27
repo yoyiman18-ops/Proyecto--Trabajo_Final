@@ -8,7 +8,6 @@ import java.util.function.DoubleSupplier;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import modelo.Enemigo;
-import modelo.ItemMejoraAtributo;
 import modelo.ModeloEnemigo;
 import modelo.ModeloJugador;
 import modelo.ModeloProyectil;
@@ -66,7 +65,6 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
                 MascaraColision.of(
                     CategoriaColision.ENEMIGO,
                     CategoriaColision.EXP,
-                    CategoriaColision.ITEM,
                     CategoriaColision.MURO
                 )
             )
@@ -152,32 +150,6 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
 
         VistaItem vistaExp = new ItemVista(9, Color.web("#83df4e"), Color.web("#e4ff9b"), 2);
         return new ExperienciaControlador(jugador, modeloExp, vistaExp, cantidad);
-    }
-
-    @Override
-    public MejoraAtributoControlador crearMejoraAtributo(
-        ModeloJugador jugador,
-        ItemMejoraAtributo mejora,
-        double x,
-        double y
-    ) {
-        Entidad modeloMejora = new Entidad(
-            "mejora-atributo",
-            new HitboxRectangular(
-                new java.awt.geom.Rectangle2D.Double(0, 0, 22, 22),
-                TipoHitbox.SOLIDA,
-                MascaraColision.of(CategoriaColision.ITEM),
-                MascaraColision.of(CategoriaColision.JUGADOR)
-            ),
-            new VecDouble2D(x, y),
-            new VecDouble2D(),
-            0,
-            0,
-            0
-        );
-
-        VistaItem vistaMejora = new ItemVista(11, Color.web("#e8bd45"), Color.web("#fff0a6"), 2);
-        return new MejoraAtributoControlador(jugador, mejora, modeloMejora, vistaMejora);
     }
 
     @Override

@@ -444,36 +444,31 @@ public final class ControladorPartida {
             case EPICA -> "ÉPICA";
             case LEGENDARIA -> "LEGENDARIA";
         };
-        String nombre = switch (item.atributo()) {
-            case VIDA_MAXIMA -> "Vida máxima";
-            case DANIO_ATAQUE -> "Daño";
-            case VELOCIDAD_ATAQUE -> "Vel. Ataque";
-            case VELOCIDAD_MAXIMA -> "Velocidad";
-            case DEFENSA -> "Defensa";
-            case PROBABILIDAD_CRITICO -> "Crítico";
-            case PROBABILIDAD_MULTIDISPARO -> "Multidisparo";
+        String bonus = "+" + (int) item.cantidad() + (item.atributo().esPorcentual() ? "%" : "");
+
+        return switch (item.atributo()) {
+            case VIDA_MAXIMA -> new OpcionMejoraVisual(
+                rareza, "Vida máxima", bonus, "Aumenta y restaura tu vitalidad", "corazon"
+            );
+            case DANIO_ATAQUE -> new OpcionMejoraVisual(
+                rareza, "Daño", bonus, "Mayor impacto por proyectil", "danio"
+            );
+            case VELOCIDAD_ATAQUE -> new OpcionMejoraVisual(
+                rareza, "Vel. Ataque", bonus, "Disparás con mayor frecuencia", "experiencia"
+            );
+            case VELOCIDAD_MAXIMA -> new OpcionMejoraVisual(
+                rareza, "Velocidad", bonus, "Mayor agilidad en la mazmorra", "tiempo"
+            );
+            case DEFENSA -> new OpcionMejoraVisual(
+                rareza, "Defensa", bonus, "Reduce el daño recibido", "defensa"
+            );
+            case PROBABILIDAD_CRITICO -> new OpcionMejoraVisual(
+                rareza, "Crítico", bonus, "Chance de disparo carmesí x2 daño", "danio"
+            );
+            case PROBABILIDAD_MULTIDISPARO -> new OpcionMejoraVisual(
+                rareza, "Multidisparo", bonus, "Chance de lanzar 3 orbes en abanico", "experiencia"
+            );
         };
-        String bonus = switch (item.atributo()) {
-            case VIDA_MAXIMA, DANIO_ATAQUE -> "+" + (int) item.cantidad();
-            default -> "+" + (int) item.cantidad() + "%";
-        };
-        String descripcion = switch (item.atributo()) {
-            case VIDA_MAXIMA -> "Aumenta y restaura tu vitalidad";
-            case DANIO_ATAQUE -> "Mayor impacto por proyectil";
-            case VELOCIDAD_ATAQUE -> "Disparás con mayor frecuencia";
-            case VELOCIDAD_MAXIMA -> "Mayor agilidad en la mazmorra";
-            case DEFENSA -> "Reduce el daño recibido";
-            case PROBABILIDAD_CRITICO -> "Chance de disparo carmesí x2 daño";
-            case PROBABILIDAD_MULTIDISPARO -> "Chance de lanzar 3 orbes en abanico";
-        };
-        String claveIcono = switch (item.atributo()) {
-            case VIDA_MAXIMA -> "corazon";
-            case DANIO_ATAQUE, PROBABILIDAD_CRITICO -> "danio";
-            case VELOCIDAD_MAXIMA -> "tiempo";
-            case DEFENSA -> "defensa";
-            case VELOCIDAD_ATAQUE, PROBABILIDAD_MULTIDISPARO -> "experiencia";
-        };
-        return new OpcionMejoraVisual(rareza, nombre, bonus, descripcion, claveIcono);
     }
 
     public void iniciar() {
