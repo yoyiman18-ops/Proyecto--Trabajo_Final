@@ -393,9 +393,7 @@ public final class ControladorPartida {
         motor.detener();
 
         List<ItemMejoraAtributo> opciones = modeloPartida.iniciarEleccionMejora();
-        List<OpcionMejoraVisual> opcionesVisuales = opciones.stream()
-            .map(this::mapearOpcionMejora)
-            .toList();
+        List<OpcionMejoraVisual> opcionesVisuales = ControladorVistaJuego.mapearOpcionesMejora(opciones);
 
         int nivelActual = personaje.getNivel();
         Platform.runLater(() -> {
@@ -435,40 +433,6 @@ public final class ControladorPartida {
             vistaJuego.setPausaHabilitada(false);
             vistaJuego.mostrarFinPartida(mensaje);
         });
-    }
-
-    private OpcionMejoraVisual mapearOpcionMejora(ItemMejoraAtributo item) {
-        String rareza = switch (item.rareza()) {
-            case COMUN -> "COMÚN";
-            case RARA -> "RARA";
-            case EPICA -> "ÉPICA";
-            case LEGENDARIA -> "LEGENDARIA";
-        };
-        String bonus = "+" + (int) item.cantidad() + (item.atributo().esPorcentual() ? "%" : "");
-
-        return switch (item.atributo()) {
-            case VIDA_MAXIMA -> new OpcionMejoraVisual(
-                rareza, "Vida máxima", bonus, "Aumenta y restaura tu vitalidad", "corazon"
-            );
-            case DANIO_ATAQUE -> new OpcionMejoraVisual(
-                rareza, "Daño", bonus, "Mayor impacto por proyectil", "danio"
-            );
-            case VELOCIDAD_ATAQUE -> new OpcionMejoraVisual(
-                rareza, "Vel. Ataque", bonus, "Disparás con mayor frecuencia", "experiencia"
-            );
-            case VELOCIDAD_MAXIMA -> new OpcionMejoraVisual(
-                rareza, "Velocidad", bonus, "Mayor agilidad en la mazmorra", "tiempo"
-            );
-            case DEFENSA -> new OpcionMejoraVisual(
-                rareza, "Defensa", bonus, "Reduce el daño recibido", "defensa"
-            );
-            case PROBABILIDAD_CRITICO -> new OpcionMejoraVisual(
-                rareza, "Crítico", bonus, "Chance de disparo carmesí x2 daño", "danio"
-            );
-            case PROBABILIDAD_MULTIDISPARO -> new OpcionMejoraVisual(
-                rareza, "Multidisparo", bonus, "Chance de lanzar 3 orbes en abanico", "experiencia"
-            );
-        };
     }
 
     public void iniciar() {
