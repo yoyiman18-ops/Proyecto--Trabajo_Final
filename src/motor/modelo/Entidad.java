@@ -18,6 +18,7 @@ public class Entidad implements Colisionable {
     private double friccion;
     private double velocidadMax;
     private final Notificador<Entidad> notificador;
+    private final Notificador<Colisionable> notificadorColision;
 
     public Entidad(
         String nombre,
@@ -56,6 +57,7 @@ public class Entidad implements Colisionable {
         this.friccion = friccion;
         this.velocidadMax = velocidadMax;
         this.notificador = Objects.requireNonNull(notificador, "El notificador no puede ser nulo");
+        this.notificadorColision = new NotificadorDebil<>();
     }
 
     public void mover(double dt) {
@@ -115,6 +117,7 @@ public class Entidad implements Colisionable {
     public double getFriccion() { return this.friccion; }
     public double getVelocidadMax() { return this.velocidadMax; }
     public Notificador<Entidad> getNotificador() { return this.notificador; }
+    public Notificador<Colisionable> getNotificadorColision() { return this.notificadorColision; }
 
     public void setVelocidadMax(double velocidadMax) {
         if (!Double.isFinite(velocidadMax) || velocidadMax < 0) {
@@ -125,7 +128,7 @@ public class Entidad implements Colisionable {
 
     @Override public Hitbox getHitbox() { return this.hitbox; }
     @Override public boolean colisionesActivas() { return this.hitbox.estaActiva(); }
-    @Override public void colisionar(Colisionable otra) { System.out.println(this.nombre +" ha colisionado."); }
+    @Override public void colisionar(Colisionable otra) { this.notificadorColision.notificar(otra); }
 
 
 }

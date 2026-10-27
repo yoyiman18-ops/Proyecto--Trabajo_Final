@@ -16,7 +16,7 @@ public interface VistaPartida {
     void removerNodoJuego(Node nodo);
     void solicitarFoco();
 
-    // Callbacks de interacción del usuario (estilo funcional / MVC pasivo)
+    
     void setOnPausa(Runnable accion);
     void setOnReanudar(Runnable accion);
     void setOnVolverAlMenuDesdePausa(Runnable accion);
