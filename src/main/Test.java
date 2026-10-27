@@ -106,14 +106,15 @@ public class Test {
         Platform.exit();
     */
     
+    /*
     // test: reloj delta y contador de segundos
     RelojDelta rd = new RelojDelta(new NotificadorFuerte<>());
     ContadorSegundos cs = new ContadorSegundos(2);
-    cs.suscribirObservador(s -> System.out.printf("Hola"));
+    cs.suscribirObservador(c -> System.out.printf("Hola x%d%n", c));
     rd.suscribirObservador(dt -> cs.tick(dt));
     rd.iniciar();
+    */
 
-    /*
     // test: sheet animada
     GestorRecursos gr = new GestorRecursos();
     DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(Conexion.getInstancia().get(), gr);
@@ -132,7 +133,7 @@ public class Test {
     gestorSheetAnimada.setAnimacion("caminar_arriba", true);
     gestorSheetAnimada.suscribir(parlante);
     rd.iniciar();
-    */
+
 
     }
 }

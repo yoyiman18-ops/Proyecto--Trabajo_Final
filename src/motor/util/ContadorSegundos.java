@@ -28,7 +28,6 @@ implements Ticking {
     public void tick(double dt) {
         tiempoActual += dt;
         double cociente = tiempoActual / intervaloSegundos;
-        System.out.println(tiempoActual);
         if (cociente >= 1) {
             tiempoActual -= cociente * intervaloSegundos;
             notificar((int) cociente);
