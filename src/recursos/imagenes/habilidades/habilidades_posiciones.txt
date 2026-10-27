@@ -1,0 +1,25 @@
+habilidades
+
+fuerza_uno 51;50 	256x256
+fuerza_dos 350;50	256x256
+fuerza_tres 650;50	256x256
+
+defensa_uno 1044;50	256x256
+defensa_dos 1345;50	256x256
+defensa_tres 1644;50	256x256
+
+fuego_uno 51;344	256x256
+fuego_dos 350;344	256x256
+fuego_tres 650;344	256x256
+
+alas_uno 1044;344	256x256
+alas_dos 1345;344	256x256
+alas_tres 1644;344	256x256
+
+curacion_uno 51;645	256x256
+curacion_dos 350;645	256x256
+curacion_tres 650;645	256x256
+
+rayo_uno 1044;645	256x256
+rayo_dos 1345;645	256x256
+rayo_tres 1644;645	256x256
