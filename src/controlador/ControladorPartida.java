@@ -1,6 +1,8 @@
 package controlador;
 
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
@@ -12,6 +14,7 @@ import modelo.ModeloPartida;
 import modelo.Partida;
 import modelo.EstadoOleadas;
 import motor.Motor;
+import motor.colisiones.Colisionable;
 import motor.mvc.Controlador;
 import motor.mvc.ControladorUsuario;
 import motor.recursos.GestorRecursos;
@@ -37,6 +40,7 @@ public final class ControladorPartida {
 
     private final List<Controlador> controladores;
     private final List<EnemigoControlador> enemigos;
+    private final Map<Colisionable, EnemigoControlador> enemigoPorColisionable;
     private final List<ProyectilControlador> proyectiles;
     private final List<ExperienciaControlador> experiencias;
 
@@ -108,6 +112,7 @@ public final class ControladorPartida {
 
         this.controladores = new CopyOnWriteArrayList<>();
         this.enemigos = new CopyOnWriteArrayList<>();
+        this.enemigoPorColisionable = new IdentityHashMap<>();
         this.proyectiles = new CopyOnWriteArrayList<>();
         this.experiencias = new CopyOnWriteArrayList<>();
 
@@ -217,7 +222,7 @@ public final class ControladorPartida {
             c.tick(dt);
         }
 
-        actualizarProyectiles();
+        removerProyectilesInactivos();
 
         if (modeloPartida.actualizarOleadas(dt)) {
             finalizarPartida("¡VICTORIA! OLEADAS COMPLETADAS");
@@ -252,6 +257,7 @@ public final class ControladorPartida {
             EnemigoControlador controlador = fabricaEntidades.crearEnemigo(x, y, velocidad, personaje);
 
             enemigos.add(controlador);
+            enemigoPorColisionable.put(controlador.getModelo(), controlador);
             controladores.add(controlador);
             motor.colisionables().add(controlador.getModelo());
             modeloPartida.registrarEnemigoGenerado();
@@ -284,7 +290,8 @@ public final class ControladorPartida {
                 origenY,
                 direccionDisparo,
                 danioFinal,
-                esCritico
+                esCritico,
+                colisionado -> aplicarDanioEnemigoColisionado(colisionado, danioFinal)
             );
 
             proyectiles.add(proyectil);
@@ -306,21 +313,18 @@ public final class ControladorPartida {
         return new VecDouble2D(x, y);
     }
 
-    private void actualizarProyectiles() {
+    private void removerProyectilesInactivos() {
         for (ProyectilControlador proyectil : proyectiles) {
-            if (proyectil.estaActivo()) {
-                for (EnemigoControlador enemigo : enemigos) {
-                    if (proyectil.getModelo().getHitbox().intersecta(enemigo.getModelo().getHitbox())) {
-                        proyectil.registrarImpacto();
-                        aplicarDanioEnemigo(enemigo, proyectil.getDanio());
-                        break;
-                    }
-                }
-            }
-
             if (!proyectil.estaActivo()) {
                 removerProyectil(proyectil);
             }
+        }
+    }
+
+    private void aplicarDanioEnemigoColisionado(Colisionable colisionado, double danio) {
+        EnemigoControlador enemigo = enemigoPorColisionable.get(colisionado);
+        if (enemigo != null) {
+            aplicarDanioEnemigo(enemigo, danio);
         }
     }
 
@@ -337,6 +341,7 @@ public final class ControladorPartida {
             double y = enemigo.getModelo().getPosicion().getY() + 16;
 
             enemigos.remove(enemigo);
+            enemigoPorColisionable.remove(enemigo.getModelo());
             controladores.remove(enemigo);
             motor.colisionables().remove(enemigo.getModelo());
             Platform.runLater(() -> vistaJuego.removerNodoJuego(enemigo.getVista()));

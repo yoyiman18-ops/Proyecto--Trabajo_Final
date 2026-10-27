@@ -1,51 +1,34 @@
 package controlador;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import javafx.scene.Node;
 import modelo.ModeloProyectil;
+import motor.colisiones.Colisionable;
 import motor.modelo.Entidad;
 import motor.mvc.Controlador;
-import vista.VistaItem;
+import motor.util.observer.Observador;
 import vista.VistaProyectil;
 
 public final class ProyectilControlador implements Controlador {
     private final ModeloProyectil modelo;
     private final VistaProyectil vista;
+    private final Consumer<Colisionable> accionImpacto;
+    private final Observador<Colisionable> observadorColision;
     private boolean impactado;
 
-    public ProyectilControlador(ModeloProyectil modelo, VistaProyectil vista) {
+    public ProyectilControlador(
+        ModeloProyectil modelo,
+        VistaProyectil vista,
+        Consumer<Colisionable> accionImpacto
+    ) {
         this.modelo = Objects.requireNonNull(modelo, "El modelo del proyectil no puede ser nulo");
         this.vista = Objects.requireNonNull(vista, "La vista del proyectil no puede ser nula");
+        this.accionImpacto = Objects.requireNonNull(accionImpacto, "La acción de impacto no puede ser nula");
+        this.observadorColision = this::alColisionar;
+        this.modelo.getEntidad().getNotificadorColision().suscribirObservador(observadorColision);
         actualizarVista();
-    }
-
-    public ProyectilControlador(ModeloProyectil modelo, VistaItem vista) {
-        this(
-            modelo,
-            adaptarVistaItem(Objects.requireNonNull(vista, "La vista del proyectil no puede ser nula"))
-        );
-    }
-
-    private static VistaProyectil adaptarVistaItem(VistaItem vista) {
-        if (vista instanceof VistaProyectil vistaProyectil) {
-            return vistaProyectil;
-        }
-        return new VistaProyectil() {
-            @Override
-            public Node getNodo() {
-                return vista.getNodo();
-            }
-
-            @Override
-            public void actualizarPosicion(double x, double y) {
-                vista.actualizarPosicion(x, y);
-            }
-
-            @Override
-            public void actualizarAnimacion(double dt) {
-            }
-        };
     }
 
     @Override
@@ -58,12 +41,12 @@ public final class ProyectilControlador implements Controlador {
         return vista.getNodo();
     }
 
-    public double getDanio() {
-        return modelo.getDanio();
-    }
-
-    public void registrarImpacto() {
-        this.impactado = true;
+    private void alColisionar(Colisionable otro) {
+        if (!estaActivo()) {
+            return;
+        }
+        impactado = true;
+        accionImpacto.accept(otro);
     }
 
     public boolean estaActivo() {
@@ -87,4 +70,3 @@ public final class ProyectilControlador implements Controlador {
         vista.actualizarPosicion(modelo.getPosicion().getX(), modelo.getPosicion().getY());
     }
 }
-

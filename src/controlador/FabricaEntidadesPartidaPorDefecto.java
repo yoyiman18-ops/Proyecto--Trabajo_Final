@@ -2,6 +2,7 @@ package controlador;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 import javafx.scene.image.Image;
@@ -14,6 +15,7 @@ import modelo.ModeloProyectil;
 import modelo.ObjetivoEnemigo;
 import modelo.Personaje;
 import modelo.Proyectil;
+import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.HitboxRectangular;
 import motor.colisiones.hitboxes.MascaraColision;
@@ -184,9 +186,11 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         double y,
         VecDouble2D direccion,
         double danio,
-        boolean esCritico
+        boolean esCritico,
+        Consumer<Colisionable> accionImpacto
     ) {
         Objects.requireNonNull(direccion, "La dirección del proyectil no puede ser nula");
+        Objects.requireNonNull(accionImpacto, "La acción de impacto no puede ser nula");
 
         double tamanoHitbox = esCritico ? 20 : 16;
         double tamanoVisual = esCritico ? 38 : 30;
@@ -217,6 +221,6 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
             tamanoHitbox
         );
 
-        return new ProyectilControlador(modeloProyectil, vistaProyectil);
+        return new ProyectilControlador(modeloProyectil, vistaProyectil, accionImpacto);
     }
 }

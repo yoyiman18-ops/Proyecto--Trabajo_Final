@@ -1,10 +1,12 @@
 package controlador;
 
+import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 import modelo.ItemMejoraAtributo;
 import modelo.ModeloJugador;
 import modelo.ObjetivoEnemigo;
+import motor.colisiones.Colisionable;
 import motor.mvc.ControladorUsuario;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
@@ -42,20 +44,12 @@ public interface FabricaEntidadesPartida {
         double y
     );
 
-    default ProyectilControlador crearProyectil(
-        double x,
-        double y,
-        VecDouble2D direccion,
-        double danio
-    ) {
-        return crearProyectil(x, y, direccion, danio, false);
-    }
-
     ProyectilControlador crearProyectil(
         double x,
         double y,
         VecDouble2D direccion,
         double danio,
-        boolean esCritico
+        boolean esCritico,
+        Consumer<Colisionable> accionImpacto
     );
 }

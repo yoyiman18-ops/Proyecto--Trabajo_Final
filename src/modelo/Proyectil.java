@@ -93,11 +93,6 @@ public final class Proyectil extends Entidad implements ModeloProyectil {
     }
 
     @Override
-    public double getTiempoVida() {
-        return tiempoVida;
-    }
-
-    @Override
     public void actualizarTiempoVida(double deltaTiempo) {
         if (!Double.isFinite(deltaTiempo) || deltaTiempo < 0) {
             throw new IllegalArgumentException(
