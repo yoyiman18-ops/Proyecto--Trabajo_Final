@@ -1,9 +1,11 @@
 package motor.modelo;
 
+import java.awt.geom.Rectangle2D;
 import java.util.Objects;
 
 import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
+import motor.colisiones.hitboxes.TipoHitbox;
 import motor.util.Eje;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
@@ -131,7 +133,40 @@ public class Entidad implements Colisionable {
 
     @Override public Hitbox getHitbox() { return this.hitbox; }
     @Override public boolean colisionesActivas() { return this.hitbox.estaActiva(); }
-    @Override public void colisionar(Colisionable otra) { this.notificadorColision.notificar(otra); }
 
+    @Override
+    public void colisionar(Colisionable otra) {
+        if (otra != null
+            && this.hitbox != null
+            && otra.getHitbox() != null
+            && this.hitbox.getTipo() == TipoHitbox.SOLIDA
+            && otra.getHitbox().getTipo() == TipoHitbox.INAMOVIBLE) {
+            resolverColisionInamovible(otra.getHitbox());
+        }
+        this.notificadorColision.notificar(otra);
+    }
 
+    private void resolverColisionInamovible(Hitbox obstaculo) {
+        Rectangle2D propio = this.hitbox.getBounds();
+        Rectangle2D ajeno = obstaculo.getBounds();
+        Rectangle2D interseccion = propio.createIntersection(ajeno);
+        if (interseccion.getWidth() <= 0 || interseccion.getHeight() <= 0) {
+            return;
+        }
+        if (interseccion.getWidth() < interseccion.getHeight()) {
+            double dx = propio.getCenterX() < ajeno.getCenterX()
+                ? -interseccion.getWidth()
+                : interseccion.getWidth();
+            posicion.setX(posicion.getX() + dx);
+            velocidad.setX(0);
+        } else {
+            double dy = propio.getCenterY() < ajeno.getCenterY()
+                ? -interseccion.getHeight()
+                : interseccion.getHeight();
+            posicion.setY(posicion.getY() + dy);
+            velocidad.setY(0);
+        }
+        this.hitbox.actualizarTransformacion(posicion);
+        this.notificador.notificar(this);
+    }
 }
