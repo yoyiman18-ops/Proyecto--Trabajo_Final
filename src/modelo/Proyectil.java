@@ -106,9 +106,4 @@ public final class Proyectil extends Entidad implements ModeloProyectil {
     public boolean estaExpirado() {
         return tiempoVida == 0;
     }
-
-    @Override
-    public Entidad getEntidad() {
-        return this;
-    }
 }

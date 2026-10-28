@@ -123,6 +123,7 @@ public class Entidad implements Colisionable {
     public double getVelocidadMax() { return this.velocidadMax; }
     public Notificador<Entidad> getNotificador() { return this.notificador; }
     public Notificador<Colisionable> getNotificadorColision() { return this.notificadorColision; }
+    public Entidad getEntidad() { return this; }
 
     public void setVelocidadMax(double velocidadMax) {
         if (!Double.isFinite(velocidadMax) || velocidadMax < 0) {

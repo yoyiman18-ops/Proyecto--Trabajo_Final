@@ -9,7 +9,9 @@ import java.util.function.DoubleSupplier;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import modelo.Enemigo;
+import modelo.Experiencia;
 import modelo.ModeloEnemigo;
+import modelo.ModeloExperiencia;
 import modelo.ModeloJugador;
 import modelo.ModeloProyectil;
 import modelo.ObjetivoEnemigo;
@@ -171,7 +173,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         double y,
         int cantidad
     ) {
-        Entidad modeloExp = new Entidad(
+        ModeloExperiencia modeloExp = new Experiencia(
             "experiencia",
             new HitboxRectangular(
                 new Rectangle2D.Double(0, 0, 18, 18),
@@ -180,14 +182,11 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
                 MascaraColision.of(CategoriaColision.JUGADOR)
             ),
             new VecDouble2D(x, y),
-            new VecDouble2D(),
-            0,
-            0,
-            0
+            cantidad
         );
 
         VistaItem vistaExp = new ItemVista(9, Color.web("#83df4e"), Color.web("#e4ff9b"), 2);
-        return new ExperienciaControlador(jugador, modeloExp, vistaExp, cantidad);
+        return new ExperienciaControlador(jugador, modeloExp, vistaExp);
     }
 
     @Override

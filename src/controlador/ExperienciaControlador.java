@@ -1,6 +1,7 @@
 package controlador;
 
 import javafx.scene.Node;
+import modelo.ModeloExperiencia;
 import modelo.ModeloJugador;
 import motor.colisiones.Colisionable;
 import motor.modelo.Entidad;
@@ -10,30 +11,27 @@ import vista.VistaItem;
 
 public final class ExperienciaControlador implements Controlador {
     private final ModeloJugador jugador;
-    private final Entidad modelo;
+    private final ModeloExperiencia modelo;
     private final VistaItem vista;
-    private final int cantidad;
     private final Observador<Colisionable> observadorColision;
-    private boolean recogida;
 
-    public ExperienciaControlador(ModeloJugador jugador, Entidad modelo, VistaItem vista, int cantidad) {
-        if (jugador == null || modelo == null || vista == null || cantidad <= 0) {
+    public ExperienciaControlador(ModeloJugador jugador, ModeloExperiencia modelo, VistaItem vista) {
+        if (jugador == null || modelo == null || vista == null) {
             throw new IllegalArgumentException(
-                "El jugador, modelo, vista y una cantidad positiva de XP son obligatorios."
+                "El jugador, el modelo de experiencia y la vista son obligatorios."
             );
         }
         this.jugador = jugador;
         this.modelo = modelo;
         this.vista = vista;
-        this.cantidad = cantidad;
         this.observadorColision = this::alColisionar;
-        this.modelo.getNotificadorColision().suscribirObservador(this.observadorColision);
+        this.modelo.getEntidad().getNotificadorColision().suscribirObservador(this.observadorColision);
         actualizarVista();
     }
 
     @Override
     public Entidad getModelo() {
-        return modelo;
+        return modelo.getEntidad();
     }
 
     @Override
@@ -42,7 +40,7 @@ public final class ExperienciaControlador implements Controlador {
     }
 
     public boolean fueRecogida() {
-        return recogida;
+        return modelo.fueRecogida();
     }
 
     @Override
@@ -51,12 +49,8 @@ public final class ExperienciaControlador implements Controlador {
     }
 
     private void alColisionar(Colisionable otro) {
-        if (recogida || jugador.getVida() <= 0) {
-            return;
-        }
         if (otro == jugador.getEntidad()) {
-            jugador.ganarExperiencia(cantidad);
-            recogida = true;
+            modelo.recoger(jugador);
         }
     }
 

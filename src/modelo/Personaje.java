@@ -254,19 +254,15 @@ public class Personaje extends Entidad implements ModeloJugador {
     }
 
     @Override
-    public Entidad getEntidad() {
-        return this;
-    }
-
-    @Override
-    public void recibirDanio(double cantidad) {
+    public boolean recibirDanio(double cantidad) {
         validarCantidadNoNegativa(cantidad);
         if (cantidad == 0 || vida == 0) {
-            return;
+            return false;
         }
         double danioEfectivo = cantidad * (1 - defensaPorcentual / PROBABILIDAD_MAXIMA);
         vida = Math.max(0, vida - danioEfectivo);
         notificadorVida.notificar(this);
+        return vida == 0;
     }
 
     @Override

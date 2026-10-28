@@ -1,9 +1,10 @@
 package modelo;
 
+import motor.modelo.Dañable;
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
 
-public interface ModeloEnemigo {
+public interface ModeloEnemigo extends Dañable {
     VecDouble2D getPosicion();
     VecDouble2D getVelocidad();
     double getVelocidadMax();
@@ -11,7 +12,6 @@ public interface ModeloEnemigo {
     double getVidaMaxima();
     double getDanio();
     int getExperienciaRecompensa();
-    boolean recibirDanio(double cantidad);
     void actualizarEnfriamientoAtaque(double dt);
     boolean atacar(ObjetivoEnemigo objetivo);
     void perseguir(VecDouble2D destino, double dt);

@@ -95,6 +95,20 @@ public final class Enemigo extends Entidad implements ModeloEnemigo {
         this.tiempoHastaAtaque = 0;
     }
 
+    private Enemigo(Builder b) {
+        this(
+            b.nombre,
+            b.hitbox,
+            b.posicion,
+            b.velocidadMax,
+            b.vidaMaxima,
+            b.danio,
+            b.experienciaRecompensa,
+            b.intervaloAtaque,
+            b.notificadorEntidad
+        );
+    }
+
     @Override
     public double getVida() { return vida; }
 
@@ -106,9 +120,6 @@ public final class Enemigo extends Entidad implements ModeloEnemigo {
 
     @Override
     public int getExperienciaRecompensa() { return experienciaRecompensa; }
-
-    @Override
-    public Entidad getEntidad() { return this; }
 
     @Override
     public boolean recibirDanio(double cantidad) {
@@ -162,5 +173,69 @@ public final class Enemigo extends Entidad implements ModeloEnemigo {
         getVelocidad().setX(diferenciaX / distancia * velocidadMax);
         getVelocidad().setY(diferenciaY / distancia * velocidadMax);
         mover(dt);
+    }
+
+    public static class Builder {
+        private final String nombre;
+        private final Hitbox hitbox;
+        private VecDouble2D posicion;
+        private double velocidadMax;
+        private double vidaMaxima;
+        private double danio;
+        private int experienciaRecompensa;
+        private double intervaloAtaque;
+        private Notificador<Entidad> notificadorEntidad;
+
+        public Builder(String nombre, Hitbox hitbox) {
+            this.nombre = Objects.requireNonNull(nombre, "El nombre no puede ser nulo");
+            this.hitbox = Objects.requireNonNull(hitbox, "La hitbox no puede ser nula");
+            this.posicion = new VecDouble2D(0, 0);
+            this.velocidadMax = 75;
+            this.vidaMaxima = 50;
+            this.danio = 10;
+            this.experienciaRecompensa = 10;
+            this.intervaloAtaque = INTERVALO_ATAQUE_DEFAULT;
+            this.notificadorEntidad = new NotificadorDebil<>();
+        }
+
+        public Builder posicion(VecDouble2D posicion) {
+            Objects.requireNonNull(posicion, "La posición no puede ser nula");
+            this.posicion = posicion.clone();
+            return this;
+        }
+
+        public Builder velocidadMax(double velocidadMax) {
+            this.velocidadMax = velocidadMax;
+            return this;
+        }
+
+        public Builder vidaMaxima(double vidaMaxima) {
+            this.vidaMaxima = vidaMaxima;
+            return this;
+        }
+
+        public Builder danio(double danio) {
+            this.danio = danio;
+            return this;
+        }
+
+        public Builder experienciaRecompensa(int experienciaRecompensa) {
+            this.experienciaRecompensa = experienciaRecompensa;
+            return this;
+        }
+
+        public Builder intervaloAtaque(double intervaloAtaque) {
+            this.intervaloAtaque = intervaloAtaque;
+            return this;
+        }
+
+        public Builder notificadorEntidad(Notificador<Entidad> notificadorEntidad) {
+            this.notificadorEntidad = Objects.requireNonNull(notificadorEntidad, "El notificador no puede ser nulo");
+            return this;
+        }
+
+        public Enemigo build() {
+            return new Enemigo(this);
+        }
     }
 }
