@@ -54,7 +54,7 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
                     // si no estaba ya el id combinado, agrega el par a la lista de pares y avanza
                     if (idsVisitados.add(colliderA.combinarIds(colliderB))) { 
                     // si no son compatibles, los descarta. en otro caso los añade a la lista de pares
-                    if (colliderA.esCompatible(colliderB)) { continue; } else { pares.add(new ParColision(a, b)); }}
+                    if (!colliderA.esCompatible(colliderB)) { continue; } else { pares.add(new ParColision(a, b)); }}
                 }
             }
         }

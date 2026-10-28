@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
-import motor.EstadoOleadas;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
@@ -80,56 +79,6 @@ public final class Partida implements ModeloPartida {
     }
 
     @Override
-    public int getOleadaActual() {
-        return oleadaActual;
-    }
-
-    @Override
-    public int getCantidadOleadas() {
-        return cantidadOleadas;
-    }
-
-    @Override
-    public int getMaxEnemigosSimultaneos() {
-        return maxEnemigosSimultaneos;
-    }
-
-    @Override
-    public int getEnemigosActivos() {
-        return enemigosActivos;
-    }
-
-    @Override
-    public int getEnemigosRestantesOleada() {
-        return enemigosRestantesOleada;
-    }
-
-    @Override
-    public int getEnemigosPorAparecer() {
-        return enemigosPorAparecer;
-    }
-
-    @Override
-    public double getProbabilidadMejoraAtributo() {
-        return probabilidadMejoraAtributo;
-    }
-
-    @Override
-    public double getAumentoVidaMaxima() {
-        return aumentoVidaMaxima;
-    }
-
-    @Override
-    public double getDistanciaMaxAtaque() {
-        return distanciaMaxAtaque;
-    }
-
-    @Override
-    public boolean isOleadasCompletadas() {
-        return oleadasCompletadas;
-    }
-
-    @Override
     public boolean isEnPausa() {
         return enPausa;
     }
@@ -157,11 +106,6 @@ public final class Partida implements ModeloPartida {
         this.enPausa = false;
         this.eleccionMejoraActiva = false;
         this.opcionesMejoraActuales = List.of();
-    }
-
-    @Override
-    public List<ItemMejoraAtributo> getOpcionesMejoraActuales() {
-        return opcionesMejoraActuales;
     }
 
     @Override
