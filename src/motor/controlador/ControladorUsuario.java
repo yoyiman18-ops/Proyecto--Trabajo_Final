@@ -1,4 +1,4 @@
-package motor.mvc;
+package motor.controlador;
 
 import motor.entrada.EstadoAcciones;
 import motor.util.observer.Observador;

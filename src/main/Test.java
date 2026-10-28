@@ -5,8 +5,12 @@ import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
@@ -14,16 +18,22 @@ import motor.persistencia.dao.sqlite.Conexion;
 import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.GestorRecursos;
 import motor.util.ContadorSegundos;
+import motor.util.Eje;
 import motor.util.RelojDelta;
+import motor.util.VecDouble2D;
+import motor.util.observer.Contador;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorFuerte;
 import motor.util.observer.Observador;
+import vista.VistaImagen;
+import vista.VistaImagenFX;
 
-public class Test {
+public class Test extends Application {
 
     public static void main(String[] args) throws Exception {
+        launch(args);
 
-        Platform.startup(() -> {});
+        //Platform.startup(() -> {});
         /*
         Conexion conexion = Conexion.getInstancia();
         GestorRecursos gestorRecursos = GestorRecursos.getInstancia();
@@ -115,6 +125,7 @@ public class Test {
     rd.iniciar();
     */
 
+    /*
     // test: sheet animada
     GestorRecursos gr = new GestorRecursos();
     DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(Conexion.getInstancia().get(), gr);
@@ -133,7 +144,48 @@ public class Test {
     gestorSheetAnimada.setAnimacion("caminar_arriba", true);
     gestorSheetAnimada.suscribir(parlante);
     rd.iniciar();
+    */
+
+    }
+
+    private Eje eje = Eje.X;
+
+    // test: vista sheet
+    @Override
+    public void start(Stage stage) {
 
 
+        ContadorSegundos cs = new ContadorSegundos(2);
+        GestorRecursos gr = new GestorRecursos();
+        DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(Conexion.getInstancia().get(), gr);
+        RelojDelta rd = new RelojDelta(new NotificadorFuerte<>());
+        Sheet sheet = sheetDAO.cargar(1);
+        GestorSheetAnimada gestorSheetAnimada = new GestorSheetAnimada(sheet);
+        VistaImagenFX vista = new VistaImagenFX(sheet.getImagen());
+        VecDouble2D posicion = new VecDouble2D(0,50);
+        NotificadorFuerte<VecDouble2D> notificadorPosi = new NotificadorFuerte<>();
+        Observador<Integer> triggerCs = s -> { eje = Eje.Y; gestorSheetAnimada.setAnimacion("caminar_abajo", true); };
+        Observador<Double> triggerDt = dt -> {
+            final Eje eje1 = eje;
+            cs.tick(dt);
+            posicion.sumar(10 * dt, eje);
+            notificadorPosi.notificar(posicion);
+            gestorSheetAnimada.tick(dt);
+        };
+
+        cs.suscribirObservador(triggerCs);
+        notificadorPosi.suscribirObservador(vista.getObservadorPosicion());
+        gestorSheetAnimada.setAnimacion("caminar_derecha", false);
+        gestorSheetAnimada.suscribir(vista.getObservadorRectangulo());
+        rd.suscribirObservador(triggerDt);
+        rd.iniciar();
+
+        Pane root = new Pane();
+        root.getChildren().add(vista);
+        Scene escena = new Scene(root, 480,480);
+        stage.setScene(escena);
+        stage.setTitle("TEST");
+        stage.show();
+    
     }
 }

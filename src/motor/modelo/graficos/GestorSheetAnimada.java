@@ -48,6 +48,8 @@ implements Ticking
         }
     }
 
+    
+
     @Override
     public void tick(double dt) { 
         if (animacionActual == null) { return; }

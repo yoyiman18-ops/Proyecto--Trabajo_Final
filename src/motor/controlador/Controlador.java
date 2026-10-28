@@ -1,10 +1,10 @@
-package motor.mvc;
+package motor.controlador;
 
 import javafx.scene.Node;
 import motor.modelo.Entidad;
+import motor.util.Ticking;
 
-public interface Controlador {
+public interface Controlador extends Ticking {
     Entidad getModelo();
     Node getVista();
-    void tick(Double dt);
 }

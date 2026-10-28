@@ -85,69 +85,25 @@ public class Personaje extends Entidad implements ModeloJugador {
 
     @Override
     public boolean atacar() {
-        if (tiempoEnfriamientoAtaque > 0) {
-            return false;
-        }
+        if (tiempoEnfriamientoAtaque > 0) { return false; }
         tiempoEnfriamientoAtaque = 1.0 / velocidadAtaque;
         return true;
     }
 
     @Override
-    public Direccion getDireccion() {
-        return direccion;
-    }
-
-    @Override
-    public VecDouble2D getVectorDireccion() {
-        return vectorDireccion.clone();
-    }
-
-    public double getVida() {
-        return vida;
-    }
-
-    public double getVidaMax() {
-        return vidaMax;
-    }
-
-    public int getExperiencia() {
-        return experiencia;
-    }
-
-    public int getNivel() {
-        return nivel;
-    }
-
-    public int getExperienciaSiguiente() {
-        return experienciaSiguiente;
-    }
-
-    public int getNivelesPendientes() {
-        return nivelesPendientes;
-    }
-
-    public double getDanioAtaque() {
-        return danioAtaque;
-    }
-
-    @Override
-    public double getVelocidadAtaque() {
-        return velocidadAtaque;
-    }
-
-    public double getDefensa() {
-        return defensaPorcentual;
-    }
-
-    @Override
-    public double getProbabilidadCritico() {
-        return probabilidadCritico;
-    }
-
-    @Override
-    public double getProbabilidadMultidisparo() {
-        return probabilidadMultidisparo;
-    }
+    public Direccion getDireccion() { return direccion; }
+    public VecDouble2D getVectorDireccion() { return vectorDireccion.clone(); }
+    public double getVida() { return vida; }
+    public double getVidaMax() { return vidaMax;}
+    public int getExperiencia() { return experiencia; }
+    public int getNivel() { return nivel; }
+    public int getExperienciaSiguiente() { return experienciaSiguiente;}
+    public int getNivelesPendientes() { return nivelesPendientes; }
+    public double getDanioAtaque() { return danioAtaque; }
+    public double getVelocidadAtaque() { return velocidadAtaque; }
+    public double getDefensa() { return defensaPorcentual; }
+    public double getProbabilidadCritico() { return probabilidadCritico; }
+    public double getProbabilidadMultidisparo() { return probabilidadMultidisparo; }
 
     public void aumentarDefensa(double porcentaje) {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
