@@ -1,5 +1,6 @@
 package motor.modelo;
 
 public interface Dañable {
-    boolean recibirDanio(double cantidad);
+    public boolean recibirDaño(double daño);
+    public Dañable getDañable();
 }
