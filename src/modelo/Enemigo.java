@@ -1,7 +1,5 @@
 package modelo;
 
-import java.util.Objects;
-
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
@@ -9,14 +7,10 @@ import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
 public final class Enemigo extends Entidad implements ModeloEnemigo {
-    public static final double INTERVALO_ATAQUE_DEFAULT = 1.0;
-
     private double vida;
     private final double vidaMaxima;
-    private final double danio;
+    private final double daño;
     private final int experienciaRecompensa;
-    private final double intervaloAtaque;
-    private double tiempoHastaAtaque;
 
     public Enemigo(
         String nombre,
@@ -24,7 +18,7 @@ public final class Enemigo extends Entidad implements ModeloEnemigo {
         VecDouble2D posicion,
         double velocidadMaxima,
         double vidaMaxima,
-        double danio,
+        double daño,
         int experienciaRecompensa
     ) {
         this(
@@ -33,9 +27,8 @@ public final class Enemigo extends Entidad implements ModeloEnemigo {
             posicion,
             velocidadMaxima,
             vidaMaxima,
-            danio,
+            daño,
             experienciaRecompensa,
-            INTERVALO_ATAQUE_DEFAULT,
             new NotificadorDebil<>()
         );
     }
@@ -46,83 +39,32 @@ public final class Enemigo extends Entidad implements ModeloEnemigo {
         VecDouble2D posicion,
         double velocidadMaxima,
         double vidaMaxima,
-        double danio,
+        double daño,
         int experienciaRecompensa,
-        Notificador<Entidad> notificador
-    ) {
-        this(
-            nombre,
-            hitbox,
-            posicion,
-            velocidadMaxima,
-            vidaMaxima,
-            danio,
-            experienciaRecompensa,
-            INTERVALO_ATAQUE_DEFAULT,
-            notificador
-        );
-    }
-
-    public Enemigo(
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        double velocidadMaxima,
-        double vidaMaxima,
-        double danio,
-        int experienciaRecompensa,
-        double intervaloAtaque,
         Notificador<Entidad> notificador
     ) {
         super(nombre, hitbox, posicion, new VecDouble2D(), 0, 0, velocidadMaxima, notificador);
         if (!Double.isFinite(vidaMaxima) || vidaMaxima <= 0) {
             throw new IllegalArgumentException("La vida máxima debe ser positiva y finita.");
         }
-        if (!Double.isFinite(danio) || danio < 0) {
+        if (!Double.isFinite(daño) || daño < 0) {
             throw new IllegalArgumentException("El daño debe ser finito y no negativo.");
         }
         if (experienciaRecompensa < 0) {
             throw new IllegalArgumentException("La experiencia de recompensa no puede ser negativa.");
         }
-        if (!Double.isFinite(intervaloAtaque) || intervaloAtaque <= 0) {
-            throw new IllegalArgumentException("El intervalo de ataque debe ser positivo y finito.");
-        }
         this.vida = vidaMaxima;
         this.vidaMaxima = vidaMaxima;
-        this.danio = danio;
+        this.daño = daño;
         this.experienciaRecompensa = experienciaRecompensa;
-        this.intervaloAtaque = intervaloAtaque;
-        this.tiempoHastaAtaque = 0;
     }
 
-    private Enemigo(Builder b) {
-        this(
-            b.nombre,
-            b.hitbox,
-            b.posicion,
-            b.velocidadMax,
-            b.vidaMaxima,
-            b.danio,
-            b.experienciaRecompensa,
-            b.intervaloAtaque,
-            b.notificadorEntidad
-        );
-    }
-
-    @Override
     public double getVida() { return vida; }
-
-    @Override
     public double getVidaMaxima() { return vidaMaxima; }
-
-    @Override
-    public double getDanio() { return danio; }
-
-    @Override
+    @Override public double getDaño() { return daño; }
     public int getExperienciaRecompensa() { return experienciaRecompensa; }
-
-    @Override
-    public boolean recibirDanio(double cantidad) {
+    public Entidad getEntidad() { return this; }
+    public boolean recibirdaño(double cantidad) {
         if (!Double.isFinite(cantidad) || cantidad < 0) {
             throw new IllegalArgumentException("El daño recibido debe ser finito y no negativo.");
         }
@@ -131,111 +73,5 @@ public final class Enemigo extends Entidad implements ModeloEnemigo {
         }
         vida = Math.max(0, vida - cantidad);
         return vida == 0;
-    }
-
-    @Override
-    public void actualizarEnfriamientoAtaque(double dt) {
-        if (!Double.isFinite(dt) || dt < 0) {
-            throw new IllegalArgumentException("El delta de tiempo debe ser finito y no negativo.");
-        }
-        tiempoHastaAtaque = Math.max(0, tiempoHastaAtaque - dt);
-    }
-
-    @Override
-    public boolean atacar(ObjetivoEnemigo objetivo) {
-        Objects.requireNonNull(objetivo, "El objetivo no puede ser nulo.");
-        if (tiempoHastaAtaque > 0 || vida <= 0 || objetivo.getVida() <= 0) {
-            return false;
-        }
-        objetivo.recibirDanio(danio);
-        tiempoHastaAtaque = intervaloAtaque;
-        return true;
-    }
-
-    @Override
-    public void detener() {
-        getVelocidad().setX(0);
-        getVelocidad().setY(0);
-    }
-
-    @Override
-    public void perseguir(VecDouble2D destino, double dt) {
-        Objects.requireNonNull(destino, "El destino no puede ser nulo.");
-        VecDouble2D posicionActual = getPosicion();
-        double diferenciaX = destino.getX() - posicionActual.getX();
-        double diferenciaY = destino.getY() - posicionActual.getY();
-        double distancia = Math.hypot(diferenciaX, diferenciaY);
-        if (distancia == 0) {
-            detener();
-            return;
-        }
-        double velocidadMax = getVelocidadMax();
-        getVelocidad().setX(diferenciaX / distancia * velocidadMax);
-        getVelocidad().setY(diferenciaY / distancia * velocidadMax);
-        mover(dt);
-    }
-
-    public static class Builder {
-        private final String nombre;
-        private final Hitbox hitbox;
-        private VecDouble2D posicion;
-        private double velocidadMax;
-        private double vidaMaxima;
-        private double danio;
-        private int experienciaRecompensa;
-        private double intervaloAtaque;
-        private Notificador<Entidad> notificadorEntidad;
-
-        public Builder(String nombre, Hitbox hitbox) {
-            this.nombre = Objects.requireNonNull(nombre, "El nombre no puede ser nulo");
-            this.hitbox = Objects.requireNonNull(hitbox, "La hitbox no puede ser nula");
-            this.posicion = new VecDouble2D(0, 0);
-            this.velocidadMax = 75;
-            this.vidaMaxima = 50;
-            this.danio = 10;
-            this.experienciaRecompensa = 10;
-            this.intervaloAtaque = INTERVALO_ATAQUE_DEFAULT;
-            this.notificadorEntidad = new NotificadorDebil<>();
-        }
-
-        public Builder posicion(VecDouble2D posicion) {
-            Objects.requireNonNull(posicion, "La posición no puede ser nula");
-            this.posicion = posicion.clone();
-            return this;
-        }
-
-        public Builder velocidadMax(double velocidadMax) {
-            this.velocidadMax = velocidadMax;
-            return this;
-        }
-
-        public Builder vidaMaxima(double vidaMaxima) {
-            this.vidaMaxima = vidaMaxima;
-            return this;
-        }
-
-        public Builder danio(double danio) {
-            this.danio = danio;
-            return this;
-        }
-
-        public Builder experienciaRecompensa(int experienciaRecompensa) {
-            this.experienciaRecompensa = experienciaRecompensa;
-            return this;
-        }
-
-        public Builder intervaloAtaque(double intervaloAtaque) {
-            this.intervaloAtaque = intervaloAtaque;
-            return this;
-        }
-
-        public Builder notificadorEntidad(Notificador<Entidad> notificadorEntidad) {
-            this.notificadorEntidad = Objects.requireNonNull(notificadorEntidad, "El notificador no puede ser nulo");
-            return this;
-        }
-
-        public Enemigo build() {
-            return new Enemigo(this);
-        }
     }
 }

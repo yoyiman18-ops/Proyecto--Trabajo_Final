@@ -6,8 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
-import motor.util.Ticking;
+import motor.modelo.Ticking;
 import motor.util.observer.NotificadorDebil;
 import motor.util.observer.Observador;
 

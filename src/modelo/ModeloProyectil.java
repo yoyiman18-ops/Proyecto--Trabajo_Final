@@ -1,12 +1,12 @@
 package modelo;
 
 import motor.modelo.Entidad;
+import motor.modelo.Ticking;
 import motor.util.VecDouble2D;
 
 public interface ModeloProyectil
-extends Dañador
+extends Dañador,Ticking
 {
     VecDouble2D getPosicion();
-    boolean estaExpirado();
     Entidad getEntidad();
 }

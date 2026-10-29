@@ -1,7 +1,7 @@
 package motor.modelo.graficos;
 import javafx.geometry.Rectangle2D;
+import motor.modelo.Ticking;
 import motor.util.ContadorSegundos;
-import motor.util.Ticking;
 import motor.util.observer.Observador;
 
 public class GestorSheetAnimada

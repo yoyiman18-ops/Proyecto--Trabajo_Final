@@ -1,9 +1,6 @@
 package modelo;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
 
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Direccion;
@@ -13,16 +10,7 @@ import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
 public class Personaje extends Entidad implements ModeloJugador {
-    private static final double PROBABILIDAD_MAXIMA = 100.0;
-    private static final double MULTIPLICADOR_CRITICO = 2.0;
-    private static final double[] ANGULOS_UNICO_DISPARO = { 0.0 };
-    private static final double[] ANGULOS_MULTIDISPARO = { -18.0, 0.0, 18.0 };
-    private static final double OFFSET_CENTRO_DISPARO = 17.0;
-    private static final double DISTANCIA_SALIDA_DISPARO = 16.0;
-
     private final double defensaMaximaPorcentual;
-    private final int experienciaBaseNivel;
-    private final int incrementoExperienciaNivel;
     private double vida;
     private double vidaMax;
     private double defensaPorcentual;
@@ -39,7 +27,7 @@ public class Personaje extends Entidad implements ModeloJugador {
     private Direccion direccion;
     private final VecDouble2D vectorDireccion;
     private final VecDouble2D acumuladorDireccionTick;
-
+    
     private Personaje(Builder b) {
         super(
             b.nombre,
@@ -57,8 +45,6 @@ public class Personaje extends Entidad implements ModeloJugador {
         this.defensaPorcentual = 0;
         this.experiencia = 0;
         this.nivel = b.nivelInicial;
-        this.experienciaBaseNivel = b.experienciaSiguienteInicial;
-        this.incrementoExperienciaNivel = b.incrementoExperienciaNivel;
         this.experienciaSiguiente = b.experienciaSiguienteInicial;
         this.nivelesPendientes = 0;
         this.danioAtaque = b.danioAtaque;
@@ -105,65 +91,17 @@ public class Personaje extends Entidad implements ModeloJugador {
     }
 
     @Override
-    public List<DatosDisparo> realizarAtaque() {
-        if (!intentarAtacar()) {
-            return List.of();
-        }
-
-        ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
-        boolean esMultidisparo = aleatorio.nextDouble(PROBABILIDAD_MAXIMA) < probabilidadMultidisparo;
-        double[] angulos = esMultidisparo ? ANGULOS_MULTIDISPARO : ANGULOS_UNICO_DISPARO;
-
-        List<DatosDisparo> disparos = new ArrayList<>(angulos.length);
-        VecDouble2D posicionActual = getPosicion();
-        for (double angulo : angulos) {
-            VecDouble2D direccionDisparo = rotarVector(vectorDireccion, angulo);
-            boolean esCritico = aleatorio.nextDouble(PROBABILIDAD_MAXIMA) < probabilidadCritico;
-            double danioFinal = esCritico ? danioAtaque * MULTIPLICADOR_CRITICO : danioAtaque;
-
-            VecDouble2D origen = new VecDouble2D(
-                posicionActual.getX() + OFFSET_CENTRO_DISPARO + direccionDisparo.getX() * DISTANCIA_SALIDA_DISPARO,
-                posicionActual.getY() + OFFSET_CENTRO_DISPARO + direccionDisparo.getY() * DISTANCIA_SALIDA_DISPARO
-            );
-            disparos.add(new DatosDisparo(origen, direccionDisparo, danioFinal, esCritico));
-        }
-        return List.copyOf(disparos);
-    }
-
-    private static VecDouble2D rotarVector(VecDouble2D vector, double grados) {
-        if (grados == 0) {
-            return vector.clone();
-        }
-        double radianes = Math.toRadians(grados);
-        double cos = Math.cos(radianes);
-        double sin = Math.sin(radianes);
-        double x = vector.getX() * cos - vector.getY() * sin;
-        double y = vector.getX() * sin + vector.getY() * cos;
-        return new VecDouble2D(x, y);
-    }
-
-    @Override
     public Direccion getDireccion() { return direccion; }
-    @Override
     public VecDouble2D getVectorDireccion() { return vectorDireccion.clone(); }
-    @Override
     public double getVida() { return vida; }
-    @Override
     public double getVidaMax() { return vidaMax;}
-    @Override
     public int getExperiencia() { return experiencia; }
-    @Override
     public int getNivel() { return nivel; }
-    @Override
     public int getExperienciaSiguiente() { return experienciaSiguiente;}
-    @Override
-    public double getDanioAtaque() { return danioAtaque; }
-    @Override
+    public double getDanñoAtaque() { return danioAtaque; }
     public double getProbabilidadCritico() { return probabilidadCritico; }
-    @Override
     public double getProbabilidadMultidisparo() { return probabilidadMultidisparo; }
 
-    @Override
     public void aumentarDefensa(double porcentaje) {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de defensa debe ser finito y no negativo.");
@@ -171,7 +109,6 @@ public class Personaje extends Entidad implements ModeloJugador {
         defensaPorcentual = Math.min(defensaMaximaPorcentual, defensaPorcentual + porcentaje);
     }
 
-    @Override
     public void aumentarDanioAtaque(double cantidad) {
         validarCantidadNoNegativa(cantidad);
         double nuevoDanio = danioAtaque + cantidad;
@@ -186,7 +123,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de velocidad de ataque debe ser finito y no negativo.");
         }
-        double nuevaVelocidadAtaque = velocidadAtaque * (1 + porcentaje / PROBABILIDAD_MAXIMA);
+        double nuevaVelocidadAtaque = velocidadAtaque * (1 + porcentaje / 100);
         if (!Double.isFinite(nuevaVelocidadAtaque)) {
             throw new IllegalArgumentException("La velocidad de ataque resultante debe ser finita.");
         }
@@ -198,7 +135,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de velocidad debe ser finito y no negativo.");
         }
-        double nuevaVelocidadMaxima = getVelocidadMax() * (1 + porcentaje / PROBABILIDAD_MAXIMA);
+        double nuevaVelocidadMaxima = getVelocidadMax() * (1 + porcentaje / 100);
         if (!Double.isFinite(nuevaVelocidadMaxima)) {
             throw new IllegalArgumentException("La velocidad máxima resultante debe ser finita.");
         }
@@ -210,7 +147,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de crítico debe ser finito y no negativo.");
         }
-        probabilidadCritico = Math.min(PROBABILIDAD_MAXIMA, probabilidadCritico + porcentaje);
+        probabilidadCritico = Math.min(100, probabilidadCritico + porcentaje);
     }
 
     @Override
@@ -218,10 +155,9 @@ public class Personaje extends Entidad implements ModeloJugador {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de multidisparo debe ser finito y no negativo.");
         }
-        probabilidadMultidisparo = Math.min(PROBABILIDAD_MAXIMA, probabilidadMultidisparo + porcentaje);
+        probabilidadMultidisparo = Math.min(100, probabilidadMultidisparo + porcentaje);
     }
 
-    @Override
     public boolean consumirNivelPendiente() {
         if (nivelesPendientes == 0) {
             return false;
@@ -230,7 +166,6 @@ public class Personaje extends Entidad implements ModeloJugador {
         return true;
     }
 
-    @Override
     public int ganarExperiencia(int cantidad) {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La experiencia no puede ser negativa.");
@@ -240,7 +175,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         while (experienciaAcumulada >= experienciaSiguiente) {
             experienciaAcumulada -= experienciaSiguiente;
             nivel++;
-            experienciaSiguiente = experienciaBaseNivel + (nivel - 1) * incrementoExperienciaNivel;
+            experienciaSiguiente = 30 + (nivel - 1) * 25;
             nivelesGanados++;
         }
         experiencia = (int) experienciaAcumulada;
@@ -248,24 +183,35 @@ public class Personaje extends Entidad implements ModeloJugador {
         return nivelesGanados;
     }
 
-    @Override
     public Notificador<ModeloJugador> getNotificadorVida() {
         return notificadorVida;
     }
 
     @Override
-    public boolean recibirDanio(double cantidad) {
-        validarCantidadNoNegativa(cantidad);
-        if (cantidad == 0 || vida == 0) {
-            return false;
-        }
-        double danioEfectivo = cantidad * (1 - defensaPorcentual / PROBABILIDAD_MAXIMA);
-        vida = Math.max(0, vida - danioEfectivo);
-        notificadorVida.notificar(this);
-        return vida == 0;
+    public Entidad getEntidad() {
+        return this;
     }
 
     @Override
+    public void recibirDanio(double cantidad) {
+        validarCantidadNoNegativa(cantidad);
+        if (cantidad == 0 || vida == 0) {
+            return;
+        }
+        double danioEfectivo = cantidad * (1 - defensaPorcentual / 100);
+        vida = Math.max(0, vida - danioEfectivo);
+        notificadorVida.notificar(this);
+    }
+
+    public void curar(double cantidad) {
+        validarCantidadNoNegativa(cantidad);
+        if (cantidad == 0 || vida == vidaMax) {
+            return;
+        }
+        vida = Math.min(vidaMax, vida + cantidad);
+        notificadorVida.notificar(this);
+    }
+
     public void aumentarVidaMaxima(double cantidad) {
         validarCantidadNoNegativa(cantidad);
         if (cantidad == 0) {
@@ -299,7 +245,6 @@ public class Personaje extends Entidad implements ModeloJugador {
         private double defensaMaximaPorcentual;
         private int nivelInicial;
         private int experienciaSiguienteInicial;
-        private int incrementoExperienciaNivel;
         private double danioAtaque;
         private double velocidadAtaque;
         private double probabilidadCritico;
@@ -320,7 +265,6 @@ public class Personaje extends Entidad implements ModeloJugador {
             this.defensaMaximaPorcentual = 80;
             this.nivelInicial = 1;
             this.experienciaSiguienteInicial = 30;
-            this.incrementoExperienciaNivel = 25;
             this.danioAtaque = 25;
             this.velocidadAtaque = 1.2;
             this.probabilidadCritico = 5.0;
@@ -388,7 +332,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         }
 
         public Builder defensaMaximaPorcentual(double defensaMaximaPorcentual) {
-            if (!Double.isFinite(defensaMaximaPorcentual) || defensaMaximaPorcentual < 0 || defensaMaximaPorcentual > PROBABILIDAD_MAXIMA) {
+            if (!Double.isFinite(defensaMaximaPorcentual) || defensaMaximaPorcentual < 0 || defensaMaximaPorcentual > 100) {
                 throw new IllegalArgumentException("La defensa máxima porcentual debe estar entre 0 y 100");
             }
             this.defensaMaximaPorcentual = defensaMaximaPorcentual;
@@ -412,7 +356,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         }
 
         public Builder probabilidadCritico(double probabilidadCritico) {
-            if (!Double.isFinite(probabilidadCritico) || probabilidadCritico < 0 || probabilidadCritico > PROBABILIDAD_MAXIMA) {
+            if (!Double.isFinite(probabilidadCritico) || probabilidadCritico < 0 || probabilidadCritico > 100) {
                 throw new IllegalArgumentException("La probabilidad de crítico debe estar entre 0 y 100");
             }
             this.probabilidadCritico = probabilidadCritico;
@@ -420,7 +364,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         }
 
         public Builder probabilidadMultidisparo(double probabilidadMultidisparo) {
-            if (!Double.isFinite(probabilidadMultidisparo) || probabilidadMultidisparo < 0 || probabilidadMultidisparo > PROBABILIDAD_MAXIMA) {
+            if (!Double.isFinite(probabilidadMultidisparo) || probabilidadMultidisparo < 0 || probabilidadMultidisparo > 100) {
                 throw new IllegalArgumentException("La probabilidad de multidisparo debe estar entre 0 y 100");
             }
             this.probabilidadMultidisparo = probabilidadMultidisparo;
@@ -449,4 +393,6 @@ public class Personaje extends Entidad implements ModeloJugador {
             return new Personaje(this);
         }
     }
+
+
 }

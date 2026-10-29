@@ -7,14 +7,18 @@ import modelo.ObjetivoEnemigo;
 import motor.colisiones.Colisionable;
 import motor.modelo.Entidad;
 import motor.mvc.Controlador;
+import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
 import vista.VistaEnemigo;
 
-public final class EnemigoControlador implements Controlador {
+public final class EnemigoControlador implements ControladorFX {
     private final ModeloEnemigo modelo;
     private final VistaEnemigo vista;
     private final ObjetivoEnemigo objetivo;
+    private final double intervaloAtaque;
     private final Observador<Colisionable> observadorColision;
+
+    private double tiempoHastaAtaque;
     private boolean contactoConObjetivo;
 
     public EnemigoControlador(
@@ -22,9 +26,22 @@ public final class EnemigoControlador implements Controlador {
         VistaEnemigo vista,
         ObjetivoEnemigo objetivo
     ) {
+        this(modelo, vista, objetivo, 1);
+    }
+
+    public EnemigoControlador(
+        ModeloEnemigo modelo,
+        VistaEnemigo vista,
+        ObjetivoEnemigo objetivo,
+        double intervaloAtaque
+    ) {
         this.modelo = Objects.requireNonNull(modelo, "El modelo no puede ser nulo");
         this.vista = Objects.requireNonNull(vista, "La vista no puede ser nula");
         this.objetivo = Objects.requireNonNull(objetivo, "El objetivo no puede ser nulo");
+        if (!Double.isFinite(intervaloAtaque) || intervaloAtaque <= 0) {
+            throw new IllegalArgumentException("El intervalo de ataque debe ser positivo y finito.");
+        }
+        this.intervaloAtaque = intervaloAtaque;
         this.observadorColision = this::alColisionar;
         this.modelo.getEntidad().getNotificadorColision().suscribirObservador(observadorColision);
 
@@ -58,22 +75,40 @@ public final class EnemigoControlador implements Controlador {
             return;
         }
         vista.actualizarAnimacion(dt);
-        modelo.actualizarEnfriamientoAtaque(dt);
+        tiempoHastaAtaque = Math.max(0, tiempoHastaAtaque - dt);
 
         if (contactoConObjetivo) {
-            modelo.detener();
+            modelo.getVelocidad().setX(0);
+            modelo.getVelocidad().setY(0);
             contactoConObjetivo = false;
             return;
         }
 
-        modelo.perseguir(objetivo.getPosicion(), dt);
+        VecDouble2D posicion = modelo.getPosicion();
+        VecDouble2D posicionObjetivo = objetivo.getPosicion();
+        double diferenciaX = posicionObjetivo.getX() + 25 - posicion.getX();
+        double diferenciaY = posicionObjetivo.getY() + 25 - posicion.getY();
+        double distancia = Math.hypot(diferenciaX, diferenciaY);
+
+        double velocidadMax = modelo.getVelocidadMaxima();
+        if (distancia == 0) {
+            modelo.getVelocidad().setX(0);
+            modelo.getVelocidad().setY(0);
+            return;
+        }
+        modelo.getVelocidad().setX(diferenciaX / distancia * velocidadMax);
+        modelo.getVelocidad().setY(diferenciaY / distancia * velocidadMax);
+        modelo.mover(dt);
         actualizarVista();
     }
 
     private void alColisionar(Colisionable otro) {
         if (otro instanceof ObjetivoEnemigo objetivoColisionado && objetivoColisionado == objetivo) {
             contactoConObjetivo = true;
-            modelo.atacar(objetivo);
+            if (tiempoHastaAtaque <= 0 && objetivo.getVida() > 0) {
+                objetivo.recibirDanio(modelo.getDanio());
+                tiempoHastaAtaque = intervaloAtaque;
+            }
         }
     }
 

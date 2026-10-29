@@ -1,4 +1,5 @@
 package motor.util;
+import motor.modelo.Ticking;
 import motor.util.observer.NotificadorDebil;
 
 public class ContadorSegundos 
