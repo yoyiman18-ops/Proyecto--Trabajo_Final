@@ -1,18 +1,15 @@
 package motor.modelo;
 
-import java.awt.geom.Rectangle2D;
 import java.util.Objects;
-
 import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
-import motor.colisiones.hitboxes.TipoHitbox;
 import motor.util.Eje;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
 public abstract class Entidad 
-implements Colisionable, Ticking {
+implements Colisionable, Ticking, Activable {
     private boolean activa;
     private final String nombre;
     private final Hitbox hitbox;
@@ -22,7 +19,6 @@ implements Colisionable, Ticking {
     private double friccion;
     private double velocidadMax;
     private final Notificador<Entidad> notificadorEntidad;
-    private final Notificador<Colisionable> notificadorColision;
 
     public Entidad(
         String nombre,
@@ -61,7 +57,6 @@ implements Colisionable, Ticking {
         this.friccion = friccion;
         this.velocidadMax = velocidadMax;
         this.notificadorEntidad = Objects.requireNonNull(notificadorEntidad, "El notificadorEntidad no puede ser nulo");
-        this.notificadorColision = new NotificadorDebil<>();
         if (this.hitbox != null && this.posicion != null) {
             this.hitbox.actualizarTransformacion(this.posicion);
         }
@@ -122,7 +117,6 @@ implements Colisionable, Ticking {
         }
     }
 
-    public boolean activa() { return this.activa; }
     public String getNombre() { return this.nombre; }
     public VecDouble2D getVelocidad() { return this.velocidad; }
     public VecDouble2D getPosicion() { return this.posicion; }
@@ -130,10 +124,6 @@ implements Colisionable, Ticking {
     public double getFriccion() { return this.friccion; }
     public double getVelocidadMax() { return this.velocidadMax; }
     public Notificador<Entidad> getNotificadorEntidad() { return this.notificadorEntidad; }
-    public Notificador<Colisionable> getNotificadorColision() { return this.notificadorColision; }
-    public Entidad getEntidad() { return this; }
-
-    public void setActivo(boolean activa) { this.activa = activa; } 
 
     public void setVelocidadMax(double velocidadMax) {
         if (!Double.isFinite(velocidadMax) || velocidadMax < 0) {
@@ -142,6 +132,8 @@ implements Colisionable, Ticking {
         this.velocidadMax = velocidadMax;
     }
 
+    @Override public void setActivo(boolean activa) { this.activa = activa; } 
+    @Override public boolean activo() { return this.activa; }
     @Override public Hitbox getHitbox() { return this.hitbox; }
     @Override public boolean colisionesActivas() { return this.hitbox.estaActiva(); }
 
