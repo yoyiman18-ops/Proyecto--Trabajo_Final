@@ -1,12 +1,14 @@
 package modelo;
-
-import motor.modelo.Entidad;
+import motor.modelo.Activable;
+import motor.modelo.Dañable;
+import motor.modelo.Dañador;
 import motor.modelo.Ticking;
 import motor.util.VecDouble2D;
+import motor.util.observer.Notificador;
 
 public interface ModeloProyectil
-extends Dañador,Ticking
+extends Dañador,Dañable,Ticking,Activable
 {
     VecDouble2D getPosicion();
-    Entidad getEntidad();
+    Notificador<Integer> getNotificadorExpiracion();
 }

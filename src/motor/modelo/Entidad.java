@@ -9,7 +9,8 @@ import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
 public abstract class Entidad 
-implements Colisionable, Ticking, Activable {
+implements Colisionable, Ticking, Activable, IdGlobal {
+    private final int idGlobal,
     private boolean activa;
     private final String nombre;
     private final Hitbox hitbox;
@@ -21,6 +22,7 @@ implements Colisionable, Ticking, Activable {
     private final Notificador<Entidad> notificadorEntidad;
 
     public Entidad(
+        int idGlobal,
         String nombre,
         Hitbox hitbox,
         VecDouble2D posicion,
@@ -29,6 +31,7 @@ implements Colisionable, Ticking, Activable {
         double friccion,
         double velocidadMax) {
         this(
+            idGlobal,
             nombre,
             hitbox,
             posicion,
@@ -41,6 +44,7 @@ implements Colisionable, Ticking, Activable {
     }
 
     public Entidad(
+        int idGlobal,
         String nombre,
         Hitbox hitbox,
         VecDouble2D posicion,
@@ -49,6 +53,7 @@ implements Colisionable, Ticking, Activable {
         double friccion,
         double velocidadMax,
         Notificador<Entidad> notificadorEntidad) {
+        this.idGlobal = idGlobal;
         this.nombre = Objects.requireNonNull(nombre, "Nombre no puede ser nulo");;
         this.hitbox = Objects.requireNonNull(hitbox, "Hitbox no puede ser nula");;
         this.posicion = Objects.requireNonNull(posicion, "Posicion no puede ser nula");
@@ -135,6 +140,7 @@ implements Colisionable, Ticking, Activable {
     @Override public void setActivo(boolean activa) { this.activa = activa; } 
     @Override public boolean activo() { return this.activa; }
     @Override public Hitbox getHitbox() { return this.hitbox; }
+    @Override public int getIdGlobal() { return this.idGlobal; }
     @Override public boolean colisionesActivas() { return this.hitbox.estaActiva(); }
 
 }

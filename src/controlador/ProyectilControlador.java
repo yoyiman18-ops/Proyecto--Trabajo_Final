@@ -6,16 +6,18 @@ import java.util.function.Consumer;
 import javafx.scene.Node;
 import modelo.ModeloProyectil;
 import motor.colisiones.Colisionable;
+import motor.modelo.Activable;
 import motor.modelo.Entidad;
 import motor.modelo.Ticking;
 import motor.util.observer.Observador;
 import vista.VistaImagen;
 import vista.VistaImagenFX;
 
-public final class ProyectilControlador implements Ticking {
+public final class ProyectilControlador implements Ticking,Activable {
     private final ModeloProyectil modelo;
     private final VistaImagen vista;
-    private final Consumer<Colisionable> accionImpacto;
+    private final Observador<Integer> observadorExpiracion;
+    private boolean activo;
 
     public ProyectilControlador(
         ModeloProyectil modelo,
@@ -24,23 +26,18 @@ public final class ProyectilControlador implements Ticking {
     ) {
         this.modelo = Objects.requireNonNull(modelo, "El modelo del proyectil no puede ser nulo");
         this.vista = Objects.requireNonNull(vista, "La vista del proyectil no puede ser nula");
-        this.accionImpacto = Objects.requireNonNull(accionImpacto, "La acción de impacto no puede ser nula");
+        this.observadorExpiracion = e -> { System.out.println("Hola"); };
+        this.modelo.getNotificadorExpiracion().suscribirObservador(observadorExpiracion);
     }
 
-    private void alColisionar(Colisionable otro) {
-        if (!estaActivo()) { return; }
-        accionImpacto.accept(otro);
-    }
-
-    public boolean estaActivo() {
-        return !impactado && !modelo.estaExpirado();
-    }
+    @Override public boolean activo() { return modelo.activo(); };
+    @Override public void setActivo(boolean activo) { this.activo = activo; }
 
     @Override
     public void tick(double dt) {
-        if (!estaActivo()) { return; }
+        if (!activo()) { return; }
         modelo.tick(dt);
-        }
+    }
 }
 
 

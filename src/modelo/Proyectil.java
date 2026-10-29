@@ -8,16 +8,17 @@ import motor.modelo.Solido;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
+import motor.util.observer.NotificadorFuerte;
 
 public final class Proyectil
 extends Entidad
-implements Dañable,Dañador
+implements ModeloProyectil
 {
 
     private final double daño;
     private double tiempoVida;
     private int penetracion;
-
+    private final Notificador<Integer> notificadorExpiracion;
 
     public Proyectil(
         String nombre,
@@ -42,41 +43,42 @@ implements Dañable,Dañador
         this.daño = daño;
         this.tiempoVida = tiempoVida;
         this.penetracion = penetracion;
+        this.notificadorExpiracion = new NotificadorFuerte<>();
     }
 
-    @Override public double getDaño() { return daño; }
     @Override public void tick(double dt) {
-        if (!super.activo()) { return; }
+        if (!activo()) { return; }
         tiempoVida = Math.max(0, tiempoVida - dt); 
         super.tick(dt);
         if (estaExpirado()) { setActivo(false); }
     }
 
+    @Override public double getDaño() { return daño; }
     @Override public boolean dañar(Dañable o) { return o.recibirDaño(this.getDaño()); }
     @Override public boolean recibirDaño(double daño) {
-        if (activo()) {
-            penetracion -= daño;
-            if (penetracion <= 0) { setActivo(false); }
-            return true;
-        }
-        else return false;
+        penetracion -= daño;
+        if (penetracion <= 0) { expirar(); }
+        return true;
     }
-
-
 
     @Override public void colisionar(Colisionable o) {
-        o.colisionarCon(getDañador());
         o.colisionarCon(getDañable());
     }
-
-    @Override public void colisionarCon(Dañador o) { if (activo()) { recibirDaño(o.getDaño()); }}
-    @Override public void colisionarCon(Dañable o) { if (activo()) { o.recibirDaño(this.getDaño()); }}
-    @Override public void colisionarCon(Solido o) { if (activo()) { recibirDaño(o.getNivelSolidez()); }
+    
+    @Override public void colisionarCon(Dañable o) { if (activo()) { dañar(o); }}
+    @Override public void colisionarCon(Solido o) { 
+        if (activo()) { 
+            if (o.getNivelSolidez() > 0) { recibirDaño(o.getNivelSolidez()); }
+            else { expirar(); }
+        }
     }
 
     @Override public Dañable getDañable() { return this; }
-    @Override public Dañador getDañador() { return this; }
 
+    private void expirar() {
+        setActivo(false);
+
+    }
     private boolean estaExpirado() { return tiempoVida == 0; }
 
 
