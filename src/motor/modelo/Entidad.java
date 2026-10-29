@@ -1,9 +1,11 @@
 package motor.modelo;
 
+import java.awt.geom.Rectangle2D;
 import java.util.Objects;
 
 import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
+import motor.colisiones.hitboxes.TipoHitbox;
 import motor.util.Eje;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;

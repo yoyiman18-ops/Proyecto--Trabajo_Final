@@ -1,5 +1,6 @@
 package controlador;
 
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -8,7 +9,9 @@ import java.util.function.DoubleSupplier;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import modelo.Enemigo;
+import modelo.Experiencia;
 import modelo.ModeloEnemigo;
+import modelo.ModeloExperiencia;
 import modelo.ModeloJugador;
 import modelo.ModeloProyectil;
 import modelo.ObjetivoEnemigo;
@@ -59,7 +62,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         return new Personaje.Builder(
             "jugador",
             new HitboxRectangular(
-                new java.awt.geom.Rectangle2D.Double(0, 0, 30, 20),
+                new Rectangle2D.Double(0, 0, 50, 50),
                 TipoHitbox.SOLIDA,
                 MascaraColision.of(CategoriaColision.JUGADOR),
                 MascaraColision.of(
@@ -69,6 +72,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
                 )
             )
         )
+        .posicion(new VecDouble2D(455, 335))
         .friccion(2500)
         .aceleracion(3000)
         .velocidadMax(240)
@@ -97,6 +101,42 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
     }
 
     @Override
+    public List<Entidad> crearMurosPerimetrales(
+        double anchoArea,
+        double altoArea,
+        JugadorControlador.LimitesArea limites
+    ) {
+        Objects.requireNonNull(limites, "Los límites del área no pueden ser nulos");
+        double margenHorizontal = Math.max(1, limites.margenHorizontal());
+        double margenSuperior = Math.max(1, limites.margenSuperior());
+        double margenInferior = Math.max(1, limites.margenInferior());
+
+        return List.of(
+            crearMuro("muro-superior", 0, 0, anchoArea, margenSuperior),
+            crearMuro("muro-inferior", 0, altoArea - margenInferior, anchoArea, margenInferior),
+            crearMuro("muro-izquierdo", 0, 0, margenHorizontal, altoArea),
+            crearMuro("muro-derecho", anchoArea - margenHorizontal, 0, margenHorizontal, altoArea)
+        );
+    }
+
+    private Entidad crearMuro(String nombre, double x, double y, double ancho, double alto) {
+        return new Entidad(
+            nombre,
+            new HitboxRectangular(
+                new Rectangle2D.Double(0, 0, Math.max(1, ancho), Math.max(1, alto)),
+                TipoHitbox.INAMOVIBLE,
+                MascaraColision.of(CategoriaColision.MURO),
+                MascaraColision.of(CategoriaColision.JUGADOR)
+            ),
+            new VecDouble2D(x, y),
+            new VecDouble2D(),
+            0,
+            0,
+            0
+        );
+    }
+
+    @Override
     public EnemigoControlador crearEnemigo(
         double x,
         double y,
@@ -106,7 +146,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         ModeloEnemigo modeloEnemigo = new Enemigo(
             "enemigo",
             new HitboxRectangular(
-                new java.awt.geom.Rectangle2D.Double(0, 0, 32, 32),
+                new Rectangle2D.Double(0, 0, 32, 32),
                 TipoHitbox.SOLIDA,
                 MascaraColision.of(CategoriaColision.ENEMIGO),
                 MascaraColision.of(CategoriaColision.JUGADOR, CategoriaColision.ALIADO)
@@ -133,23 +173,20 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         double y,
         int cantidad
     ) {
-        Entidad modeloExp = new Entidad(
+        ModeloExperiencia modeloExp = new Experiencia(
             "experiencia",
             new HitboxRectangular(
-                new java.awt.geom.Rectangle2D.Double(0, 0, 18, 18),
+                new Rectangle2D.Double(0, 0, 18, 18),
                 TipoHitbox.SOLIDA,
                 MascaraColision.of(CategoriaColision.EXP),
                 MascaraColision.of(CategoriaColision.JUGADOR)
             ),
             new VecDouble2D(x, y),
-            new VecDouble2D(),
-            0,
-            0,
-            0
+            cantidad
         );
 
         VistaItem vistaExp = new ItemVista(9, Color.web("#83df4e"), Color.web("#e4ff9b"), 2);
-        return new ExperienciaControlador(jugador, modeloExp, vistaExp, cantidad);
+        return new ExperienciaControlador(jugador, modeloExp, vistaExp);
     }
 
     @Override
@@ -172,7 +209,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         ModeloProyectil modeloProyectil = new Proyectil(
             "proyectil",
             new HitboxRectangular(
-                new java.awt.geom.Rectangle2D.Double(0, 0, tamanoHitbox, tamanoHitbox),
+                new Rectangle2D.Double(0, 0, tamanoHitbox, tamanoHitbox),
                 TipoHitbox.SOLIDA,
                 MascaraColision.of(CategoriaColision.ALIADO),
                 MascaraColision.of(CategoriaColision.ENEMIGO)
@@ -181,16 +218,14 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
             direccion,
             danio,
             velocidad,
-            1.2
+            1.6
         );
 
         VistaProyectil vistaProyectil = new ProyectilVista(
-            spriteSheetProyectil,
             new Animacion(spriteSheetProyectil, 8, 9, 0.08),
             filaColor,
             tamanoVisual,
-            tamanoVisual,
-            tamanoHitbox
+            tamanoVisual
         );
 
         return new ProyectilControlador(modeloProyectil, vistaProyectil, accionImpacto);

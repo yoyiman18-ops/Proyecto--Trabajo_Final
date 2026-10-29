@@ -9,7 +9,8 @@ extends Dañable,Dañador
     VecDouble2D getPosicion();
     VecDouble2D getVelocidad();
     double getVelocidadMaxima();
+    double getVida();
+    double getVidaMaxima();
     int getExperienciaRecompensa();
-    void mover(double dt);
     Entidad getEntidad();
 }

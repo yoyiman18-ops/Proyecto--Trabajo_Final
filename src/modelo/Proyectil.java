@@ -1,5 +1,6 @@
 package modelo;
-
+import motor.modelo.Dañable;
+import motor.modelo.Dañador;
 import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
@@ -69,7 +70,6 @@ implements ModeloProyectil,Dañable {
 
     @Override public Entidad getEntidad() { return this; }
 
-    
 
     @Override public boolean dañar(Dañable o) { return o.recibirDaño(this.getDaño()); }
     private boolean estaExpirado() { return tiempoVida == 0; }
