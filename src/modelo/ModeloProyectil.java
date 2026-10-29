@@ -3,11 +3,10 @@ package modelo;
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
 
-public interface ModeloProyectil {
+public interface ModeloProyectil
+extends Dañador
+{
     VecDouble2D getPosicion();
-    double getDanio();
-    void actualizarTiempoVida(double deltaTiempo);
     boolean estaExpirado();
-    void mover(double dt);
     Entidad getEntidad();
 }

@@ -1,14 +1,17 @@
 package modelo;
 
+import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
-public final class Proyectil extends Entidad implements ModeloProyectil {
+public final class Proyectil
+extends Entidad
+implements ModeloProyectil,Dañable {
 
-    private final double danio;
+    private final double daño;
     private double tiempoVida;
 
     public Proyectil(
@@ -16,7 +19,7 @@ public final class Proyectil extends Entidad implements ModeloProyectil {
         Hitbox hitbox,
         VecDouble2D posicion,
         VecDouble2D direccion,
-        double danio,
+        double daño,
         double velocidad,
         double tiempoVida
     ) {
@@ -24,8 +27,7 @@ public final class Proyectil extends Entidad implements ModeloProyectil {
             nombre,
             hitbox,
             posicion,
-            direccion,
-            danio,
+            daño,
             velocidad,
             tiempoVida,
             new NotificadorDebil<>()
@@ -36,8 +38,7 @@ public final class Proyectil extends Entidad implements ModeloProyectil {
         String nombre,
         Hitbox hitbox,
         VecDouble2D posicion,
-        VecDouble2D direccion,
-        double danio,
+        double daño,
         double velocidad,
         double tiempoVida,
         Notificador<Entidad> notificador
@@ -52,63 +53,25 @@ public final class Proyectil extends Entidad implements ModeloProyectil {
             velocidad,
             notificador
         );
-
-        if (direccion == null) {
-            throw new IllegalArgumentException(
-                "La dirección no puede ser nula."
-            );
-        }
-
-        if (!Double.isFinite(danio) || danio < 0) {
-            throw new IllegalArgumentException(
-                "El daño debe ser finito y no negativo."
-            );
-        }
-
-        if (!Double.isFinite(velocidad) || velocidad <= 0) {
-            throw new IllegalArgumentException(
-                "La velocidad debe ser positiva y finita."
-            );
-        }
-
-        if (!Double.isFinite(tiempoVida) || tiempoVida <= 0) {
-            throw new IllegalArgumentException(
-                "El tiempo de vida debe ser positivo y finito."
-            );
-        }
-
-        VecDouble2D velocidadCalculada = direccion.clone().normalizado();
-        velocidadCalculada.producto(velocidad);
-        getVelocidad().setX(velocidadCalculada.getX());
-        getVelocidad().setY(velocidadCalculada.getY());
-
-        this.danio = danio;
+        if (!Double.isFinite(daño) || daño < 0) { throw new IllegalArgumentException("El daño debe ser finito y no negativo.");}
+        if (!Double.isFinite(tiempoVida) || tiempoVida <= 0) { throw new IllegalArgumentException("El tiempo de vida debe ser positivo y finito."); }
+        this.daño = daño;
         this.tiempoVida = tiempoVida;
     }
 
-    @Override
-    public double getDanio() {
-        return danio;
+    @Override public double getDaño() { return daño; }
+    @Override public void tick(double dt) {
+        if (!super.activa()) { return; }
+        tiempoVida = Math.max(0, tiempoVida - dt); 
+        super.tick(dt);
+        if (estaExpirado()) { super.setActivo(false); }
     }
 
-    @Override
-    public void actualizarTiempoVida(double deltaTiempo) {
-        if (!Double.isFinite(deltaTiempo) || deltaTiempo < 0) {
-            throw new IllegalArgumentException(
-                "El delta de tiempo debe ser finito y no negativo."
-            );
-        }
+    @Override public Entidad getEntidad() { return this; }
 
-        tiempoVida = Math.max(0, tiempoVida - deltaTiempo);
-    }
+    
 
-    @Override
-    public boolean estaExpirado() {
-        return tiempoVida == 0;
-    }
+    @Override public boolean dañar(Dañable o) { return o.recibirDaño(this.getDaño()); }
+    private boolean estaExpirado() { return tiempoVida == 0; }
 
-    @Override
-    public Entidad getEntidad() {
-        return this;
-    }
 }

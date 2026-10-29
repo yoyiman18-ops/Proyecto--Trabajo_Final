@@ -6,39 +6,30 @@ import java.util.function.Consumer;
 import javafx.scene.Node;
 import modelo.ModeloProyectil;
 import motor.colisiones.Colisionable;
+import motor.controlador.ControladorEntidad;
 import motor.modelo.Entidad;
-import motor.mvc.Controlador;
+import motor.util.Ticking;
 import motor.util.observer.Observador;
-import vista.VistaProyectil;
+import vista.VistaImagen;
+import vista.VistaImagenFX;
 
-public final class ProyectilControlador implements Controlador {
+public final class ProyectilControlador implements Ticking {
     private final ModeloProyectil modelo;
-    private final VistaProyectil vista;
+    private final VistaImagen vista;
     private final Consumer<Colisionable> accionImpacto;
     private final Observador<Colisionable> observadorColision;
     private boolean impactado;
 
     public ProyectilControlador(
         ModeloProyectil modelo,
-        VistaProyectil vista,
+        VistaImagen vista,
         Consumer<Colisionable> accionImpacto
     ) {
         this.modelo = Objects.requireNonNull(modelo, "El modelo del proyectil no puede ser nulo");
         this.vista = Objects.requireNonNull(vista, "La vista del proyectil no puede ser nula");
         this.accionImpacto = Objects.requireNonNull(accionImpacto, "La acción de impacto no puede ser nula");
         this.observadorColision = this::alColisionar;
-        this.modelo.getEntidad().getNotificadorColision().suscribirObservador(observadorColision);
-        actualizarVista();
-    }
-
-    @Override
-    public Entidad getModelo() {
-        return modelo.getEntidad();
-    }
-
-    @Override
-    public Node getVista() {
-        return vista.getNodo();
+        this.modelo.getNotificadorColision().suscribirObservador(observadorColision);
     }
 
     private void alColisionar(Colisionable otro) {
@@ -54,19 +45,11 @@ public final class ProyectilControlador implements Controlador {
     }
 
     @Override
-    public void tick(Double dt) {
-        if (!estaActivo()) {
-            return;
-        }
+    public void tick(double dt) {
+        if (!estaActivo()) { return; }
         modelo.actualizarTiempoVida(dt);
-        if (estaActivo()) {
-            modelo.mover(dt);
-            vista.actualizarAnimacion(dt);
-            actualizarVista();
+        
         }
     }
 
-    private void actualizarVista() {
-        vista.actualizarPosicion(modelo.getPosicion().getX(), modelo.getPosicion().getY());
-    }
 }

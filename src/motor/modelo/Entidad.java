@@ -9,7 +9,9 @@ import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 
-public class Entidad implements Colisionable {
+public abstract class Entidad 
+implements Colisionable, Ticking {
+    private boolean activa;
     private final String nombre;
     private final Hitbox hitbox;
     private VecDouble2D posicion;
@@ -17,7 +19,7 @@ public class Entidad implements Colisionable {
     private double aceleracion;
     private double friccion;
     private double velocidadMax;
-    private final Notificador<Entidad> notificador;
+    private final Notificador<Entidad> notificadorEntidad;
     private final Notificador<Colisionable> notificadorColision;
 
     public Entidad(
@@ -48,28 +50,30 @@ public class Entidad implements Colisionable {
         double aceleracion,
         double friccion,
         double velocidadMax,
-        Notificador<Entidad> notificador) {
-        this.nombre = nombre;
-        this.hitbox = hitbox;
-        this.posicion = posicion;
-        this.velocidad = velocidad;
+        Notificador<Entidad> notificadorEntidad) {
+        this.nombre = Objects.requireNonNull(nombre, "Nombre no puede ser nulo");;
+        this.hitbox = Objects.requireNonNull(hitbox, "Hitbox no puede ser nula");;
+        this.posicion = Objects.requireNonNull(posicion, "Posicion no puede ser nula");
+        this.velocidad = Objects.requireNonNull(velocidad, "Velocidad no puede ser nula");
         this.aceleracion = aceleracion;
         this.friccion = friccion;
         this.velocidadMax = velocidadMax;
-        this.notificador = Objects.requireNonNull(notificador, "El notificador no puede ser nulo");
+        this.notificadorEntidad = Objects.requireNonNull(notificadorEntidad, "El notificadorEntidad no puede ser nulo");
         this.notificadorColision = new NotificadorDebil<>();
         if (this.hitbox != null && this.posicion != null) {
             this.hitbox.actualizarTransformacion(this.posicion);
         }
     }
 
-    public void mover(double dt) {
+
+
+    protected void mover(double dt) {
         if (velocidad.getX() != 0 || velocidad.getY() != 0) {
             VecDouble2D desplazamiento = velocidad.clone();
             desplazamiento.producto(dt);
             posicion.sumar(desplazamiento);
             hitbox.actualizarTransformacion(posicion);
-            notificador.notificar(this);
+            notificadorEntidad.notificar(this);
         }
     }
 
@@ -105,6 +109,8 @@ public class Entidad implements Colisionable {
         }
     }
 
+    @Override public void tick(double dt) { mover(dt); }
+
     private void limitarVelocidad() {
         double magnitud = Math.hypot(velocidad.getX(), velocidad.getY());
         if (magnitud > velocidadMax) {
@@ -114,13 +120,18 @@ public class Entidad implements Colisionable {
         }
     }
 
+    public boolean activa() { return this.activa; }
+    public String getNombre() { return this.nombre; }
     public VecDouble2D getVelocidad() { return this.velocidad; }
     public VecDouble2D getPosicion() { return this.posicion; }
     public double getAceleracion() { return this.aceleracion; }
     public double getFriccion() { return this.friccion; }
     public double getVelocidadMax() { return this.velocidadMax; }
-    public Notificador<Entidad> getNotificador() { return this.notificador; }
+    public Notificador<Entidad> getNotificadorEntidad() { return this.notificadorEntidad; }
     public Notificador<Colisionable> getNotificadorColision() { return this.notificadorColision; }
+    public Entidad getEntidad() { return this; }
+
+    public void setActivo(boolean activa) { this.activa = activa; } 
 
     public void setVelocidadMax(double velocidadMax) {
         if (!Double.isFinite(velocidadMax) || velocidadMax < 0) {
@@ -131,7 +142,5 @@ public class Entidad implements Colisionable {
 
     @Override public Hitbox getHitbox() { return this.hitbox; }
     @Override public boolean colisionesActivas() { return this.hitbox.estaActiva(); }
-    @Override public void colisionar(Colisionable otra) { this.notificadorColision.notificar(otra); }
-
 
 }

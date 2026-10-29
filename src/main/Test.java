@@ -9,9 +9,16 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import motor.entrada.Accion;
+import motor.entrada.EstadoAcciones;
+import motor.entrada.GestorEntradaTeclado;
+import motor.entrada.MapeoTeclado;
+import motor.entrada.TipoEntrada;
 import motor.modelo.graficos.GestorSheetAnimada;
+import motor.modelo.graficos.GestorSheetEstatica;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
 import motor.persistencia.dao.sqlite.Conexion;
@@ -149,43 +156,71 @@ public class Test extends Application {
     }
 
     private Eje eje = Eje.X;
+    private int i = 0;
 
     // test: vista sheet
     @Override
     public void start(Stage stage) {
-
-
+        GestorEntradaTeclado teclado = new GestorEntradaTeclado();
+        teclado.añadirMapeo(new MapeoTeclado(KeyCode.RIGHT, TipoEntrada.SOLTAR, Accion.MOVER_DERECHA));
+        teclado.añadirMapeo(new MapeoTeclado(KeyCode.LEFT, TipoEntrada.SOLTAR, Accion.MOVER_IZQUIERDA));
         ContadorSegundos cs = new ContadorSegundos(2);
         GestorRecursos gr = new GestorRecursos();
         DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(Conexion.getInstancia().get(), gr);
         RelojDelta rd = new RelojDelta(new NotificadorFuerte<>());
         Sheet sheet = sheetDAO.cargar(1);
         GestorSheetAnimada gestorSheetAnimada = new GestorSheetAnimada(sheet);
-        VistaImagenFX vista = new VistaImagenFX(sheet.getImagen());
+        VistaImagenFX vistazorro = new VistaImagenFX(sheet.getImagen());
         VecDouble2D posicion = new VecDouble2D(0,50);
         NotificadorFuerte<VecDouble2D> notificadorPosi = new NotificadorFuerte<>();
         Observador<Integer> triggerCs = s -> { eje = Eje.Y; gestorSheetAnimada.setAnimacion("caminar_abajo", true); };
         Observador<Double> triggerDt = dt -> {
-            final Eje eje1 = eje;
+            teclado.tick(dt);
             cs.tick(dt);
             posicion.sumar(10 * dt, eje);
             notificadorPosi.notificar(posicion);
             gestorSheetAnimada.tick(dt);
         };
 
+        Sheet sheetHUD = sheetDAO.cargar(2);
+        VistaImagenFX vistaHud = new VistaImagenFX(sheetHUD.getImagen());
+        GestorSheetEstatica gestorHud = new GestorSheetEstatica(sheetHUD);
+        gestorHud.setRecorte(sheetHUD.getRecortes().get(i).getNombreRecorte());
+        gestorHud.suscribir(vistaHud.getObservadorRectangulo());
+
+        Observador<EstadoAcciones> observadorAcciones = e -> {
+            if (e.activa(Accion.MOVER_DERECHA)) {
+                i++;
+                gestorHud.setRecorte(
+                    sheetHUD.getRecortes().get(i).getNombreRecorte()
+                );
+            }
+            else if (e.activa(Accion.MOVER_IZQUIERDA)) {
+                i--;
+                gestorHud.setRecorte(
+                    sheetHUD.getRecortes().get(i).getNombreRecorte()
+                );
+            }
+        };
+        teclado.suscribir(observadorAcciones);
+
+        vistaHud.setPosicion(new VecDouble2D(200,200));
+
         cs.suscribirObservador(triggerCs);
-        notificadorPosi.suscribirObservador(vista.getObservadorPosicion());
+        notificadorPosi.suscribirObservador(vistazorro.getObservadorPosicion());
         gestorSheetAnimada.setAnimacion("caminar_derecha", false);
-        gestorSheetAnimada.suscribir(vista.getObservadorRectangulo());
+        gestorSheetAnimada.suscribir(vistazorro.getObservadorRectangulo());
         rd.suscribirObservador(triggerDt);
         rd.iniciar();
 
         Pane root = new Pane();
-        root.getChildren().add(vista);
+        root.getChildren().add(vistazorro);
+        root.getChildren().add(vistaHud);
         Scene escena = new Scene(root, 480,480);
         stage.setScene(escena);
         stage.setTitle("TEST");
         stage.show();
-    
+        teclado.setEscenaRoot(escena);
+
     }
 }
