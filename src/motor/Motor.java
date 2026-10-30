@@ -48,11 +48,12 @@ import motor.colisiones.sistema.FaseEspecificaSimple;
 import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.GestorEntradaTeclado;
 import motor.modelo.ModeloEntidad;
+import motor.modelo.Ticking;
 import motor.recursos.GestorRecursos;
 import motor.util.RelojDelta;
 import motor.util.observer.NotificadorFuerte;
 
-public class Motor {
+public class Motor implements Ticking {
     private final SistemaColisiones sistemaColisiones;
     private final GestorRecursos gestorRecursos;
     private final GestorEntradaTeclado gestorEntradaTeclado;
@@ -99,13 +100,22 @@ public class Motor {
         this.controladores = new ArrayList<>();
         this.colisionables = new ArrayList<>();
         
-        /* BUCLE PRINCIPAL */
-        this.relojDelta.suscribirObservador(e -> {
-            this.gestorEntradaTeclado.tick(e);
-            this.colisionables.clear();
-            for (ControladorEntidad c : controladores) { colisionables.add(c.getEntidad()); }
-            this.sistemaColisiones.resolverColisiones();
-        });
+        // el observador más importante del sistema, propaga los ticks a todos los demás
+        this.relojDelta.suscribirObservador(this::tick); 
+
+    };
+    
+
+    /* BUCLE PRINCIPAL */
+    @Override public void tick(double dt) {
+        this.gestorEntradaTeclado.tick(dt);
+        this.colisionables.clear();
+        for (ControladorEntidad c : controladores) { 
+            c.tick(dt);
+            if (!c.activo()) { controladores.remove(c); }
+            else {colisionables.add(c.getEntidad()); }
+        }
+        this.sistemaColisiones.resolverColisiones(colisionables);
     }
 
     public GestorRecursos recursos() { return this.gestorRecursos; }
@@ -116,6 +126,8 @@ public class Motor {
     public Parent root() { return this.root; }
     public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }
+
+
 }
 
 

@@ -52,6 +52,7 @@ implements ModeloEntidad {
         double friccion,
         double velocidadMax,
         Notificador<VecDouble2D> notificadorPosicion) {
+        this.activa = true;
         this.idGlobal = idGlobal;
         this.nombre = Objects.requireNonNull(nombre, "Nombre no puede ser nulo");;
         this.hitbox = Objects.requireNonNull(hitbox, "Hitbox no puede ser nula");;
