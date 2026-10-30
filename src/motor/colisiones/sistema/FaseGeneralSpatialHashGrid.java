@@ -47,7 +47,6 @@ public class FaseGeneralSpatialHashGrid implements FaseGeneral {
             for (int i = 0; i < celda.size() - 1; i++) {
                 Colisionable a = celda.get(i);
                 Hitbox colliderA = a.getHitbox();
-                System.out.println(colliderA.getId());
                 for (int j = i+1; j < celda.size(); j++) {
                     Colisionable b = celda.get(j);
                     Hitbox colliderB = b.getHitbox();

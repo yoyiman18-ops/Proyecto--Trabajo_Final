@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import controlador.ProyectilControlador;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
@@ -12,6 +13,13 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import modelo.ModeloProyectil;
+import modelo.Proyectil;
+import motor.Motor;
+import motor.colisiones.hitboxes.CategoriaColision;
+import motor.colisiones.hitboxes.HitboxRectangular;
+import motor.colisiones.hitboxes.MascaraColision;
+import motor.colisiones.hitboxes.TipoHitbox;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
 import motor.entrada.GestorEntradaTeclado;
@@ -173,14 +181,8 @@ public class Test extends Application {
         VistaImagen vistazorro = new VistaImagen(sheet.getImagen());
         VecDouble2D posicion = new VecDouble2D(0,50);
         NotificadorFuerte<VecDouble2D> notificadorPosi = new NotificadorFuerte<>();
-        Observador<Integer> triggerCs = s -> { eje = Eje.Y; gestorSheetAnimada.setAnimacion("caminar_abajo", true); };
-        Observador<Double> triggerDt = dt -> {
-            teclado.tick(dt);
-            cs.tick(dt);
-            posicion.sumar(10 * dt, eje);
-            notificadorPosi.notificar(posicion);
-            gestorSheetAnimada.tick(dt);
-        };
+        Observador<Double> triggerCs = s -> { eje = Eje.Y; gestorSheetAnimada.setAnimacion("caminar_abajo", true); };
+
 
         Sheet sheetHUD = sheetDAO.cargar(2);
         VistaImagen vistaHud = new VistaImagen(sheetHUD.getImagen());
@@ -203,19 +205,50 @@ public class Test extends Application {
             }
         };
         teclado.suscribir(observadorAcciones);
-
         vistaHud.setPosicion(new VecDouble2D(200,200));
 
         cs.suscribirObservador(triggerCs);
         notificadorPosi.suscribirObservador(vistazorro.getObservadorPosicion());
         gestorSheetAnimada.setAnimacion("caminar_derecha", false);
         gestorSheetAnimada.suscribir(vistazorro.getObservadorRectangulo());
+
+        Sheet sheetProyectil = sheetDAO.cargar(4);
+        ModeloProyectil modeloProyectil = new Proyectil(
+            4,
+            "proyectil",
+            new HitboxRectangular(
+                new java.awt.geom.Rectangle2D.Double(0.0, 0.0, 10.0, 10.0),
+                TipoHitbox.SOLIDA,
+                MascaraColision.of(CategoriaColision.ENEMIGO),
+                MascaraColision.of(CategoriaColision.ALIADO)
+            ),
+            new VecDouble2D(20,0),
+            new VecDouble2D(100,0),
+            2, 2, 2);
+        VistaImagen vistaProyectil = new VistaImagen(sheetProyectil.getImagen());
+        GestorSheetAnimada gestorSheetProyectil = new GestorSheetAnimada(sheetProyectil);
+        ProyectilControlador proyectilControlador = new ProyectilControlador(
+            modeloProyectil, 
+            vistaProyectil,
+            gestorSheetProyectil
+        );
+
+        Observador<Double> triggerDt = dt -> {
+            teclado.tick(dt);
+            cs.tick(dt);
+            posicion.sumar(10 * dt, eje);
+            notificadorPosi.notificar(posicion);
+            gestorSheetAnimada.tick(dt);
+            proyectilControlador.tick(dt);
+        };
+
         rd.suscribirObservador(triggerDt);
         rd.iniciar();
 
         Pane root = new Pane();
         root.getChildren().add(vistazorro);
         root.getChildren().add(vistaHud);
+        root.getChildren().add(proyectilControlador.getVista());
         Scene escena = new Scene(root, 480,480);
         stage.setScene(escena);
         stage.setTitle("TEST");
@@ -223,4 +256,73 @@ public class Test extends Application {
         teclado.setEscenaRoot(escena);
 
     }
+
+
+    /*
+    // test: instanciacion y colisiones
+    @Override public void start(Stage stage) {
+        Motor motor = new Motor();
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.RIGHT, TipoEntrada.SOLTAR, Accion.MOVER_DERECHA));
+        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.LEFT, TipoEntrada.SOLTAR, Accion.MOVER_IZQUIERDA));
+        DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(Conexion.getInstancia().get(), motor.recursos());
+        Sheet sheet = sheetDAO.cargar(1);
+    
+        Sheet sheetHUD = sheetDAO.cargar(2);
+        VistaImagen vistaHud = new VistaImagen(sheetHUD.getImagen());
+        GestorSheetEstatica gestorHud = new GestorSheetEstatica(sheetHUD);
+        gestorHud.setRecorte(sheetHUD.getRecortes().get(i).getNombreRecorte());
+        gestorHud.suscribir(vistaHud.getObservadorRectangulo());
+
+        Sheet sheetProyectil = sheetDAO.cargar(4);
+        ModeloProyectil modeloProyectil = new Proyectil(
+            4,
+            "proyectil",
+            new HitboxRectangular(
+                new java.awt.geom.Rectangle2D.Double(0.0, 0.0, 10.0, 10.0),
+                TipoHitbox.SOLIDA,
+                MascaraColision.of(CategoriaColision.ENEMIGO),
+                MascaraColision.of(CategoriaColision.ALIADO)
+            ),
+            new VecDouble2D(20,0),
+            new VecDouble2D(100,0),
+            2, 5, 10);
+        VistaImagen vistaProyectil = new VistaImagen(sheetProyectil.getImagen());
+        GestorSheetAnimada gestorSheetProyectil = new GestorSheetAnimada(sheetProyectil);
+        ProyectilControlador proyectilControlador = new ProyectilControlador(
+            modeloProyectil, 
+            vistaProyectil,
+            gestorSheetProyectil
+        );
+
+        ModeloProyectil modeloProyectil2 = new Proyectil(
+            4,
+            "proyectil",
+            new HitboxRectangular(
+                new java.awt.geom.Rectangle2D.Double(0.0, 0.0, 10.0, 10.0),
+                TipoHitbox.SOLIDA,
+                MascaraColision.of(CategoriaColision.ALIADO),
+                MascaraColision.of(CategoriaColision.ENEMIGO)
+            ),
+            new VecDouble2D(400,0),
+            new VecDouble2D(-100,0),
+            2, 5, 1);
+        VistaImagen vistaProyectil2 = new VistaImagen(sheetProyectil.getImagen());
+        GestorSheetAnimada gestorSheetProyectil2 = new GestorSheetAnimada(sheetProyectil);
+        ProyectilControlador proyectilControlador2 = new ProyectilControlador(
+            modeloProyectil2, 
+            vistaProyectil2,
+            gestorSheetProyectil2
+        );
+
+        Scene escena = new Scene(motor.getRoot(), 1080, 740);
+        stage.setScene(escena);
+        stage.setTitle("TEST");
+        stage.show();
+
+        motor.iniciar();
+        motor.encolarControlador(proyectilControlador);
+        motor.encolarControlador(proyectilControlador2);
+    }
+    */
+
 }

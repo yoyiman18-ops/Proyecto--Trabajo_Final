@@ -21,9 +21,9 @@ public final class ProyectilControlador implements ControladorEntidad {
     public ProyectilControlador(
         ModeloProyectil modelo,
         VistaImagen vista,
-        GestorSheetAnimada gestorSheet,
-        Consumer<Colisionable> accionImpacto
+        GestorSheetAnimada gestorSheet
     ) {
+        this.activo = true;
         this.gestorSheet = gestorSheet;
         this.modelo = Objects.requireNonNull(modelo, "El modelo del proyectil no puede ser nulo");
         this.vista = Objects.requireNonNull(vista, "La vista del proyectil no puede ser nula");
@@ -37,6 +37,7 @@ public final class ProyectilControlador implements ControladorEntidad {
     @Override public boolean activo() { return this.activo; };
     @Override public void setActivo(boolean activo) { this.activo = activo; }
     @Override public ModeloEntidad getEntidad() { return this.modelo; }
+    @Override public VistaImagen getVista() { return this.vista; }
 
     @Override
     public void tick(double dt) {

@@ -13,15 +13,15 @@ implements Ticking
     private Animacion animacionActual;
     private int indiceActual,indiceFinal;
     private final ContadorSegundos cs;
-    private final Observador<Integer> observadorCs;
+    private final Observador<Double> observadorCs;
     private final Notificador<Boolean> notificadorFinAnimacion;
 
     public GestorSheetAnimada(Sheet spriteSheet) {
         super(spriteSheet);
         this.indiceActual = 0;
         this.cs = new ContadorSegundos();
-        this.observadorCs = s -> avanzarFrame(s);
-        this.cs.suscribirObservador(observadorCs);    
+        this.observadorCs = s -> avanzarFrame((s.intValue()));
+        this.cs.suscribirObservador(observadorCs);
         this.notificadorFinAnimacion = new NotificadorFuerte<>();
     }
     

@@ -57,13 +57,16 @@ implements ModeloProyectil
     @Override public boolean dañar(Dañable o) { return o.recibirDaño(this.getDaño()); }
     @Override public boolean recibirDaño(double daño) {
         if (!activo()) { return false; }
+        System.out.println(this.getHitbox().getId() + " ha recibido " + daño);
         penetracion -= daño;
         if (penetracion <= 0) { expirar(); }
         return true;
     }
 
     @Override public void colisionar(Colisionable o) {
-        o.colisionarCon(getDañable());
+        if (activo()) {
+            o.colisionarCon(getDañable());
+        }
     }
     
     @Override public void colisionarCon(Dañable o) { if (activo()) { dañar(o); recibirDaño(1); }}

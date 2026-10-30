@@ -3,7 +3,7 @@ import motor.modelo.Ticking;
 import motor.util.observer.NotificadorDebil;
 
 public class ContadorSegundos 
-extends NotificadorDebil<Integer> 
+extends NotificadorDebil<Double> 
 implements Ticking {
 
     private double intervaloSegundos;
@@ -31,7 +31,7 @@ implements Ticking {
         double cociente = tiempoActual / intervaloSegundos;
         if (cociente >= 1) {
             tiempoActual -= cociente * intervaloSegundos;
-            notificar((int) cociente);
+            notificar(cociente);
             }
         }
 }

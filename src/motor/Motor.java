@@ -37,8 +37,10 @@ package motor;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javafx.application.Platform;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.layout.Pane;
 import motor.Controlador.ControladorEntidad;
@@ -47,7 +49,6 @@ import motor.colisiones.SistemaColisiones;
 import motor.colisiones.sistema.FaseEspecificaSimple;
 import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.GestorEntradaTeclado;
-import motor.modelo.ModeloEntidad;
 import motor.modelo.Ticking;
 import motor.recursos.GestorRecursos;
 import motor.util.RelojDelta;
@@ -58,9 +59,10 @@ public class Motor implements Ticking {
     private final GestorRecursos gestorRecursos;
     private final GestorEntradaTeclado gestorEntradaTeclado;
     private final RelojDelta relojDelta;
-    private final Parent root;
     private final ArrayList<ControladorEntidad> controladores;
     private final ArrayList<Colisionable> colisionables;
+    private final ConcurrentLinkedQueue<Runnable> colaInstanciacionesControlador;
+    private Pane root;
 
     /**
      * Crear motor default.
@@ -76,7 +78,7 @@ public class Motor implements Ticking {
     public Motor(
         SistemaColisiones sistemaColisiones,
         GestorRecursos gestorRecursos,
-        Parent root
+        Pane root
     ) {
         this(
             sistemaColisiones,
@@ -90,7 +92,7 @@ public class Motor implements Ticking {
         SistemaColisiones sistemaColisiones,
         GestorRecursos gestorRecursos,
         GestorEntradaTeclado gestorEntradaTeclado,
-        Parent root
+        Pane root
     ) {
         this.sistemaColisiones = Objects.requireNonNull(sistemaColisiones, "El sistema de colisiones no puede ser nulo");
         this.gestorRecursos = Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
@@ -99,6 +101,7 @@ public class Motor implements Ticking {
         this.root = Objects.requireNonNull(root, "El nodo raíz no puede ser nulo");
         this.controladores = new ArrayList<>();
         this.colisionables = new ArrayList<>();
+        this.colaInstanciacionesControlador = new ConcurrentLinkedQueue<>();
         
         // el observador más importante del sistema, propaga los ticks a todos los demás
         this.relojDelta.suscribirObservador(this::tick); 
@@ -108,6 +111,8 @@ public class Motor implements Ticking {
 
     /* BUCLE PRINCIPAL */
     @Override public void tick(double dt) {
+        Runnable instanciacion;
+        while ((instanciacion = colaInstanciacionesControlador.poll()) != null) { instanciacion.run(); }
         this.gestorEntradaTeclado.tick(dt);
         this.colisionables.clear();
         for (ControladorEntidad c : controladores) { 
@@ -123,11 +128,14 @@ public class Motor implements Ticking {
     public RelojDelta reloj() { return this.relojDelta; }
     public SistemaColisiones colisiones() { return this.sistemaColisiones; }
     public ArrayList<Colisionable> colisionables() { return this.colisionables; }
-    public Parent root() { return this.root; }
+    public Pane getRoot() { return this.root; }
+    public void setRoot(Pane root) { this.root = root; }
     public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }
 
-
+    public void encolarControlador(ControladorEntidad c) { this.colaInstanciacionesControlador.add(
+        () -> { controladores.add(c); getRoot().getChildren().add(c.getVista()); });
+    }
 }
 
 
