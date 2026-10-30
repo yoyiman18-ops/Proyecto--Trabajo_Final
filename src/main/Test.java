@@ -166,7 +166,8 @@ public class Test extends Application {
     private Eje eje = Eje.X;
     private int i = 0;
 
-    // test: vista sheet
+    /*
+    // test: sheet, zorro tipo npc, teclado y proyectil
     @Override
     public void start(Stage stage) {
         GestorEntradaTeclado teclado = new GestorEntradaTeclado();
@@ -256,9 +257,8 @@ public class Test extends Application {
         teclado.setEscenaRoot(escena);
 
     }
+    */
 
-
-    /*
     // test: instanciacion y colisiones
     @Override public void start(Stage stage) {
         Motor motor = new Motor();
@@ -273,9 +273,9 @@ public class Test extends Application {
         gestorHud.setRecorte(sheetHUD.getRecortes().get(i).getNombreRecorte());
         gestorHud.suscribir(vistaHud.getObservadorRectangulo());
 
-        Sheet sheetProyectil = sheetDAO.cargar(4);
+        Sheet sheetProyectil = sheetDAO.cargar(6);
         ModeloProyectil modeloProyectil = new Proyectil(
-            4,
+            6,
             "proyectil",
             new HitboxRectangular(
                 new java.awt.geom.Rectangle2D.Double(0.0, 0.0, 10.0, 10.0),
@@ -294,6 +294,7 @@ public class Test extends Application {
             gestorSheetProyectil
         );
 
+        Sheet sheetProyectil2 = sheetDAO.cargar(4);
         ModeloProyectil modeloProyectil2 = new Proyectil(
             4,
             "proyectil",
@@ -306,7 +307,7 @@ public class Test extends Application {
             new VecDouble2D(400,0),
             new VecDouble2D(-100,0),
             2, 5, 1);
-        VistaImagen vistaProyectil2 = new VistaImagen(sheetProyectil.getImagen());
+        VistaImagen vistaProyectil2 = new VistaImagen(sheetProyectil2.getImagen());
         GestorSheetAnimada gestorSheetProyectil2 = new GestorSheetAnimada(sheetProyectil);
         ProyectilControlador proyectilControlador2 = new ProyectilControlador(
             modeloProyectil2, 
@@ -323,6 +324,5 @@ public class Test extends Application {
         motor.encolarControlador(proyectilControlador);
         motor.encolarControlador(proyectilControlador2);
     }
-    */
 
 }

@@ -35,13 +35,13 @@
 
 package motor;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Queue;
 
 import javafx.application.Platform;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.layout.Pane;
 import motor.colisiones.Colisionable;
 import motor.colisiones.SistemaColisiones;
@@ -59,9 +59,11 @@ public class Motor implements Ticking {
     private final GestorRecursos gestorRecursos;
     private final GestorEntradaTeclado gestorEntradaTeclado;
     private final RelojDelta relojDelta;
-    private final ArrayList<ControladorEntidad> controladores;
-    private final ArrayList<Colisionable> colisionables;
-    private final ConcurrentLinkedQueue<Runnable> colaInstanciacionesControlador;
+    
+    private final List<ControladorEntidad> controladores;
+    private final List<Colisionable> colisionables;
+    private final Queue<ControladorEntidad> colaInstanciacion;
+    private final Queue<ControladorEntidad> colaLimpieza;
     private Pane root;
 
     /**
@@ -101,7 +103,8 @@ public class Motor implements Ticking {
         this.root = Objects.requireNonNull(root, "El nodo raíz no puede ser nulo");
         this.controladores = new ArrayList<>();
         this.colisionables = new ArrayList<>();
-        this.colaInstanciacionesControlador = new ConcurrentLinkedQueue<>();
+        this.colaInstanciacion = new ArrayDeque<>();
+        this.colaLimpieza = new ArrayDeque<>();
         
         // el observador más importante del sistema, propaga los ticks a todos los demás
         this.relojDelta.suscribirObservador(this::tick); 
@@ -111,15 +114,15 @@ public class Motor implements Ticking {
 
     /* BUCLE PRINCIPAL */
     @Override public void tick(double dt) {
-        Runnable instanciacion;
-        while ((instanciacion = colaInstanciacionesControlador.poll()) != null) { instanciacion.run(); }
+        instanciarControladores();
         this.gestorEntradaTeclado.tick(dt);
         this.colisionables.clear();
         for (ControladorEntidad c : controladores) { 
             c.tick(dt);
-            if (!c.activo()) { controladores.remove(c); }
+            if (!c.activo()) { colaLimpieza.add(c); }
             else {colisionables.add(c.getEntidad()); }
         }
+        limpiarControladores();
         this.sistemaColisiones.resolverColisiones(colisionables);
     }
 
@@ -127,15 +130,24 @@ public class Motor implements Ticking {
     public GestorEntradaTeclado teclado() { return this.gestorEntradaTeclado; }
     public RelojDelta reloj() { return this.relojDelta; }
     public SistemaColisiones colisiones() { return this.sistemaColisiones; }
-    public ArrayList<Colisionable> colisionables() { return this.colisionables; }
+    public List<Colisionable> colisionables() { return this.colisionables; }
     public Pane getRoot() { return this.root; }
     public void setRoot(Pane root) { this.root = root; }
     public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }
 
-    public void encolarControlador(ControladorEntidad c) { this.colaInstanciacionesControlador.add(
-        () -> { controladores.add(c); getRoot().getChildren().add(c.getVista()); });
+    public void encolarControlador(ControladorEntidad c) { colaInstanciacion.add(c); }
+
+    private void instanciarControladores() {
+        ControladorEntidad c;
+        while ((c = colaInstanciacion.poll()) != null) { controladores.add(c); getRoot().getChildren().add(c.getVista()); }
     }
+
+    private void limpiarControladores() {
+        ControladorEntidad c;
+        while ((c = colaLimpieza.poll()) != null) { controladores.remove(c); getRoot().getChildren().remove(c.getVista()); }
+    }
+
 }
 
 
