@@ -2,6 +2,8 @@ package motor.modelo.graficos;
 import javafx.geometry.Rectangle2D;
 import motor.modelo.Ticking;
 import motor.util.ContadorSegundos;
+import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorDebil;
 import motor.util.observer.Observador;
 
 public class GestorSheetAnimada
@@ -12,6 +14,7 @@ implements Ticking
     private int indiceActual,indiceFinal;
     private final ContadorSegundos cs;
     private final Observador<Integer> observadorCs;
+    private final Notificador<Boolean> notificadorFinAnimacion;
 
     public GestorSheetAnimada(Sheet spriteSheet) {
         super(spriteSheet);
@@ -19,6 +22,7 @@ implements Ticking
         this.cs = new ContadorSegundos();
         this.observadorCs = s -> avanzarFrame(s);
         this.cs.suscribirObservador(observadorCs);    
+        this.notificadorFinAnimacion = new NotificadorDebil<>();
     }
     
     public boolean setAnimacion(String nombre, boolean conservarFrame) { 
@@ -33,6 +37,8 @@ implements Ticking
         return true;
     }
 
+    public Notificador<Boolean> getNotificadorFinAnimacion() { return this.notificadorFinAnimacion; }
+
     // nota: solo funcionará bien con frames de misma longitud
     private boolean avanzarFrame(int numeroFrames) {
         if (animacionActual.esBucle()) { 
@@ -41,14 +47,15 @@ implements Ticking
             return true;
         }
         else {
-            if (indiceActual == indiceFinal) { return false; }
+            if (fin()) { return false; }
             this.indiceActual = Math.min(indiceActual + numeroFrames, indiceFinal);
             notificar();
+            if (fin()) { notificadorFinAnimacion.notificar(fin()); }
             return true;
         }
     }
-
     
+    private boolean fin() { return indiceActual == indiceFinal; }
 
     @Override
     public void tick(double dt) { 
