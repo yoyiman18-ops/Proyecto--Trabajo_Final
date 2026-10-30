@@ -1,20 +1,31 @@
 package modelo;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 
+import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
+import motor.modelo.Dañable;
 import motor.modelo.Direccion;
 import motor.modelo.Entidad;
+import motor.modelo.Solido;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
-import motor.util.observer.NotificadorDebil;
+import motor.util.observer.NotificadorFuerte;
 
-public class Personaje extends Entidad implements ModeloJugador {
+public class Personaje
+extends Entidad
+implements ModeloJugador
+{
     private final double defensaMaximaPorcentual;
     private double vida;
     private double vidaMax;
     private double defensaPorcentual;
     private final Notificador<ModeloJugador> notificadorVida;
+    private final Notificador<Double> notificadorDaño;
+    private final Notificador<Integer> notificadorExpiracion;
     private int experiencia;
     private int nivel;
     private int experienciaSiguiente;
@@ -27,9 +38,10 @@ public class Personaje extends Entidad implements ModeloJugador {
     private Direccion direccion;
     private final VecDouble2D vectorDireccion;
     private final VecDouble2D acumuladorDireccionTick;
-    
+
     private Personaje(Builder b) {
         super(
+            b.idGlobal,
             b.nombre,
             b.hitbox,
             b.posicion,
@@ -37,7 +49,7 @@ public class Personaje extends Entidad implements ModeloJugador {
             b.aceleracion,
             b.friccion,
             b.velocidadMax,
-            b.notificadorEntidad
+            b.notificadorPosicion
         );
         this.vida = b.vida;
         this.vidaMax = b.vidaMax;
@@ -56,6 +68,8 @@ public class Personaje extends Entidad implements ModeloJugador {
         this.vectorDireccion = new VecDouble2D(0, 1);
         this.acumuladorDireccionTick = new VecDouble2D(0, 0);
         this.notificadorVida = Objects.requireNonNull(b.notificadorVida, "El notificador de vida no puede ser nulo");
+        this.notificadorDaño = new NotificadorFuerte<>();
+        this.notificadorExpiracion = new NotificadorFuerte<>();
     }
 
     @Override
@@ -74,8 +88,9 @@ public class Personaje extends Entidad implements ModeloJugador {
     }
 
     @Override
-    public void mover(double dt) {
-        super.mover(dt);
+    public void tick(double dt) {
+        if (!activo()) { return; }
+        super.tick(dt);
         acumuladorDireccionTick.setX(0);
         acumuladorDireccionTick.setY(0);
         if (tiempoEnfriamientoAtaque > 0) {
@@ -85,23 +100,49 @@ public class Personaje extends Entidad implements ModeloJugador {
 
     @Override
     public boolean intentarAtacar() {
-        if (tiempoEnfriamientoAtaque > 0) { return false; }
+        if (!activo() || tiempoEnfriamientoAtaque > 0) { return false; }
         tiempoEnfriamientoAtaque = 1.0 / velocidadAtaque;
         return true;
     }
 
     @Override
-    public Direccion getDireccion() { return direccion; }
-    public VecDouble2D getVectorDireccion() { return vectorDireccion.clone(); }
-    public double getVida() { return vida; }
-    public double getVidaMax() { return vidaMax;}
-    public int getExperiencia() { return experiencia; }
-    public int getNivel() { return nivel; }
-    public int getExperienciaSiguiente() { return experienciaSiguiente;}
-    public double getDanñoAtaque() { return danioAtaque; }
-    public double getProbabilidadCritico() { return probabilidadCritico; }
-    public double getProbabilidadMultidisparo() { return probabilidadMultidisparo; }
+    public List<DatosDisparo> realizarAtaque() {
+        if (!intentarAtacar()) {
+            return List.of();
+        }
+        ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
+        boolean esCritico = aleatorio.nextDouble(100) < probabilidadCritico;
+        double danioFinal = esCritico ? danioAtaque * 2.0 : danioAtaque;
+        VecDouble2D origen = new VecDouble2D(getPosicion().getX() + 17, getPosicion().getY() + 17);
+        VecDouble2D dirPrincipal = getVectorDireccion();
 
+        List<DatosDisparo> disparos = new ArrayList<>();
+        disparos.add(new DatosDisparo(origen.clone(), dirPrincipal.clone(), danioFinal, esCritico));
+
+        if (aleatorio.nextDouble(100) < probabilidadMultidisparo) {
+            double anguloBase = Math.atan2(dirPrincipal.getY(), dirPrincipal.getX());
+            double desviacion = Math.toRadians(15);
+            VecDouble2D dirExtra = new VecDouble2D(
+                Math.cos(anguloBase + desviacion),
+                Math.sin(anguloBase + desviacion)
+            );
+            disparos.add(new DatosDisparo(origen.clone(), dirExtra, danioFinal, esCritico));
+        }
+        return List.copyOf(disparos);
+    }
+
+    @Override public Direccion getDireccion() { return direccion; }
+    @Override public VecDouble2D getVectorDireccion() { return vectorDireccion.clone(); }
+    @Override public double getVida() { return vida; }
+    @Override public double getVidaMax() { return vidaMax; }
+    @Override public int getExperiencia() { return experiencia; }
+    @Override public int getNivel() { return nivel; }
+    @Override public int getExperienciaSiguiente() { return experienciaSiguiente; }
+    @Override public double getDanioAtaque() { return danioAtaque; }
+    @Override public double getProbabilidadCritico() { return probabilidadCritico; }
+    @Override public double getProbabilidadMultidisparo() { return probabilidadMultidisparo; }
+
+    @Override
     public void aumentarDefensa(double porcentaje) {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de defensa debe ser finito y no negativo.");
@@ -109,6 +150,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         defensaPorcentual = Math.min(defensaMaximaPorcentual, defensaPorcentual + porcentaje);
     }
 
+    @Override
     public void aumentarDanioAtaque(double cantidad) {
         validarCantidadNoNegativa(cantidad);
         double nuevoDanio = danioAtaque + cantidad;
@@ -158,6 +200,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         probabilidadMultidisparo = Math.min(100, probabilidadMultidisparo + porcentaje);
     }
 
+    @Override
     public boolean consumirNivelPendiente() {
         if (nivelesPendientes == 0) {
             return false;
@@ -166,6 +209,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         return true;
     }
 
+    @Override
     public int ganarExperiencia(int cantidad) {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La experiencia no puede ser negativa.");
@@ -183,25 +227,39 @@ public class Personaje extends Entidad implements ModeloJugador {
         return nivelesGanados;
     }
 
-    public Notificador<ModeloJugador> getNotificadorVida() {
-        return notificadorVida;
-    }
+    @Override public Notificador<ModeloJugador> getNotificadorVida() { return notificadorVida; }
+    @Override public Notificador<Double> getNotificadorDaño() { return notificadorDaño; }
+    @Override public Notificador<Integer> getNotificadorExpiracion() { return notificadorExpiracion; }
 
     @Override
-    public Entidad getEntidad() {
-        return this;
-    }
-
-    @Override
-    public void recibirDanio(double cantidad) {
+    public boolean recibirDaño(double cantidad) {
+        if (!activo()) { return false; }
         validarCantidadNoNegativa(cantidad);
         if (cantidad == 0 || vida == 0) {
-            return;
+            return false;
         }
         double danioEfectivo = cantidad * (1 - defensaPorcentual / 100);
         vida = Math.max(0, vida - danioEfectivo);
+        notificadorDaño.notificar(danioEfectivo);
         notificadorVida.notificar(this);
+        if (vida == 0) {
+            expirar();
+        }
+        return vida == 0;
     }
+
+    @Override public Dañable getDañable() { return this; }
+
+    @Override
+    public void colisionar(Colisionable o) {
+        o.colisionarCon(getDañable());
+    }
+
+    @Override
+    public void colisionarCon(Dañable o) {}
+
+    @Override
+    public void colisionarCon(Solido o) {}
 
     public void curar(double cantidad) {
         validarCantidadNoNegativa(cantidad);
@@ -212,6 +270,7 @@ public class Personaje extends Entidad implements ModeloJugador {
         notificadorVida.notificar(this);
     }
 
+    @Override
     public void aumentarVidaMaxima(double cantidad) {
         validarCantidadNoNegativa(cantidad);
         if (cantidad == 0) {
@@ -227,6 +286,11 @@ public class Personaje extends Entidad implements ModeloJugador {
         notificadorVida.notificar(this);
     }
 
+    private void expirar() {
+        setActivo(false);
+        this.notificadorExpiracion.notificar(1);
+    }
+
     private void validarCantidadNoNegativa(double cantidad) {
         if (!Double.isFinite(cantidad) || cantidad < 0) {
             throw new IllegalArgumentException("La cantidad debe ser finita y no negativa.");
@@ -234,6 +298,7 @@ public class Personaje extends Entidad implements ModeloJugador {
     }
 
     public static class Builder {
+        private int idGlobal;
         private final String nombre;
         private final Hitbox hitbox;
         private VecDouble2D posicion;
@@ -249,10 +314,15 @@ public class Personaje extends Entidad implements ModeloJugador {
         private double velocidadAtaque;
         private double probabilidadCritico;
         private double probabilidadMultidisparo;
-        private Notificador<Entidad> notificadorEntidad;
+        private Notificador<VecDouble2D> notificadorPosicion;
         private Notificador<ModeloJugador> notificadorVida;
 
         public Builder(String nombre, Hitbox hitbox) {
+            this(0, nombre, hitbox);
+        }
+
+        public Builder(int idGlobal, String nombre, Hitbox hitbox) {
+            this.idGlobal = idGlobal;
             this.nombre = Objects.requireNonNull(nombre, "El nombre no puede ser nulo");
             this.hitbox = Objects.requireNonNull(hitbox, "La hitbox no puede ser nula");
             this.posicion = new VecDouble2D(0, 0);
@@ -269,8 +339,13 @@ public class Personaje extends Entidad implements ModeloJugador {
             this.velocidadAtaque = 1.2;
             this.probabilidadCritico = 5.0;
             this.probabilidadMultidisparo = 5.0;
-            this.notificadorEntidad = new NotificadorDebil<>();
-            this.notificadorVida = new NotificadorDebil<>();
+            this.notificadorPosicion = new NotificadorFuerte<>();
+            this.notificadorVida = new NotificadorFuerte<>();
+        }
+
+        public Builder idGlobal(int idGlobal) {
+            this.idGlobal = idGlobal;
+            return this;
         }
 
         public Builder posicion(VecDouble2D posicion) {
@@ -371,10 +446,10 @@ public class Personaje extends Entidad implements ModeloJugador {
             return this;
         }
 
-        public Builder notificadorEntidad(Notificador<Entidad> notificadorEntidad) {
-            this.notificadorEntidad = Objects.requireNonNull(
-                notificadorEntidad,
-                "El notificador de entidad no puede ser nulo"
+        public Builder notificadorPosicion(Notificador<VecDouble2D> notificadorPosicion) {
+            this.notificadorPosicion = Objects.requireNonNull(
+                notificadorPosicion,
+                "El notificador de posición no puede ser nulo"
             );
             return this;
         }
@@ -393,6 +468,4 @@ public class Personaje extends Entidad implements ModeloJugador {
             return new Personaje(this);
         }
     }
-
-
 }

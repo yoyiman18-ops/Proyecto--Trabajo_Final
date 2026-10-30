@@ -3,14 +3,16 @@ package modelo;
 import java.util.List;
 import java.util.Objects;
 
-import motor.colisiones.hitboxes.Hitbox;
-import motor.modelo.Entidad;
+import motor.modelo.Dañable;
 import motor.modelo.Direccion;
+import motor.modelo.ModeloEntidad;
 import motor.util.Eje;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 
-public interface ModeloJugador extends ObjetivoEnemigo {
+public interface ModeloJugador
+extends Dañable, ModeloEntidad
+{
     record DatosDisparo(
         VecDouble2D origen,
         VecDouble2D direccion,
@@ -26,6 +28,7 @@ public interface ModeloJugador extends ObjetivoEnemigo {
         }
     }
 
+    double getVida();
     double getVidaMax();
     int getExperiencia();
     int getNivel();
@@ -36,12 +39,11 @@ public interface ModeloJugador extends ObjetivoEnemigo {
     Direccion getDireccion();
     VecDouble2D getVectorDireccion();
     VecDouble2D getVelocidad();
-    Hitbox getHitbox();
     Notificador<ModeloJugador> getNotificadorVida();
-    Entidad getEntidad();
+    Notificador<Double> getNotificadorDaño();
+    Notificador<Integer> getNotificadorExpiracion();
     void acelerar(Direccion direccion, double dt);
     void frenar(Eje eje, double dt);
-    void mover(double dt);
     boolean intentarAtacar();
     List<DatosDisparo> realizarAtaque();
     int ganarExperiencia(int cantidad);

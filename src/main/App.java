@@ -123,7 +123,10 @@ public class App extends Application {
 
         // 2. Crear Modelo de la partida y Fábrica de entidades
         ModeloPartida modeloPartida = new Partida();
-        FabricaEntidadesPartida fabricaEntidades = new FabricaEntidadesPartidaPorDefecto(gestorRecursos);
+        FabricaEntidadesPartida fabricaEntidades = new FabricaEntidadesPartidaPorDefecto(
+            gestorRecursos,
+            nodoVista -> Platform.runLater(() -> vista.agregarNodoJuego(nodoVista))
+        );
 
         // 3. Crear Motor genérico
         Motor motor = new Motor(

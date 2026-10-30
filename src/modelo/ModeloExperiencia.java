@@ -1,12 +1,12 @@
 package modelo;
 
-import motor.modelo.Entidad;
-import motor.util.VecDouble2D;
+import motor.modelo.ModeloEntidad;
+import motor.util.observer.Notificador;
 
-public interface ModeloExperiencia {
-    VecDouble2D getPosicion();
+public interface ModeloExperiencia
+extends ModeloEntidad
+{
     int getCantidad();
-    boolean fueRecogida();
     boolean recoger(ModeloJugador jugador);
-    Entidad getEntidad();
+    Notificador<Integer> getNotificadorExpiracion();
 }

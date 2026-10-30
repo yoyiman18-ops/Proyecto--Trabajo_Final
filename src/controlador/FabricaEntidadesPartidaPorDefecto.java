@@ -1,65 +1,70 @@
 package controlador;
 
 import java.awt.geom.Rectangle2D;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.DoubleSupplier;
 
-import javafx.scene.image.Image;
-import javafx.scene.paint.Color;
 import modelo.Enemigo;
 import modelo.Experiencia;
 import modelo.ModeloEnemigo;
 import modelo.ModeloExperiencia;
 import modelo.ModeloJugador;
 import modelo.ModeloProyectil;
-import modelo.ObjetivoEnemigo;
 import modelo.Personaje;
 import modelo.Proyectil;
-import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.HitboxRectangular;
 import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
-import motor.modelo.Entidad;
-import motor.mvc.ControladorUsuario;
-import motor.recursos.Extension.Imagen;
+import motor.modelo.Posicionable;
+import motor.modelo.graficos.GestorSheetAnimada;
+import motor.modelo.graficos.Sheet;
+import motor.persistencia.dao.DAOSoloLectura;
+import motor.persistencia.dao.sqlite.Conexion;
+import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
-import vista.Animacion;
-import vista.EnemigoVista;
-import vista.ItemVista;
-import vista.ProyectilVista;
-import vista.SpriteVista;
-import vista.VistaEnemigo;
-import vista.VistaItem;
-import vista.VistaJugador;
-import vista.VistaProyectil;
+import vista.VistaImagen;
 
 public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidadesPartida {
-    private final Image spriteSheetJugador;
-    private final Image spriteSheetProyectil;
-    private final Image frameEnemigoIdle1;
-    private final Image frameEnemigoIdle2;
-    private final Image frameEnemigoGolpe;
+    private static final int ID_SHEET_JUGADOR = 1;
+    private static final int ID_SHEET_ENEMIGO = 1;
+    private static final int ID_SHEET_EXPERIENCIA = 1;
+    private static final int ID_SHEET_PROYECTIL = 1;
+
+    private final DAOSoloLectura<Integer, Sheet> sheetDAO;
+    private final Consumer<VistaImagen> alCrearVista;
 
     public FabricaEntidadesPartidaPorDefecto(GestorRecursos gestorRecursos) {
-        Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
-        this.spriteSheetJugador = gestorRecursos.getImagen("zorro/zorro_sheet", Imagen.PNG);
-        this.spriteSheetProyectil = gestorRecursos.getImagen(
-            "RPG Effect All Free/Free/Part 16/766",
-            Imagen.PNG
+        this(gestorRecursos, vista -> {});
+    }
+
+    public FabricaEntidadesPartidaPorDefecto(
+        GestorRecursos gestorRecursos,
+        Consumer<VistaImagen> alCrearVista
+    ) {
+        this(
+            new SheetDAOSQLite(
+                Conexion.getInstancia().get(),
+                Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo")
+            ),
+            alCrearVista
         );
-        this.frameEnemigoIdle1 = gestorRecursos.getImagen("Transparent PNG/idle/frame-1", Imagen.PNG);
-        this.frameEnemigoIdle2 = gestorRecursos.getImagen("Transparent PNG/idle/frame-2", Imagen.PNG);
-        this.frameEnemigoGolpe = gestorRecursos.getImagen("Transparent PNG/got hit/frame", Imagen.PNG);
+    }
+
+    public FabricaEntidadesPartidaPorDefecto(
+        DAOSoloLectura<Integer, Sheet> sheetDAO,
+        Consumer<VistaImagen> alCrearVista
+    ) {
+        this.sheetDAO = Objects.requireNonNull(sheetDAO, "El DAO de sheets no puede ser nulo");
+        this.alCrearVista = Objects.requireNonNull(alCrearVista, "El callback de vista no puede ser nulo");
     }
 
     @Override
     public ModeloJugador crearModeloJugador() {
         return new Personaje.Builder(
+            ID_SHEET_JUGADOR,
             "jugador",
             new HitboxRectangular(
                 new Rectangle2D.Double(0, 0, 50, 50),
@@ -80,59 +85,21 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
     }
 
     @Override
-    public ControladorUsuario crearControladorJugador(
+    public JugadorControlador crearControladorJugador(
         ModeloJugador modelo,
-        DoubleSupplier anchoArea,
-        DoubleSupplier altoArea,
-        JugadorControlador.LimitesArea limites,
         Observador<ModeloJugador> observadorVida,
         Runnable accionAtaque
     ) {
-        VistaJugador vistaJugador = new SpriteVista(spriteSheetJugador, 4, 4, 50, 50);
+        Sheet sheet = cargarSheet(modelo.getIdGlobal());
+        VistaImagen vista = new VistaImagen(sheet.getImagen());
+        GestorSheetAnimada gestorSheet = new GestorSheetAnimada(sheet);
+        alCrearVista.accept(vista);
         return new JugadorControlador(
             modelo,
-            vistaJugador,
-            anchoArea,
-            altoArea,
-            limites,
+            vista,
+            gestorSheet,
             observadorVida,
             accionAtaque
-        );
-    }
-
-    @Override
-    public List<Entidad> crearMurosPerimetrales(
-        double anchoArea,
-        double altoArea,
-        JugadorControlador.LimitesArea limites
-    ) {
-        Objects.requireNonNull(limites, "Los límites del área no pueden ser nulos");
-        double margenHorizontal = Math.max(1, limites.margenHorizontal());
-        double margenSuperior = Math.max(1, limites.margenSuperior());
-        double margenInferior = Math.max(1, limites.margenInferior());
-
-        return List.of(
-            crearMuro("muro-superior", 0, 0, anchoArea, margenSuperior),
-            crearMuro("muro-inferior", 0, altoArea - margenInferior, anchoArea, margenInferior),
-            crearMuro("muro-izquierdo", 0, 0, margenHorizontal, altoArea),
-            crearMuro("muro-derecho", anchoArea - margenHorizontal, 0, margenHorizontal, altoArea)
-        );
-    }
-
-    private Entidad crearMuro(String nombre, double x, double y, double ancho, double alto) {
-        return new Entidad(
-            nombre,
-            new HitboxRectangular(
-                new Rectangle2D.Double(0, 0, Math.max(1, ancho), Math.max(1, alto)),
-                TipoHitbox.INAMOVIBLE,
-                MascaraColision.of(CategoriaColision.MURO),
-                MascaraColision.of(CategoriaColision.JUGADOR)
-            ),
-            new VecDouble2D(x, y),
-            new VecDouble2D(),
-            0,
-            0,
-            0
         );
     }
 
@@ -141,9 +108,10 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         double x,
         double y,
         double velocidad,
-        ObjetivoEnemigo objetivo
+        Posicionable objetivo
     ) {
         ModeloEnemigo modeloEnemigo = new Enemigo(
+            ID_SHEET_ENEMIGO,
             "enemigo",
             new HitboxRectangular(
                 new Rectangle2D.Double(0, 0, 32, 32),
@@ -155,15 +123,15 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
             velocidad,
             50,
             10,
-            10
+            10,
+            objetivo
         );
 
-        VistaEnemigo vistaEnemigo = new EnemigoVista(
-            new Animacion(List.of(frameEnemigoIdle1, frameEnemigoIdle2), 0.35),
-            frameEnemigoGolpe
-        );
-
-        return new EnemigoControlador(modeloEnemigo, vistaEnemigo, objetivo);
+        Sheet sheet = cargarSheet(modeloEnemigo.getIdGlobal());
+        VistaImagen vista = new VistaImagen(sheet.getImagen());
+        GestorSheetAnimada gestorSheet = new GestorSheetAnimada(sheet);
+        alCrearVista.accept(vista);
+        return new EnemigoControlador(modeloEnemigo, vista, gestorSheet);
     }
 
     @Override
@@ -174,6 +142,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         int cantidad
     ) {
         ModeloExperiencia modeloExp = new Experiencia(
+            ID_SHEET_EXPERIENCIA,
             "experiencia",
             new HitboxRectangular(
                 new Rectangle2D.Double(0, 0, 18, 18),
@@ -182,11 +151,15 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
                 MascaraColision.of(CategoriaColision.JUGADOR)
             ),
             new VecDouble2D(x, y),
-            cantidad
+            cantidad,
+            jugador
         );
 
-        VistaItem vistaExp = new ItemVista(9, Color.web("#83df4e"), Color.web("#e4ff9b"), 2);
-        return new ExperienciaControlador(jugador, modeloExp, vistaExp);
+        Sheet sheet = cargarSheet(modeloExp.getIdGlobal());
+        VistaImagen vista = new VistaImagen(sheet.getImagen());
+        GestorSheetAnimada gestorSheet = new GestorSheetAnimada(sheet);
+        alCrearVista.accept(vista);
+        return new ExperienciaControlador(modeloExp, vista, gestorSheet);
     }
 
     @Override
@@ -195,18 +168,17 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         double y,
         VecDouble2D direccion,
         double danio,
-        boolean esCritico,
-        Consumer<Colisionable> accionImpacto
+        boolean esCritico
     ) {
         Objects.requireNonNull(direccion, "La dirección del proyectil no puede ser nula");
-        Objects.requireNonNull(accionImpacto, "La acción de impacto no puede ser nula");
 
         double tamanoHitbox = esCritico ? 20 : 16;
-        double tamanoVisual = esCritico ? 38 : 30;
-        int filaColor = esCritico ? 7 : 0;
-        double velocidad = esCritico ? 430 : 380;
+        double rapidez = esCritico ? 430 : 380;
+        VecDouble2D velocidad = direccion.clone().normalizado();
+        velocidad.producto(rapidez);
 
         ModeloProyectil modeloProyectil = new Proyectil(
+            ID_SHEET_PROYECTIL,
             "proyectil",
             new HitboxRectangular(
                 new Rectangle2D.Double(0, 0, tamanoHitbox, tamanoHitbox),
@@ -215,19 +187,24 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
                 MascaraColision.of(CategoriaColision.ENEMIGO)
             ),
             new VecDouble2D(x, y),
-            direccion,
-            danio,
             velocidad,
-            1.6
+            danio,
+            1.6,
+            1
         );
 
-        VistaProyectil vistaProyectil = new ProyectilVista(
-            new Animacion(spriteSheetProyectil, 8, 9, 0.08),
-            filaColor,
-            tamanoVisual,
-            tamanoVisual
-        );
+        Sheet sheet = cargarSheet(modeloProyectil.getIdGlobal());
+        VistaImagen vista = new VistaImagen(sheet.getImagen());
+        GestorSheetAnimada gestorSheet = new GestorSheetAnimada(sheet);
+        alCrearVista.accept(vista);
+        return new ProyectilControlador(modeloProyectil, vista, gestorSheet);
+    }
 
-        return new ProyectilControlador(modeloProyectil, vistaProyectil, accionImpacto);
+    private Sheet cargarSheet(int idGlobal) {
+        Sheet sheet = sheetDAO.cargar(idGlobal);
+        if (sheet == null) {
+            throw new IllegalStateException("No se encontró el Sheet con idGlobal: " + idGlobal);
+        }
+        return sheet;
     }
 }

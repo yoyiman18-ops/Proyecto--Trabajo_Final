@@ -1,4 +1,4 @@
-package motor.Controlador;
+package motor.controlador;
 
 import motor.modelo.Activable;
 import motor.modelo.ModeloEntidad;

@@ -1,28 +1,26 @@
 package controlador;
 
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javafx.application.Platform;
+import modelo.EstadoOleadas;
 import modelo.ItemMejoraAtributo;
+import modelo.ModeloEnemigo;
+import modelo.ModeloExperiencia;
 import modelo.ModeloJugador;
 import modelo.ModeloPartida;
 import modelo.Partida;
-import modelo.EstadoOleadas;
 import motor.Motor;
-import motor.colisiones.Colisionable;
-import motor.mvc.Controlador;
-import motor.mvc.ControladorUsuario;
+import motor.controlador.ControladorEntidad;
+import motor.modelo.Activable;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
-import vista.VistaFondo;
 import vista.OpcionMejoraVisual;
+import vista.VistaFondo;
 import vista.VistaPartida;
 
 /**
@@ -39,14 +37,13 @@ public final class ControladorPartida {
     private final Runnable onVolverAlMenu;
     private final Runnable onReintentar;
 
-    private final List<ControladorFX> controladores;
+    private final List<ControladorEntidad> controladores;
     private final List<EnemigoControlador> enemigos;
-    private final Map<Colisionable, EnemigoControlador> enemigoPorColisionable;
     private final List<ProyectilControlador> proyectiles;
     private final List<ExperienciaControlador> experiencias;
 
     private ModeloJugador personaje;
-    private ControladorUsuario jugadorControlador;
+    private JugadorControlador jugadorControlador;
 
     private final Observador<Double> observadorReloj;
     private final Observador<EstadoOleadas> observadorOleadas;
@@ -64,9 +61,7 @@ public final class ControladorPartida {
             new Partida(),
             vistaJuego,
             fondoMazmorra,
-            new FabricaEntidadesPartidaPorDefecto(
-                Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo")
-            ),
+            gestorRecursos,
             onVolverAlMenu,
             onReintentar
         );
@@ -87,7 +82,8 @@ public final class ControladorPartida {
             vistaJuego,
             fondoMazmorra,
             new FabricaEntidadesPartidaPorDefecto(
-                Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo")
+                Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo"),
+                vista -> Platform.runLater(() -> vistaJuego.agregarNodoJuego(vista))
             ),
             onVolverAlMenu,
             onReintentar
@@ -113,7 +109,6 @@ public final class ControladorPartida {
 
         this.controladores = new CopyOnWriteArrayList<>();
         this.enemigos = new CopyOnWriteArrayList<>();
-        this.enemigoPorColisionable = new IdentityHashMap<>();
         this.proyectiles = new CopyOnWriteArrayList<>();
         this.experiencias = new CopyOnWriteArrayList<>();
 
@@ -176,13 +171,6 @@ public final class ControladorPartida {
 
         this.jugadorControlador = fabricaEntidades.crearControladorJugador(
             personaje,
-            vistaJuego::getAnchoAreaJuego,
-            vistaJuego::getAltoAreaJuego,
-            new JugadorControlador.LimitesArea(
-                fondoMazmorra.getMargenHorizontalJugable(),
-                fondoMazmorra.getMargenSuperiorJugable(),
-                fondoMazmorra.getMargenInferiorJugable()
-            ),
             p -> Platform.runLater(() -> {
                 vistaJuego.actualizarVida(p.getVida(), p.getVidaMax());
                 if (p.getVida() <= 0 && !modeloPartida.isPartidaFinalizada()) {
@@ -194,8 +182,7 @@ public final class ControladorPartida {
 
         controladores.add(jugadorControlador);
         motor.teclado().suscribir(jugadorControlador.getObservadorAcciones());
-        motor.colisionables().add(personaje.getEntidad());
-        vistaJuego.agregarNodoJuego(jugadorControlador.getVista());
+        motor.colisionables().add(personaje);
 
         actualizarProgresoJugador();
     }
@@ -219,18 +206,18 @@ public final class ControladorPartida {
 
         fondoMazmorra.actualizarAnimacion(dt);
 
-        for (ControladorFX c : controladores) {
+        for (ControladorEntidad c : controladores) {
             c.tick(dt);
         }
 
-        removerProyectilesInactivos();
+        limpiarEntidadesInactivas();
 
         if (modeloPartida.actualizarOleadas(dt)) {
             finalizarPartida("¡VICTORIA! OLEADAS COMPLETADAS");
             return;
         }
         generarEnemigosPendientes();
-        recogerExperiencias();
+        verificarSubidaNivel();
     }
 
     private void generarEnemigosPendientes() {
@@ -256,13 +243,20 @@ public final class ControladorPartida {
 
             double velocidad = modeloPartida.calcularVelocidadEnemigoOleadaActual();
             EnemigoControlador controlador = fabricaEntidades.crearEnemigo(x, y, velocidad, personaje);
+            ModeloEnemigo modeloEnemigo = (ModeloEnemigo) controlador.getEntidad();
+
+            modeloEnemigo.getNotificadorExpiracion().suscribirObservador(e -> {
+                double expX = modeloEnemigo.getPosicion().getX() + 16;
+                double expY = modeloEnemigo.getPosicion().getY() + 16;
+                crearGemaExperiencia(expX, expY, modeloEnemigo.getExperienciaRecompensa());
+                modeloPartida.registrarEnemigoDerrotado();
+                generarEnemigosPendientes();
+            });
 
             enemigos.add(controlador);
-            enemigoPorColisionable.put(controlador.getModelo(), controlador);
             controladores.add(controlador);
-            motor.colisionables().add(controlador.getModelo());
+            motor.colisionables().add(modeloEnemigo);
             modeloPartida.registrarEnemigoGenerado();
-            Platform.runLater(() -> vistaJuego.agregarNodoJuego(controlador.getVista()));
         }
     }
 
@@ -291,14 +285,12 @@ public final class ControladorPartida {
                 origenY,
                 direccionDisparo,
                 danioFinal,
-                esCritico,
-                colisionado -> aplicarDanioEnemigoColisionado(colisionado, danioFinal)
+                esCritico
             );
 
             proyectiles.add(proyectil);
             controladores.add(proyectil);
-            motor.colisionables().add(proyectil.getModelo());
-            Platform.runLater(() -> vistaJuego.agregarNodoJuego(proyectil.getVista()));
+            motor.colisionables().add(proyectil.getEntidad());
         }
     }
 
@@ -314,73 +306,26 @@ public final class ControladorPartida {
         return new VecDouble2D(x, y);
     }
 
-    private void removerProyectilesInactivos() {
-        for (ProyectilControlador proyectil : proyectiles) {
-            if (!proyectil.estaActivo()) {
-                removerProyectil(proyectil);
-            }
-        }
-    }
-
-    private void aplicarDanioEnemigoColisionado(Colisionable colisionado, double danio) {
-        EnemigoControlador enemigo = enemigoPorColisionable.get(colisionado);
-        if (enemigo != null) {
-            aplicarDanioEnemigo(enemigo, danio);
-        }
-    }
-
-    private void removerProyectil(ProyectilControlador proyectil) {
-        proyectiles.remove(proyectil);
-        controladores.remove(proyectil);
-        motor.colisionables().remove(proyectil.getModelo());
-        Platform.runLater(() -> vistaJuego.removerNodoJuego(proyectil.getVista()));
-    }
-
-    private void aplicarDanioEnemigo(EnemigoControlador enemigo, double danio) {
-        if (enemigo.recibirDanio(danio)) {
-            double x = enemigo.getModelo().getPosicion().getX() + 16;
-            double y = enemigo.getModelo().getPosicion().getY() + 16;
-
-            enemigos.remove(enemigo);
-            enemigoPorColisionable.remove(enemigo.getModelo());
-            controladores.remove(enemigo);
-            motor.colisionables().remove(enemigo.getModelo());
-            Platform.runLater(() -> vistaJuego.removerNodoJuego(enemigo.getVista()));
-
-            crearGemaExperiencia(x, y, enemigo.getExperienciaRecompensa());
-
-            modeloPartida.registrarEnemigoDerrotado();
-            generarEnemigosPendientes();
-        }
+    private void limpiarEntidadesInactivas() {
+        motor.colisionables().removeIf(c -> c instanceof Activable a && !a.activo());
+        proyectiles.removeIf(p -> !p.activo());
+        enemigos.removeIf(e -> !e.activo());
+        experiencias.removeIf(exp -> !exp.activo());
+        controladores.removeIf(c -> !c.activo());
     }
 
     private void crearGemaExperiencia(double x, double y, int cantidad) {
         ExperienciaControlador expControlador = fabricaEntidades.crearExperiencia(personaje, x, y, cantidad);
+        ModeloExperiencia modeloExp = (ModeloExperiencia) expControlador.getEntidad();
+
+        modeloExp.getNotificadorExpiracion().suscribirObservador(e -> {
+            actualizarProgresoJugador();
+            verificarSubidaNivel();
+        });
+
         experiencias.add(expControlador);
         controladores.add(expControlador);
-        motor.colisionables().add(expControlador.getModelo());
-        Platform.runLater(() -> vistaJuego.agregarNodoJuego(expControlador.getVista()));
-    }
-
-    private void recogerExperiencias() {
-        List<ExperienciaControlador> recogidas = new ArrayList<>();
-        for (ExperienciaControlador exp : experiencias) {
-            if (exp.fueRecogida()) {
-                recogidas.add(exp);
-            }
-        }
-
-        if (!recogidas.isEmpty()) {
-            experiencias.removeAll(recogidas);
-            controladores.removeAll(recogidas);
-            for (ExperienciaControlador exp : recogidas) {
-                motor.colisionables().remove(exp.getModelo());
-                Platform.runLater(() -> vistaJuego.removerNodoJuego(exp.getVista()));
-            }
-            actualizarProgresoJugador();
-        }
-
-        verificarSubidaNivel();
+        motor.colisionables().add(modeloExp);
     }
 
     private void verificarSubidaNivel() {
@@ -393,9 +338,7 @@ public final class ControladorPartida {
         motor.detener();
 
         List<ItemMejoraAtributo> opciones = modeloPartida.iniciarEleccionMejora();
-        List<OpcionMejoraVisual> opcionesVisuales = opciones.stream()
-            .map(this::mapearOpcionMejora)
-            .toList();
+        List<OpcionMejoraVisual> opcionesVisuales = ControladorVistaJuego.mapearOpcionesMejora(opciones);
 
         int nivelActual = personaje.getNivel();
         Platform.runLater(() -> {
@@ -435,40 +378,6 @@ public final class ControladorPartida {
             vistaJuego.setPausaHabilitada(false);
             vistaJuego.mostrarFinPartida(mensaje);
         });
-    }
-
-    private OpcionMejoraVisual mapearOpcionMejora(ItemMejoraAtributo item) {
-        String rareza = switch (item.rareza()) {
-            case COMUN -> "COMÚN";
-            case RARA -> "RARA";
-            case EPICA -> "ÉPICA";
-            case LEGENDARIA -> "LEGENDARIA";
-        };
-        String bonus = "+" + (int) item.cantidad() + (item.atributo().esPorcentual() ? "%" : "");
-
-        return switch (item.atributo()) {
-            case VIDA_MAXIMA -> new OpcionMejoraVisual(
-                rareza, "Vida máxima", bonus, "Aumenta y restaura tu vitalidad", "corazon"
-            );
-            case DANIO_ATAQUE -> new OpcionMejoraVisual(
-                rareza, "Daño", bonus, "Mayor impacto por proyectil", "danio"
-            );
-            case VELOCIDAD_ATAQUE -> new OpcionMejoraVisual(
-                rareza, "Vel. Ataque", bonus, "Disparás con mayor frecuencia", "experiencia"
-            );
-            case VELOCIDAD_MAXIMA -> new OpcionMejoraVisual(
-                rareza, "Velocidad", bonus, "Mayor agilidad en la mazmorra", "tiempo"
-            );
-            case DEFENSA -> new OpcionMejoraVisual(
-                rareza, "Defensa", bonus, "Reduce el daño recibido", "defensa"
-            );
-            case PROBABILIDAD_CRITICO -> new OpcionMejoraVisual(
-                rareza, "Crítico", bonus, "Chance de disparo carmesí x2 daño", "danio"
-            );
-            case PROBABILIDAD_MULTIDISPARO -> new OpcionMejoraVisual(
-                rareza, "Multidisparo", bonus, "Chance de lanzar 3 orbes en abanico", "experiencia"
-            );
-        };
     }
 
     public void iniciar() {
