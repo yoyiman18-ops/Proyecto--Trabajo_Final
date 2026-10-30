@@ -7,11 +7,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import motor.util.Codificacion;
 import motor.util.VecDouble2D;
+import motor.util.observer.Observador;
 
-/**
-* Una interfaz para hitboxes.
-*/
-public abstract class Hitbox {
+public abstract class Hitbox 
+implements Observador<VecDouble2D> {
     private final static AtomicInteger contadorId = new AtomicInteger(0);
 
     private final int id;
@@ -60,12 +59,6 @@ public abstract class Hitbox {
     public Area getArea() { return this.areaTransformada; }
     public Rectangle2D getBounds() { return this.boundsTransformados; }
     public TipoHitbox getTipo() { return this.tipo; }
-    public void actualizarTransformacion(VecDouble2D posicion) {
-        this.transformacion.setToTranslation(posicion.getX(),posicion.getY());
-        this.formaColisionTransformada = transformacion.createTransformedShape(formaColision);
-        this.boundsTransformados = transformacion.createTransformedShape(bounds).getBounds2D();
-        this.areaTransformada = area.createTransformedArea(transformacion);
-    }
     public MascaraColision getCategoriasColision() { return this.categoriasColision; }
     public MascaraColision getCapasColision() { return this.capasColision; }
     public boolean esCompatible(Hitbox otra) {
@@ -78,8 +71,16 @@ public abstract class Hitbox {
     }
     public long combinarIds(Hitbox otra) { return Codificacion.combinarInt(this.getId(), otra.getId()); }
 
-    protected AffineTransform getTransformacion() { return this.transformacion; }
+    public void cambio(VecDouble2D posicion) { actualizarTransformacion(posicion); } 
 
+    private void actualizarTransformacion(VecDouble2D posicion) {
+        this.transformacion.setToTranslation(posicion.getX(),posicion.getY());
+        this.formaColisionTransformada = transformacion.createTransformedShape(formaColision);
+        this.boundsTransformados = transformacion.createTransformedShape(bounds).getBounds2D();
+        this.areaTransformada = area.createTransformedArea(transformacion);
+    }
+
+    protected AffineTransform getTransformacion() { return this.transformacion; }
     protected boolean genericoConGenerico(Hitbox otra) {
         // fase general: comprueba que matematicamente puedan colisionar
         System.out.printf("(%f,%f)%n",this.getBounds().getX(), this.getBounds().getY());

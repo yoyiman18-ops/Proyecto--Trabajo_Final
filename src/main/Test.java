@@ -33,7 +33,7 @@ import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorFuerte;
 import motor.util.observer.Observador;
 import vista.VistaImagen;
-import vista.VistaImagenFX;
+import vista.VistaImagen;
 
 public class Test extends Application {
 
@@ -170,7 +170,7 @@ public class Test extends Application {
         RelojDelta rd = new RelojDelta(new NotificadorFuerte<>());
         Sheet sheet = sheetDAO.cargar(1);
         GestorSheetAnimada gestorSheetAnimada = new GestorSheetAnimada(sheet);
-        VistaImagenFX vistazorro = new VistaImagenFX(sheet.getImagen());
+        VistaImagen vistazorro = new VistaImagen(sheet.getImagen());
         VecDouble2D posicion = new VecDouble2D(0,50);
         NotificadorFuerte<VecDouble2D> notificadorPosi = new NotificadorFuerte<>();
         Observador<Integer> triggerCs = s -> { eje = Eje.Y; gestorSheetAnimada.setAnimacion("caminar_abajo", true); };
@@ -183,7 +183,7 @@ public class Test extends Application {
         };
 
         Sheet sheetHUD = sheetDAO.cargar(2);
-        VistaImagenFX vistaHud = new VistaImagenFX(sheetHUD.getImagen());
+        VistaImagen vistaHud = new VistaImagen(sheetHUD.getImagen());
         GestorSheetEstatica gestorHud = new GestorSheetEstatica(sheetHUD);
         gestorHud.setRecorte(sheetHUD.getRecortes().get(i).getNombreRecorte());
         gestorHud.suscribir(vistaHud.getObservadorRectangulo());

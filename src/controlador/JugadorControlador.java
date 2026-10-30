@@ -9,12 +9,12 @@ import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
 import motor.modelo.Direccion;
 import motor.modelo.Entidad;
-import motor.mvc.ControladorUsuario;
 import motor.util.Eje;
+import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
-import vista.VistaJugador;
+import vista.VistaImagen;
 
-public class JugadorControlador implements ControladorUsuario {
+public class JugadorControlador {
 
     public record LimitesArea(
         double margenHorizontal,
@@ -31,12 +31,15 @@ public class JugadorControlador implements ControladorUsuario {
     }
 
     private final ModeloJugador modelo;
-    private final VistaJugador vista;
+    private final VistaImagen vista;
+    private final DoubleSupplier anchoArea;
+    private final DoubleSupplier altoArea;
+    private final LimitesArea limites;
     private final Observador<ModeloJugador> observadorVida;
-    private final Observador<Entidad> observadorPosicion;
     private final Runnable accionAtaque;
     private EstadoAcciones estadoAcciones;
     private final Observador<EstadoAcciones> observadorAcciones;
+    private boolean posicionInicializada;
 
     public JugadorControlador(
         ModeloJugador modelo,
@@ -49,21 +52,15 @@ public class JugadorControlador implements ControladorUsuario {
     ) {
         this.modelo = Objects.requireNonNull(modelo, "modelo no puede ser nulo");
         this.vista = Objects.requireNonNull(vista, "vista no puede ser nula");
-        Objects.requireNonNull(anchoArea, "anchoArea no puede ser nulo");
-        Objects.requireNonNull(altoArea, "altoArea no puede ser nulo");
-        Objects.requireNonNull(limites, "limites no puede ser nulo");
+        this.anchoArea = Objects.requireNonNull(anchoArea, "anchoArea no puede ser nulo");
+        this.altoArea = Objects.requireNonNull(altoArea, "altoArea no puede ser nulo");
+        this.limites = Objects.requireNonNull(limites, "limites no puede ser nulo");
         this.observadorVida = Objects.requireNonNull(observadorVida, "observadorVida no puede ser nulo");
         this.accionAtaque = Objects.requireNonNull(accionAtaque, "accionAtaque no puede ser nula");
         this.observadorAcciones = estado -> this.estadoAcciones = estado;
-        this.observadorPosicion = entidad -> vista.actualizarPosicion(
-            entidad.getPosicion().getX(),
-            entidad.getPosicion().getY()
-        );
 
-        modelo.getEntidad().getNotificador().suscribirObservador(this.observadorPosicion);
         modelo.getNotificadorVida().suscribirObservador(this.observadorVida);
         this.observadorVida.cambio(modelo);
-        vista.actualizarPosicion(modelo.getPosicion().getX(), modelo.getPosicion().getY());
     }
 
     @Override
@@ -89,6 +86,7 @@ public class JugadorControlador implements ControladorUsuario {
             modelo.frenar(Eje.X, dt);
         }
         modelo.mover(dt);
+        mantenerDentroDelArea();
 
         double vx = modelo.getVelocidad().getX();
         double vy = modelo.getVelocidad().getY();
@@ -99,6 +97,50 @@ public class JugadorControlador implements ControladorUsuario {
 
         if (estadoAcciones != null && estadoAcciones.activa(Accion.ATACAR)) {
             accionAtaque.run();
+        }
+    }
+
+    private void mantenerDentroDelArea() {
+        double anchoAreaActual = anchoArea.getAsDouble();
+        double altoAreaActual = altoArea.getAsDouble();
+        if (!Double.isFinite(anchoAreaActual) || !Double.isFinite(altoAreaActual)
+            || anchoAreaActual <= 0 || altoAreaActual <= 0) {
+            return;
+        }
+
+        VecDouble2D posicion = modelo.getPosicion();
+        double limiteIzquierdo = limites.margenHorizontal();
+        double limiteSuperior = limites.margenSuperior();
+        double limiteDerecho = Math.max(
+            limiteIzquierdo,
+            anchoAreaActual - limites.margenHorizontal() - vista.getAncho());
+        double limiteInferior = Math.max(
+            limiteSuperior,
+            altoAreaActual - limites.margenInferior() - vista.getAlto());
+        boolean centrar = !posicionInicializada;
+        if (centrar) {
+            posicion.setX((limiteIzquierdo + limiteDerecho) / 2);
+            posicion.setY((limiteSuperior + limiteInferior) / 2);
+            posicionInicializada = true;
+        }
+
+        double xAnterior = posicion.getX();
+        double yAnterior = posicion.getY();
+        double x = Math.max(limiteIzquierdo, Math.min(xAnterior, limiteDerecho));
+        double y = Math.max(limiteSuperior, Math.min(yAnterior, limiteInferior));
+        boolean fueraEnX = x != xAnterior;
+        boolean fueraEnY = y != yAnterior;
+
+        if (centrar || fueraEnX || fueraEnY) {
+            posicion.setX(x);
+            posicion.setY(y);
+            if (fueraEnX) {
+                modelo.getVelocidad().setX(0);
+            }
+            if (fueraEnY) {
+                modelo.getVelocidad().setY(0);
+            }
+            modelo.getHitbox().actualizarTransformacion(posicion);
         }
     }
 

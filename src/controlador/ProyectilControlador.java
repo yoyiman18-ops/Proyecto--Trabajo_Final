@@ -27,7 +27,7 @@ public final class ProyectilControlador implements ControladorEntidad {
         this.gestorSheet = gestorSheet;
         this.modelo = Objects.requireNonNull(modelo, "El modelo del proyectil no puede ser nulo");
         this.vista = Objects.requireNonNull(vista, "La vista del proyectil no puede ser nula");
-        this.observadorExpiracion = e -> this.alExpirar(e);
+        this.observadorExpiracion = this::alExpirar;
         this.modelo.getNotificadorExpiracion().suscribirObservador(observadorExpiracion);
         this.gestorSheet.setAnimacion("idle", false);
         this.gestorSheet.suscribir(this.vista.getObservadorRectangulo());

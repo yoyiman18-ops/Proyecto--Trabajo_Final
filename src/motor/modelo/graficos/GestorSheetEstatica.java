@@ -14,5 +14,5 @@ public class GestorSheetEstatica extends GestorSheet {
     }
 
     @Override
-    protected  Rectangle2D getRectangulo() { return this.recorteActual.getRectangulo(); }
+    protected Rectangle2D getRectangulo() { return this.recorteActual.getRectangulo(); }
 }

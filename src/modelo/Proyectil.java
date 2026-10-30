@@ -8,7 +8,7 @@ import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorFuerte;
 
-public abstract class Proyectil
+public final class Proyectil
 extends Entidad
 implements ModeloProyectil
 {
@@ -66,7 +66,7 @@ implements ModeloProyectil
         o.colisionarCon(getDañable());
     }
     
-    @Override public void colisionarCon(Dañable o) { if (activo()) { dañar(o); }}
+    @Override public void colisionarCon(Dañable o) { if (activo()) { dañar(o); recibirDaño(1); }}
     @Override public void colisionarCon(Solido o) { 
         if (activo()) { 
             if (o.getNivelSolidez() > 0) { recibirDaño(o.getNivelSolidez()); }
@@ -84,6 +84,6 @@ implements ModeloProyectil
 
     private boolean estaExpirado() { return tiempoVida == 0; }
 
-
+    
 
 }

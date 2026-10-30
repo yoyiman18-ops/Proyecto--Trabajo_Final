@@ -16,10 +16,10 @@ import modelo.Partida;
 import modelo.EstadoOleadas;
 import motor.Motor;
 import motor.colisiones.Colisionable;
-import motor.modelo.Entidad;
 import motor.mvc.Controlador;
 import motor.mvc.ControladorUsuario;
 import motor.recursos.GestorRecursos;
+import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
 import vista.VistaFondo;
 import vista.OpcionMejoraVisual;
@@ -31,9 +31,6 @@ import vista.VistaPartida;
  * y las Vistas (VistaPartida, VistaFondo) mediante Inversión de Dependencias.
  */
 public final class ControladorPartida {
-    private static final double ANCHO_AREA_DEFAULT = 960.0;
-    private static final double ALTO_AREA_DEFAULT = 720.0;
-
     private final Motor motor;
     private final ModeloPartida modeloPartida;
     private final VistaPartida vistaJuego;
@@ -42,7 +39,7 @@ public final class ControladorPartida {
     private final Runnable onVolverAlMenu;
     private final Runnable onReintentar;
 
-    private final List<Controlador> controladores;
+    private final List<ControladorFX> controladores;
     private final List<EnemigoControlador> enemigos;
     private final Map<Colisionable, EnemigoControlador> enemigoPorColisionable;
     private final List<ProyectilControlador> proyectiles;
@@ -176,17 +173,16 @@ public final class ControladorPartida {
 
     private void inicializarJugador() {
         this.personaje = fabricaEntidades.crearModeloJugador();
-        JugadorControlador.LimitesArea limites = new JugadorControlador.LimitesArea(
-            fondoMazmorra.getMargenHorizontalJugable(),
-            fondoMazmorra.getMargenSuperiorJugable(),
-            fondoMazmorra.getMargenInferiorJugable()
-        );
 
         this.jugadorControlador = fabricaEntidades.crearControladorJugador(
             personaje,
             vistaJuego::getAnchoAreaJuego,
             vistaJuego::getAltoAreaJuego,
-            limites,
+            new JugadorControlador.LimitesArea(
+                fondoMazmorra.getMargenHorizontalJugable(),
+                fondoMazmorra.getMargenSuperiorJugable(),
+                fondoMazmorra.getMargenInferiorJugable()
+            ),
             p -> Platform.runLater(() -> {
                 vistaJuego.actualizarVida(p.getVida(), p.getVidaMax());
                 if (p.getVida() <= 0 && !modeloPartida.isPartidaFinalizada()) {
@@ -195,11 +191,6 @@ public final class ControladorPartida {
             }),
             this::dispararProyectil
         );
-
-        double ancho = Math.max(vistaJuego.getAnchoAreaJuego(), ANCHO_AREA_DEFAULT);
-        double alto = Math.max(vistaJuego.getAltoAreaJuego(), ALTO_AREA_DEFAULT);
-        List<Entidad> muros = fabricaEntidades.crearMurosPerimetrales(ancho, alto, limites);
-        motor.colisionables().addAll(muros);
 
         controladores.add(jugadorControlador);
         motor.teclado().suscribir(jugadorControlador.getObservadorAcciones());
@@ -228,7 +219,7 @@ public final class ControladorPartida {
 
         fondoMazmorra.actualizarAnimacion(dt);
 
-        for (Controlador c : controladores) {
+        for (ControladorFX c : controladores) {
             c.tick(dt);
         }
 
@@ -248,8 +239,8 @@ public final class ControladorPartida {
             return;
         }
 
-        double ancho = Math.max(vistaJuego.getAnchoAreaJuego(), ANCHO_AREA_DEFAULT);
-        double alto = Math.max(vistaJuego.getAltoAreaJuego(), ALTO_AREA_DEFAULT);
+        double ancho = Math.max(vistaJuego.getAnchoAreaJuego(), 960);
+        double alto = Math.max(vistaJuego.getAltoAreaJuego(), 720);
         ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
 
         for (int i = 0; i < cantidadAGenerar; i++) {
@@ -276,19 +267,32 @@ public final class ControladorPartida {
     }
 
     private void dispararProyectil() {
-        if (modeloPartida.isPartidaFinalizada()) {
+        if (modeloPartida.isPartidaFinalizada() || !personaje.intentarAtacar()) {
             return;
         }
 
-        List<ModeloJugador.DatosDisparo> disparos = personaje.realizarAtaque();
-        for (ModeloJugador.DatosDisparo disparo : disparos) {
+        ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
+        VecDouble2D direccionBase = personaje.getVectorDireccion();
+        boolean esMultidisparo = aleatorio.nextDouble(100) < personaje.getProbabilidadMultidisparo();
+        double[] angulos = esMultidisparo ? new double[] { -18.0, 0.0, 18.0 } : new double[] { 0.0 };
+
+        for (double angulo : angulos) {
+            VecDouble2D direccionDisparo = rotarVector(direccionBase, angulo);
+            boolean esCritico = aleatorio.nextDouble(100) < personaje.getProbabilidadCritico();
+            double danioFinal = esCritico
+                ? personaje.getDanioAtaque() * 2.0
+                : personaje.getDanioAtaque();
+
+            double origenX = personaje.getPosicion().getX() + 17 + direccionDisparo.getX() * 16;
+            double origenY = personaje.getPosicion().getY() + 17 + direccionDisparo.getY() * 16;
+
             ProyectilControlador proyectil = fabricaEntidades.crearProyectil(
-                disparo.origen().getX(),
-                disparo.origen().getY(),
-                disparo.direccion(),
-                disparo.danio(),
-                disparo.esCritico(),
-                colisionado -> aplicarDanioEnemigoColisionado(colisionado, disparo.danio())
+                origenX,
+                origenY,
+                direccionDisparo,
+                danioFinal,
+                esCritico,
+                colisionado -> aplicarDanioEnemigoColisionado(colisionado, danioFinal)
             );
 
             proyectiles.add(proyectil);
@@ -296,6 +300,18 @@ public final class ControladorPartida {
             motor.colisionables().add(proyectil.getModelo());
             Platform.runLater(() -> vistaJuego.agregarNodoJuego(proyectil.getVista()));
         }
+    }
+
+    private VecDouble2D rotarVector(VecDouble2D vector, double grados) {
+        if (grados == 0) {
+            return vector.clone();
+        }
+        double radianes = Math.toRadians(grados);
+        double cos = Math.cos(radianes);
+        double sin = Math.sin(radianes);
+        double x = vector.getX() * cos - vector.getY() * sin;
+        double y = vector.getX() * sin + vector.getY() * cos;
+        return new VecDouble2D(x, y);
     }
 
     private void removerProyectilesInactivos() {
@@ -377,7 +393,9 @@ public final class ControladorPartida {
         motor.detener();
 
         List<ItemMejoraAtributo> opciones = modeloPartida.iniciarEleccionMejora();
-        List<OpcionMejoraVisual> opcionesVisuales = ControladorVistaJuego.mapearOpcionesMejora(opciones);
+        List<OpcionMejoraVisual> opcionesVisuales = opciones.stream()
+            .map(this::mapearOpcionMejora)
+            .toList();
 
         int nivelActual = personaje.getNivel();
         Platform.runLater(() -> {
@@ -417,6 +435,40 @@ public final class ControladorPartida {
             vistaJuego.setPausaHabilitada(false);
             vistaJuego.mostrarFinPartida(mensaje);
         });
+    }
+
+    private OpcionMejoraVisual mapearOpcionMejora(ItemMejoraAtributo item) {
+        String rareza = switch (item.rareza()) {
+            case COMUN -> "COMÚN";
+            case RARA -> "RARA";
+            case EPICA -> "ÉPICA";
+            case LEGENDARIA -> "LEGENDARIA";
+        };
+        String bonus = "+" + (int) item.cantidad() + (item.atributo().esPorcentual() ? "%" : "");
+
+        return switch (item.atributo()) {
+            case VIDA_MAXIMA -> new OpcionMejoraVisual(
+                rareza, "Vida máxima", bonus, "Aumenta y restaura tu vitalidad", "corazon"
+            );
+            case DANIO_ATAQUE -> new OpcionMejoraVisual(
+                rareza, "Daño", bonus, "Mayor impacto por proyectil", "danio"
+            );
+            case VELOCIDAD_ATAQUE -> new OpcionMejoraVisual(
+                rareza, "Vel. Ataque", bonus, "Disparás con mayor frecuencia", "experiencia"
+            );
+            case VELOCIDAD_MAXIMA -> new OpcionMejoraVisual(
+                rareza, "Velocidad", bonus, "Mayor agilidad en la mazmorra", "tiempo"
+            );
+            case DEFENSA -> new OpcionMejoraVisual(
+                rareza, "Defensa", bonus, "Reduce el daño recibido", "defensa"
+            );
+            case PROBABILIDAD_CRITICO -> new OpcionMejoraVisual(
+                rareza, "Crítico", bonus, "Chance de disparo carmesí x2 daño", "danio"
+            );
+            case PROBABILIDAD_MULTIDISPARO -> new OpcionMejoraVisual(
+                rareza, "Multidisparo", bonus, "Chance de lanzar 3 orbes en abanico", "experiencia"
+            );
+        };
     }
 
     public void iniciar() {
