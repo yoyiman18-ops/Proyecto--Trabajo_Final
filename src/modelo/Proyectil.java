@@ -1,16 +1,14 @@
 package modelo;
 import motor.modelo.Dañable;
-import motor.modelo.Dañador;
 import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
 import motor.modelo.Solido;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
-import motor.util.observer.NotificadorDebil;
 import motor.util.observer.NotificadorFuerte;
 
-public final class Proyectil
+public abstract class Proyectil
 extends Entidad
 implements ModeloProyectil
 {
@@ -21,6 +19,7 @@ implements ModeloProyectil
     private final Notificador<Integer> notificadorExpiracion;
 
     public Proyectil(
+        int idGlobal,
         String nombre,
         Hitbox hitbox,
         VecDouble2D posicion,
@@ -30,6 +29,7 @@ implements ModeloProyectil
         int penetracion
     ) {
         super(
+            idGlobal,
             nombre,
             hitbox,
             posicion,
@@ -50,12 +50,13 @@ implements ModeloProyectil
         if (!activo()) { return; }
         tiempoVida = Math.max(0, tiempoVida - dt); 
         super.tick(dt);
-        if (estaExpirado()) { setActivo(false); }
+        if (estaExpirado()) { expirar(); }
     }
 
     @Override public double getDaño() { return daño; }
     @Override public boolean dañar(Dañable o) { return o.recibirDaño(this.getDaño()); }
     @Override public boolean recibirDaño(double daño) {
+        if (!activo()) { return false; }
         penetracion -= daño;
         if (penetracion <= 0) { expirar(); }
         return true;
@@ -74,12 +75,15 @@ implements ModeloProyectil
     }
 
     @Override public Dañable getDañable() { return this; }
+    @Override public Notificador<Integer> getNotificadorExpiracion() { return this.notificadorExpiracion; }
 
     private void expirar() {
         setActivo(false);
-
+        this.notificadorExpiracion.notificar(1);
     }
+
     private boolean estaExpirado() { return tiempoVida == 0; }
+
 
 
 }

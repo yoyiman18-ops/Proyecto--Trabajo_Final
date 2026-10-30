@@ -3,7 +3,7 @@ import javafx.geometry.Rectangle2D;
 import motor.modelo.Ticking;
 import motor.util.ContadorSegundos;
 import motor.util.observer.Notificador;
-import motor.util.observer.NotificadorDebil;
+import motor.util.observer.NotificadorFuerte;
 import motor.util.observer.Observador;
 
 public class GestorSheetAnimada
@@ -22,7 +22,7 @@ implements Ticking
         this.cs = new ContadorSegundos();
         this.observadorCs = s -> avanzarFrame(s);
         this.cs.suscribirObservador(observadorCs);    
-        this.notificadorFinAnimacion = new NotificadorDebil<>();
+        this.notificadorFinAnimacion = new NotificadorFuerte<>();
     }
     
     public boolean setAnimacion(String nombre, boolean conservarFrame) { 
@@ -34,6 +34,8 @@ implements Ticking
         if (conservarFrame) { if (indiceFinal < indiceActual) { indiceActual = indiceFinal; }}
         else { indiceActual = 0; cs.reset(); }
         notificar();
+        notificadorFinAnimacion.notificar(true);
+        notificadorFinAnimacion.limpiarObservadores();
         return true;
     }
 
@@ -50,7 +52,7 @@ implements Ticking
             if (fin()) { return false; }
             this.indiceActual = Math.min(indiceActual + numeroFrames, indiceFinal);
             notificar();
-            if (fin()) { notificadorFinAnimacion.notificar(fin()); }
+            if (fin()) { notificadorFinAnimacion.notificar(true); }
             return true;
         }
     }
