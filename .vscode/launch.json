@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "main.App",
+            "projectName": "Proyecto--Trabajo_Final_f597689a"
+        },
+        {
+            "type": "java",
             "name": "Test",
             "request": "launch",
             "mainClass": "main.Test",
@@ -15,7 +22,6 @@
             "mainClass": "main.App",
             "projectName": "Proyecto--Trabajo_Final_34760315",
             "vmArgs": "--module-path \"${workspaceFolder}/lib/javafx-sdk-26.0.2/lib/\" --add-modules javafx.controls,javafx.fxml,javafx.media,javafx.swing"
-
         }
     ]
 }
