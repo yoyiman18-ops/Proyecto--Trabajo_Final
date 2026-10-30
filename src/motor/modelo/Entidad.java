@@ -54,15 +54,18 @@ implements ModeloEntidad {
         Notificador<VecDouble2D> notificadorPosicion) {
         this.activa = true;
         this.idGlobal = idGlobal;
-        this.nombre = Objects.requireNonNull(nombre, "Nombre no puede ser nulo");;
-        this.hitbox = Objects.requireNonNull(hitbox, "Hitbox no puede ser nula");;
+        this.nombre = Objects.requireNonNull(nombre, "Nombre no puede ser nulo");
+        this.hitbox = Objects.requireNonNull(hitbox, "Hitbox no puede ser nula");
         this.posicion = Objects.requireNonNull(posicion, "Posicion no puede ser nula");
         this.velocidad = Objects.requireNonNull(velocidad, "Velocidad no puede ser nula");
         this.aceleracion = aceleracion;
         this.friccion = friccion;
         this.velocidadMax = velocidadMax;
         this.notificadorPosicion = Objects.requireNonNull(notificadorPosicion, "El notificadorPosicion no puede ser nulo");
-        if (this.hitbox != null && this.posicion != null) { this.notificadorPosicion.suscribirObservador(hitbox); }
+        if (this.hitbox != null && this.posicion != null) {
+            this.notificadorPosicion.suscribirObservador(hitbox);
+            this.hitbox.cambio(this.posicion);
+        }
     }
 
     public void acelerar(Direccion direccion, double dt) {

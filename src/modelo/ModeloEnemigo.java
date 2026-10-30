@@ -1,16 +1,16 @@
 package modelo;
 
-import motor.modelo.Entidad;
-import motor.util.VecDouble2D;
+import motor.modelo.Dañable;
+import motor.modelo.Dañador;
+import motor.modelo.ModeloEntidad;
+import motor.util.observer.Notificador;
 
 public interface ModeloEnemigo
-extends Dañable,Dañador
+extends Dañable, Dañador, ModeloEntidad
 {
-    VecDouble2D getPosicion();
-    VecDouble2D getVelocidad();
-    double getVelocidadMaxima();
     double getVida();
     double getVidaMaxima();
     int getExperienciaRecompensa();
-    Entidad getEntidad();
+    Notificador<Double> getNotificadorDaño();
+    Notificador<Integer> getNotificadorExpiracion();
 }

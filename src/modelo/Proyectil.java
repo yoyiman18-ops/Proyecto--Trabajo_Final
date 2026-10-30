@@ -78,6 +78,7 @@ implements ModeloProyectil
     @Override public Notificador<Integer> getNotificadorExpiracion() { return this.notificadorExpiracion; }
 
     private void expirar() {
+        if (!activo()) { return; }
         setActivo(false);
         this.notificadorExpiracion.notificar(1);
     }
