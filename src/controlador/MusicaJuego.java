@@ -4,7 +4,7 @@ import motor.recursos.Extension;
 import motor.recursos.GestorAudio;
 
 public enum MusicaJuego {
-    MENU("Soundtrack/Chamber", Extension.Sonido.MP3),
+    MENU("Soundtrack/blinkenlights", Extension.Sonido.MP3),
     PARTIDA("Soundtrack/Heat Of Battle", Extension.Sonido.MP3);
 
     private final String nombre;
