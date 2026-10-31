@@ -1,11 +1,12 @@
 package main;
 
+import modelo.proyectil.ProyectilRojo;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
-
-import controlador.ProyectilControlador;
+import motor.persistencia.dao.sqlite.Conexion;
+import controlador.EntidadControlador;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
@@ -13,18 +14,25 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import modelo.ModeloProyectil;
-import modelo.Proyectil;
+import modelo.EstrategiaExpiracion;
+import modelo.EstrategiaExpiracionSimple;
+import modelo.EstrategiaExpiracionSpawnear;
+import modelo.ModeloEnemigo;
+import modelo.proyectil.EnsambladorControladorProyectil;
+import modelo.proyectil.ModeloProyectil;
+import modelo.proyectil.Proyectil;
 import motor.Motor;
 import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.HitboxRectangular;
 import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
+import motor.controlador.ControladorEntidad;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
 import motor.entrada.GestorEntradaTeclado;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
+import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.modelo.graficos.GestorSheetEstatica;
 import motor.modelo.graficos.Sheet;
@@ -40,7 +48,6 @@ import motor.util.observer.Contador;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorFuerte;
 import motor.util.observer.Observador;
-import vista.VistaImagen;
 import vista.VistaImagen;
 
 public class Test extends Application {
@@ -264,8 +271,7 @@ public class Test extends Application {
         Motor motor = new Motor();
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.RIGHT, TipoEntrada.SOLTAR, Accion.MOVER_DERECHA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.LEFT, TipoEntrada.SOLTAR, Accion.MOVER_IZQUIERDA));
-        DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(Conexion.getInstancia().get(), motor.recursos());
-        Sheet sheet = sheetDAO.cargar(1);
+        DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db").getConexion(), motor.recursos());
     
         Sheet sheetHUD = sheetDAO.cargar(2);
         VistaImagen vistaHud = new VistaImagen(sheetHUD.getImagen());
@@ -285,14 +291,33 @@ public class Test extends Application {
             ),
             new VecDouble2D(20,0),
             new VecDouble2D(100,0),
-            2, 5, 10);
+            2, 2, 1,
+            new ArrayList<>(List.of(new EstrategiaExpiracionSpawnear(
+                List.of(
+                    new Proyectil(
+                    4,
+                    "proyectil",
+                    new HitboxRectangular(
+                        new java.awt.geom.Rectangle2D.Double(0.0, 0.0, 10.0, 10.0),
+                        TipoHitbox.SOLIDA,
+                        MascaraColision.of(CategoriaColision.ENEMIGO),
+                        MascaraColision.of(CategoriaColision.ALIADO)
+                    ),
+                    new VecDouble2D(0,0),
+                    new VecDouble2D(500,0),
+                    2, 0.5, 2,null
+                ))
+            )))
+        );
         VistaImagen vistaProyectil = new VistaImagen(sheetProyectil.getImagen());
         GestorSheetAnimada gestorSheetProyectil = new GestorSheetAnimada(sheetProyectil);
-        ProyectilControlador proyectilControlador = new ProyectilControlador(
+        EntidadControlador proyectilControlador = new EntidadControlador(
             modeloProyectil, 
             vistaProyectil,
             gestorSheetProyectil
         );
+
+        
 
         Sheet sheetProyectil2 = sheetDAO.cargar(4);
         ModeloProyectil modeloProyectil2 = new Proyectil(
@@ -306,10 +331,12 @@ public class Test extends Application {
             ),
             new VecDouble2D(400,0),
             new VecDouble2D(-100,0),
-            2, 5, 1);
+            2, 2, 1,
+            new ArrayList<>(List.of(new EstrategiaExpiracionSimple()))
+        );
         VistaImagen vistaProyectil2 = new VistaImagen(sheetProyectil2.getImagen());
         GestorSheetAnimada gestorSheetProyectil2 = new GestorSheetAnimada(sheetProyectil);
-        ProyectilControlador proyectilControlador2 = new ProyectilControlador(
+        EntidadControlador proyectilControlador2 = new EntidadControlador(
             modeloProyectil2, 
             vistaProyectil2,
             gestorSheetProyectil2
@@ -322,7 +349,15 @@ public class Test extends Application {
 
         motor.iniciar();
         motor.encolarControlador(proyectilControlador);
-        motor.encolarControlador(proyectilControlador2);
+
+        proyectilControlador.getEntidad().getNotificadorInstanciacion().suscribirObservador(e ->
+            {
+                motor.encolarControlador(crearControlador(e, vistaProyectil2, gestorSheetProyectil2));
+            }
+        );
     }
 
+    private ControladorEntidad crearControlador(ModeloEntidad m, VistaImagen v, GestorSheetAnimada gs) {
+        return new EntidadControlador(m, v, gs);
+    } 
 }

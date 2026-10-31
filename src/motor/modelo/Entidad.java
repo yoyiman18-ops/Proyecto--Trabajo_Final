@@ -1,6 +1,9 @@
 package motor.modelo;
 
+import java.util.List;
 import java.util.Objects;
+
+import modelo.EstrategiaExpiracion;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.util.Eje;
 import motor.util.VecDouble2D;
@@ -18,7 +21,12 @@ implements ModeloEntidad {
     private double aceleracion;
     private double friccion;
     private double velocidadMax;
+
+    private final List<EstrategiaExpiracion> estrategiasExpiracion;
+
     private final Notificador<VecDouble2D> notificadorPosicion;
+    private final Notificador<ModeloEntidad> notificadorInstanciacion;
+    private final Notificador<Integer> notificadorExpiracion;
 
     public Entidad(
         int idGlobal,
@@ -28,7 +36,9 @@ implements ModeloEntidad {
         VecDouble2D velocidad,
         double aceleracion,
         double friccion,
-        double velocidadMax) {
+        double velocidadMax,
+        List<EstrategiaExpiracion> estrategiasExpiracion
+    ) {
         this(
             idGlobal,
             nombre,
@@ -38,7 +48,10 @@ implements ModeloEntidad {
             aceleracion,
             friccion,
             velocidadMax,
-            new NotificadorFuerte<>()
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            estrategiasExpiracion
         );
     }
 
@@ -51,7 +64,11 @@ implements ModeloEntidad {
         double aceleracion,
         double friccion,
         double velocidadMax,
-        Notificador<VecDouble2D> notificadorPosicion) {
+        Notificador<VecDouble2D> notificadorPosicion,
+        Notificador<ModeloEntidad> notificadorInstanciacion,
+        Notificador<Integer> notificadorExpiracion,
+        List<EstrategiaExpiracion> estrategiasExpiracion
+    ) {
         this.activa = true;
         this.idGlobal = idGlobal;
         this.nombre = Objects.requireNonNull(nombre, "Nombre no puede ser nulo");
@@ -62,10 +79,13 @@ implements ModeloEntidad {
         this.friccion = friccion;
         this.velocidadMax = velocidadMax;
         this.notificadorPosicion = Objects.requireNonNull(notificadorPosicion, "El notificadorPosicion no puede ser nulo");
+        this.notificadorInstanciacion = Objects.requireNonNull(notificadorInstanciacion, "El notificadorInstanciacion no puede ser nulo");
+        this.notificadorExpiracion = Objects.requireNonNull(notificadorExpiracion, "El notificadorExpiracion no puede ser nulo");
         if (this.hitbox != null && this.posicion != null) {
             this.notificadorPosicion.suscribirObservador(hitbox);
             this.hitbox.cambio(this.posicion);
         }
+        this.estrategiasExpiracion = estrategiasExpiracion;
     }
 
     public void acelerar(Direccion direccion, double dt) {
@@ -105,10 +125,14 @@ implements ModeloEntidad {
     public String getNombre() { return this.nombre; }
     public VecDouble2D getVelocidad() { return this.velocidad; }
     @Override public VecDouble2D getPosicion() { return this.posicion; }
+    @Override public void setPosicion(VecDouble2D posicion) { this.posicion = posicion.clone(); }
     public double getAceleracion() { return this.aceleracion; }
     public double getFriccion() { return this.friccion; }
     public double getVelocidadMax() { return this.velocidadMax; }
-    public Notificador<VecDouble2D> getNotificadorPosicion() { return this.notificadorPosicion; }
+
+    @Override public Notificador<VecDouble2D> getNotificadorPosicion() { return this.notificadorPosicion; }
+    @Override public Notificador<ModeloEntidad> getNotificadorInstanciacion() { return this.notificadorInstanciacion; }
+    @Override public Notificador<Integer> getNotificadorExpiracion() { return this.notificadorExpiracion; }
 
     public void setVelocidadMax(double velocidadMax) {
         if (!Double.isFinite(velocidadMax) || velocidadMax < 0) {
@@ -130,6 +154,13 @@ implements ModeloEntidad {
             posicion.sumar(desplazamiento);
             notificadorPosicion.notificar(posicion);
         }
+    }
+
+    protected void expirar(int estado) {
+        if (!activo()) { return; }
+        setActivo(false);
+        if (estrategiasExpiracion != null) { for (EstrategiaExpiracion e : estrategiasExpiracion) {e.ejecutar(this);} }
+        getNotificadorExpiracion().notificar(estado);
     }
 
     private void limitarVelocidad() {

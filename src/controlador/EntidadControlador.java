@@ -2,22 +2,21 @@ package controlador;
 
 import java.util.Objects;
 
-import modelo.ModeloProyectil;
 import motor.controlador.ControladorEntidad;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.util.observer.Observador;
 import vista.VistaImagen;
 
-public final class ProyectilControlador implements ControladorEntidad {
-    private final ModeloProyectil modelo;
+public class EntidadControlador implements ControladorEntidad {
+    private final ModeloEntidad modelo;
     private final VistaImagen vista;
     private final Observador<Integer> observadorExpiracion;
     private final GestorSheetAnimada gestorSheet;
     private boolean activo;
 
-    public ProyectilControlador(
-        ModeloProyectil modelo,
+    public EntidadControlador(
+        ModeloEntidad modelo,
         VistaImagen vista,
         GestorSheetAnimada gestorSheet
     ) {
@@ -48,7 +47,7 @@ public final class ProyectilControlador implements ControladorEntidad {
     private void alExpirar(int e) {
         gestorSheet.setAnimacion("expirar", false);
         gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
-            f -> { vista.setVisible(false); setActivo(false); }
+            f -> { vista.setVisbilidad(false); setActivo(false); }
         );
     }
 }

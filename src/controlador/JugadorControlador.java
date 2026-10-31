@@ -6,6 +6,7 @@ import modelo.ModeloJugador;
 import motor.controlador.ControladorEntidad;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
+import motor.entrada.ReceptorEstadoAcciones;
 import motor.modelo.Direccion;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
@@ -13,7 +14,7 @@ import motor.util.Eje;
 import motor.util.observer.Observador;
 import vista.VistaImagen;
 
-public final class JugadorControlador implements ControladorEntidad {
+public final class JugadorControlador implements ControladorEntidad,ReceptorEstadoAcciones {
     private final ModeloJugador modelo;
     private final VistaImagen vista;
     private final GestorSheetAnimada gestorSheet;
@@ -49,15 +50,7 @@ public final class JugadorControlador implements ControladorEntidad {
         this.observadorVida.cambio(modelo);
     }
 
-    @Override public boolean activo() { return this.activo; }
-    @Override public void setActivo(boolean activo) { this.activo = activo; }
-    @Override public ModeloEntidad getEntidad() { return this.modelo; }
-
-    public Observador<EstadoAcciones> getObservadorAcciones() {
-        return observadorAcciones;
-    }
-
-    @Override
+@Override
     public void tick(double dt) {
         if (!activo()) { return; }
 
@@ -84,6 +77,12 @@ public final class JugadorControlador implements ControladorEntidad {
             accionAtaque.run();
         }
     }
+
+    @Override public boolean activo() { return this.activo; }
+    @Override public void setActivo(boolean activo) { this.activo = activo; }
+    @Override public ModeloEntidad getEntidad() { return this.modelo; }
+    @Override public VistaImagen getVista() { return this.vista; }
+    @Override public Observador<EstadoAcciones> getObservadorAcciones() { return observadorAcciones; }
 
     private void alExpirar(int e) {
         gestorSheet.setAnimacion("expirar", false);

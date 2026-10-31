@@ -50,6 +50,10 @@ import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.controlador.ControladorEntidad;
 import motor.entrada.GestorEntradaTeclado;
 import motor.modelo.Ticking;
+import motor.modelo.graficos.Sheet;
+import motor.persistencia.dao.DAOSoloLectura;
+import motor.persistencia.dao.sqlite.Conexion;
+import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.GestorRecursos;
 import motor.util.RelojDelta;
 import motor.util.observer.NotificadorFuerte;
@@ -65,6 +69,9 @@ public class Motor implements Ticking {
     private final Queue<ControladorEntidad> colaInstanciacion;
     private final Queue<ControladorEntidad> colaLimpieza;
     private Pane root;
+
+    private final Conexion conexion;
+    private final DAOSoloLectura<Integer,Sheet> sheetDAO;
 
     /**
      * Crear motor default.
@@ -105,6 +112,8 @@ public class Motor implements Ticking {
         this.colisionables = new ArrayList<>();
         this.colaInstanciacion = new ArrayDeque<>();
         this.colaLimpieza = new ArrayDeque<>();
+        this.conexion = Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db");
+        this.sheetDAO = new SheetDAOSQLite(conexion.getConexion(), gestorRecursos);
         
         // el observador más importante del sistema, propaga los ticks a todos los demás
         this.relojDelta.suscribirObservador(this::tick); 
@@ -133,6 +142,7 @@ public class Motor implements Ticking {
     public List<Colisionable> colisionables() { return this.colisionables; }
     public Pane getRoot() { return this.root; }
     public void setRoot(Pane root) { this.root = root; }
+    public DAOSoloLectura<Integer,Sheet> getSheetDAO() { return this.sheetDAO; }
     public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }
 
@@ -140,7 +150,10 @@ public class Motor implements Ticking {
 
     private void instanciarControladores() {
         ControladorEntidad c;
-        while ((c = colaInstanciacion.poll()) != null) { controladores.add(c); getRoot().getChildren().add(c.getVista()); }
+        while ((c = colaInstanciacion.poll()) != null) {
+            controladores.add(c);
+            getRoot().getChildren().add(c.getVista());
+        }
     }
 
     private void limpiarControladores() {
