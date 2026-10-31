@@ -5,6 +5,7 @@ import java.util.Objects;
 import javafx.scene.Parent;
 import javafx.scene.image.Image;
 import motor.recursos.Extension;
+import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
 import vista.VistaMenu;
 
@@ -22,6 +23,22 @@ public final class MenuControlador {
     ) {
         this(
             crearVistaMenu(gestorRecursos, hojaEstilosUrl),
+            null,
+            onJugar,
+            onSalir
+        );
+    }
+
+    public MenuControlador(
+        GestorRecursos gestorRecursos,
+        GestorAudio gestorAudio,
+        String hojaEstilosUrl,
+        Runnable onJugar,
+        Runnable onSalir
+    ) {
+        this(
+            crearVistaMenu(gestorRecursos, hojaEstilosUrl),
+            gestorAudio,
             onJugar,
             onSalir
         );
@@ -32,12 +49,29 @@ public final class MenuControlador {
         Runnable onJugar,
         Runnable onSalir
     ) {
+        this(vista, null, onJugar, onSalir);
+    }
+
+    public MenuControlador(
+        VistaMenu vista,
+        GestorAudio gestorAudio,
+        Runnable onJugar,
+        Runnable onSalir
+    ) {
         this.vista = Objects.requireNonNull(vista, "La vista del menú no puede ser nula");
         Objects.requireNonNull(onJugar, "La acción de jugar no puede ser nula");
         Objects.requireNonNull(onSalir, "La acción de salir no puede ser nula");
 
-        this.vista.setOnJugar(onJugar);
-        this.vista.setOnSalir(onSalir);
+        MusicaJuego.MENU.reproducirEn(gestorAudio);
+
+        this.vista.setOnJugar(() -> {
+            SonidoJuego.BOTON.reproducirEn(gestorAudio);
+            onJugar.run();
+        });
+        this.vista.setOnSalir(() -> {
+            SonidoJuego.BOTON.reproducirEn(gestorAudio);
+            onSalir.run();
+        });
     }
 
     private static VistaMenu crearVistaMenu(GestorRecursos gestorRecursos, String hojaEstilosUrl) {

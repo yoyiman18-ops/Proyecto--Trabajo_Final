@@ -1,4 +1,5 @@
 package motor.recursos.cache;
+import java.net.URL;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaException;
 import motor.recursos.Extension;
@@ -13,7 +14,11 @@ public class CacheMusica extends CacheRecursos<Media> {
         return cache.computeIfAbsent(
             resolverPathRecurso(nombre, ext),
             k -> { try {
-                Media musica = new Media(k); 
+                URL url = getClass().getResource(k);
+                if (url == null) {
+                    throw new RuntimeException("No se encontro el recurso de musica: " + k);
+                }
+                Media musica = new Media(url.toExternalForm()); 
                 musica.getError(); 
                 loggearCarga(k);
                 return musica;

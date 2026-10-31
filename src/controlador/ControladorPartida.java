@@ -16,6 +16,7 @@ import modelo.Partida;
 import motor.Motor;
 import motor.controlador.ControladorEntidad;
 import motor.modelo.Activable;
+import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
@@ -34,6 +35,7 @@ public final class ControladorPartida {
     private final VistaPartida vistaJuego;
     private final VistaFondo fondoMazmorra;
     private final FabricaEntidadesPartida fabricaEntidades;
+    private final GestorAudio gestorAudio;
     private final Runnable onVolverAlMenu;
     private final Runnable onReintentar;
 
@@ -85,6 +87,7 @@ public final class ControladorPartida {
                 Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo"),
                 vista -> Platform.runLater(() -> vistaJuego.agregarNodoJuego(vista))
             ),
+            null,
             onVolverAlMenu,
             onReintentar
         );
@@ -99,11 +102,34 @@ public final class ControladorPartida {
         Runnable onVolverAlMenu,
         Runnable onReintentar
     ) {
+        this(
+            motor,
+            modeloPartida,
+            vistaJuego,
+            fondoMazmorra,
+            fabricaEntidades,
+            null,
+            onVolverAlMenu,
+            onReintentar
+        );
+    }
+
+    public ControladorPartida(
+        Motor motor,
+        ModeloPartida modeloPartida,
+        VistaPartida vistaJuego,
+        VistaFondo fondoMazmorra,
+        FabricaEntidadesPartida fabricaEntidades,
+        GestorAudio gestorAudio,
+        Runnable onVolverAlMenu,
+        Runnable onReintentar
+    ) {
         this.motor = Objects.requireNonNull(motor, "El motor no puede ser nulo");
         this.modeloPartida = Objects.requireNonNull(modeloPartida, "El modelo de la partida no puede ser nulo");
         this.vistaJuego = Objects.requireNonNull(vistaJuego, "La vista del juego no puede ser nula");
         this.fondoMazmorra = Objects.requireNonNull(fondoMazmorra, "El fondo de mazmorra no puede ser nulo");
         this.fabricaEntidades = Objects.requireNonNull(fabricaEntidades, "La fábrica de entidades no puede ser nula");
+        this.gestorAudio = gestorAudio;
         this.onVolverAlMenu = Objects.requireNonNull(onVolverAlMenu, "El callback de volver al menú es obligatorio");
         this.onReintentar = Objects.requireNonNull(onReintentar, "El callback de reintentar es obligatorio");
 
@@ -142,6 +168,9 @@ public final class ControladorPartida {
         }
         modeloPartida.setEnPausa(true);
         motor.detener();
+        if (gestorAudio != null) {
+            gestorAudio.pausarMusica();
+        }
         vistaJuego.mostrarPausa();
     }
 
@@ -151,6 +180,9 @@ public final class ControladorPartida {
         }
         modeloPartida.setEnPausa(false);
         vistaJuego.cerrarPausa();
+        if (gestorAudio != null) {
+            gestorAudio.reanudarMusica();
+        }
         if (!modeloPartida.isEleccionMejoraActiva() && !modeloPartida.isPartidaFinalizada()) {
             motor.iniciar();
         }
@@ -209,6 +241,14 @@ public final class ControladorPartida {
         for (ControladorEntidad c : controladores) {
             c.tick(dt);
         }
+
+        motor.colisionables().clear();
+        for (ControladorEntidad c : controladores) {
+            if (c.activo() && c.getEntidad().activo()) {
+                motor.colisionables().add(c.getEntidad());
+            }
+        }
+        motor.colisiones().resolverColisiones(motor.colisionables());
 
         limpiarEntidadesInactivas();
 
@@ -336,6 +376,7 @@ public final class ControladorPartida {
         }
 
         motor.detener();
+        SonidoJuego.SUBIR_NIVEL.reproducirEn(gestorAudio);
 
         List<ItemMejoraAtributo> opciones = modeloPartida.iniciarEleccionMejora();
         List<OpcionMejoraVisual> opcionesVisuales = ControladorVistaJuego.mapearOpcionesMejora(opciones);
@@ -343,6 +384,7 @@ public final class ControladorPartida {
         int nivelActual = personaje.getNivel();
         Platform.runLater(() -> {
             if (!modeloPartida.isPartidaFinalizada()) {
+                SonidoJuego.MOSTRAR_MEJORAS.reproducirEn(gestorAudio);
                 vistaJuego.mostrarEleccionMejora(nivelActual, opcionesVisuales);
             }
         });
@@ -356,6 +398,7 @@ public final class ControladorPartida {
         ItemMejoraAtributo elegida = modeloPartida.consumirOpcionMejora(seleccionIndice);
         if (elegida != null) {
             elegida.aplicar(personaje);
+            SonidoJuego.MEJORA_APLICADA.reproducirEn(gestorAudio);
         }
         actualizarProgresoJugador();
         verificarSubidaNivel();
@@ -371,6 +414,10 @@ public final class ControladorPartida {
             return;
         }
         modeloPartida.finalizarPartida();
+        if (gestorAudio != null) {
+            gestorAudio.detenerMusica();
+        }
+        (personaje.getVida() > 0 ? SonidoJuego.VICTORIA : SonidoJuego.DERROTA).reproducirEn(gestorAudio);
         detener();
         Platform.runLater(() -> {
             vistaJuego.cerrarPausa();
@@ -381,6 +428,7 @@ public final class ControladorPartida {
     }
 
     public void iniciar() {
+        MusicaJuego.PARTIDA.reproducirEn(gestorAudio);
         motor.iniciar();
     }
 

@@ -10,6 +10,7 @@ import motor.entrada.ReceptorEstadoAcciones;
 import motor.modelo.Direccion;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
+import motor.recursos.GestorAudio;
 import motor.util.Eje;
 import motor.util.observer.Observador;
 import vista.VistaImagen;
@@ -18,7 +19,9 @@ public final class JugadorControlador implements ControladorEntidad,ReceptorEsta
     private final ModeloJugador modelo;
     private final VistaImagen vista;
     private final GestorSheetAnimada gestorSheet;
+    private final GestorAudio gestorAudio;
     private final Observador<ModeloJugador> observadorVida;
+    private final Observador<Double> observadorDaño;
     private final Observador<Integer> observadorExpiracion;
     private final Runnable accionAtaque;
     private EstadoAcciones estadoAcciones;
@@ -30,18 +33,30 @@ public final class JugadorControlador implements ControladorEntidad,ReceptorEsta
         VistaImagen vista,
         GestorSheetAnimada gestorSheet,
         Observador<ModeloJugador> observadorVida,
-        Runnable accionAtaque
+    ) {
+        this(modelo, vista, gestorSheet, observadorVida, null);
+    }
+
+    public JugadorControlador(
+        ModeloJugador modelo,
+        VistaImagen vista,
+        GestorSheetAnimada gestorSheet,
+        Observador<ModeloJugador> observadorVida,
+        GestorAudio gestorAudio
     ) {
         this.gestorSheet = Objects.requireNonNull(gestorSheet, "El gestor de sheet no puede ser nulo");
         this.modelo = Objects.requireNonNull(modelo, "El modelo del jugador no puede ser nulo");
         this.vista = Objects.requireNonNull(vista, "La vista del jugador no puede ser nula");
         this.observadorVida = Objects.requireNonNull(observadorVida, "El observador de vida no puede ser nulo");
         this.accionAtaque = Objects.requireNonNull(accionAtaque, "La acción de ataque no puede ser nula");
+        this.gestorAudio = gestorAudio;
         this.observadorAcciones = estado -> this.estadoAcciones = estado;
+        this.observadorDaño = this::alRecibirDaño;
         this.observadorExpiracion = this::alExpirar;
         this.activo = true;
 
         this.modelo.getNotificadorVida().suscribirObservador(this.observadorVida);
+        this.modelo.getNotificadorDaño().suscribirObservador(this.observadorDaño);
         this.modelo.getNotificadorExpiracion().suscribirObservador(this.observadorExpiracion);
         this.gestorSheet.setAnimacion("idle", false);
         this.gestorSheet.suscribir(this.vista.getObservadorRectangulo());
@@ -50,7 +65,16 @@ public final class JugadorControlador implements ControladorEntidad,ReceptorEsta
         this.observadorVida.cambio(modelo);
     }
 
-@Override
+    @Override public boolean activo() { return this.activo; }
+    @Override public void setActivo(boolean activo) { this.activo = activo; }
+    @Override public ModeloEntidad getEntidad() { return this.modelo; }
+    @Override public VistaImagen getVista() { return this.vista; }
+
+    public Observador<EstadoAcciones> getObservadorAcciones() {
+        return observadorAcciones;
+    }
+
+    @Override
     public void tick(double dt) {
         if (!activo()) { return; }
 
@@ -78,16 +102,20 @@ public final class JugadorControlador implements ControladorEntidad,ReceptorEsta
         }
     }
 
-    @Override public boolean activo() { return this.activo; }
-    @Override public void setActivo(boolean activo) { this.activo = activo; }
-    @Override public ModeloEntidad getEntidad() { return this.modelo; }
-    @Override public VistaImagen getVista() { return this.vista; }
-    @Override public Observador<EstadoAcciones> getObservadorAcciones() { return observadorAcciones; }
+    private void alRecibirDaño(double daño) {
+        if (!modelo.activo() || modelo.getVida() <= 0) { return; }
+        SonidoJuego.DAÑO_JUGADOR.reproducirEn(gestorAudio);
+    }
 
     private void alExpirar(int e) {
-        gestorSheet.setAnimacion("expirar", false);
-        gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
-            f -> { vista.setVisible(false); setActivo(false); }
-        );
+        SonidoJuego.MUERTE_JUGADOR.reproducirEn(gestorAudio);
+        if (gestorSheet.setAnimacion("expirar", false)) {
+            gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
+                f -> { vista.setVisible(false); setActivo(false); }
+            );
+        } else {
+            vista.setVisible(false);
+            setActivo(false);
+        }
     }
 }

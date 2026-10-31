@@ -22,6 +22,7 @@ import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
 import motor.persistencia.dao.sqlite.Conexion;
 import motor.persistencia.dao.sqlite.SheetDAOSQLite;
+import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
@@ -35,6 +36,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
 
     private final DAOSoloLectura<Integer, Sheet> sheetDAO;
     private final Consumer<VistaImagen> alCrearVista;
+    private final GestorAudio gestorAudio;
 
     public FabricaEntidadesPartidaPorDefecto(GestorRecursos gestorRecursos) {
         this(gestorRecursos, vista -> {});
@@ -49,7 +51,23 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
                 Conexion.getInstancia().get(),
                 Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo")
             ),
-            alCrearVista
+            alCrearVista,
+            null
+        );
+    }
+
+    public FabricaEntidadesPartidaPorDefecto(
+        GestorRecursos gestorRecursos,
+        Consumer<VistaImagen> alCrearVista,
+        GestorAudio gestorAudio
+    ) {
+        this(
+            new SheetDAOSQLite(
+                Conexion.getInstancia().get(),
+                Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo")
+            ),
+            alCrearVista,
+            gestorAudio
         );
     }
 
@@ -57,8 +75,17 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         DAOSoloLectura<Integer, Sheet> sheetDAO,
         Consumer<VistaImagen> alCrearVista
     ) {
+        this(sheetDAO, alCrearVista, null);
+    }
+
+    public FabricaEntidadesPartidaPorDefecto(
+        DAOSoloLectura<Integer, Sheet> sheetDAO,
+        Consumer<VistaImagen> alCrearVista,
+        GestorAudio gestorAudio
+    ) {
         this.sheetDAO = Objects.requireNonNull(sheetDAO, "El DAO de sheets no puede ser nulo");
         this.alCrearVista = Objects.requireNonNull(alCrearVista, "El callback de vista no puede ser nulo");
+        this.gestorAudio = gestorAudio;
     }
 
     @Override
@@ -99,7 +126,8 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
             vista,
             gestorSheet,
             observadorVida,
-            accionAtaque
+            accionAtaque,
+            gestorAudio
         );
     }
 
@@ -131,7 +159,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         VistaImagen vista = new VistaImagen(sheet.getImagen());
         GestorSheetAnimada gestorSheet = new GestorSheetAnimada(sheet);
         alCrearVista.accept(vista);
-        return new EnemigoControlador(modeloEnemigo, vista, gestorSheet);
+        return new EnemigoControlador(modeloEnemigo, vista, gestorSheet, gestorAudio);
     }
 
     @Override
@@ -159,7 +187,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         VistaImagen vista = new VistaImagen(sheet.getImagen());
         GestorSheetAnimada gestorSheet = new GestorSheetAnimada(sheet);
         alCrearVista.accept(vista);
-        return new ExperienciaControlador(modeloExp, vista, gestorSheet);
+        return new ExperienciaControlador(modeloExp, vista, gestorSheet, gestorAudio);
     }
 
     @Override
@@ -197,7 +225,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         VistaImagen vista = new VistaImagen(sheet.getImagen());
         GestorSheetAnimada gestorSheet = new GestorSheetAnimada(sheet);
         alCrearVista.accept(vista);
-        return new ProyectilControlador(modeloProyectil, vista, gestorSheet);
+        return new ProyectilControlador(modeloProyectil, vista, gestorSheet, gestorAudio, esCritico);
     }
 
     private Sheet cargarSheet(int idGlobal) {

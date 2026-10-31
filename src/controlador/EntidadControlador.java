@@ -5,6 +5,7 @@ import java.util.Objects;
 import motor.controlador.ControladorEntidad;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
+import motor.recursos.GestorAudio;
 import motor.util.observer.Observador;
 import vista.VistaImagen;
 
@@ -20,6 +21,14 @@ public class EntidadControlador implements ControladorEntidad {
         VistaImagen vista,
         GestorSheetAnimada gestorSheet
     ) {
+        this(modelo, vista, gestorSheet, null);
+    }
+
+    public EntidadControlador(
+        ModeloEntidad modelo,
+        VistaImagen vista,
+        GestorSheetAnimada gestorSheet,
+        GestorAudio gestorAudio) {
         this.activo = true;
         this.gestorSheet = Objects.requireNonNull(gestorSheet, "El gestor de sheet no puede ser nulo");
         this.modelo = Objects.requireNonNull(modelo, "El modelo del proyectil no puede ser nulo");
@@ -29,7 +38,6 @@ public class EntidadControlador implements ControladorEntidad {
         this.gestorSheet.setAnimacion("idle", false);
         this.gestorSheet.suscribir(this.vista.getObservadorRectangulo());
         this.modelo.getNotificadorPosicion().suscribirObservador(this.vista.getObservadorPosicion());
-        this.vista.setPosicion(this.modelo.getPosicion());
     }
 
     @Override public boolean activo() { return this.activo; }
@@ -45,9 +53,13 @@ public class EntidadControlador implements ControladorEntidad {
     }
 
     private void alExpirar(int e) {
-        gestorSheet.setAnimacion("expirar", false);
-        gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
-            f -> { vista.setVisbilidad(false); setActivo(false); }
-        );
+        if (gestorSheet.setAnimacion("expirar", false)) {
+            gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
+                f -> { vista.setVisible(false); setActivo(false); }
+            );
+        } else {
+            vista.setVisible(false);
+            setActivo(false);
+        }
     }
 }

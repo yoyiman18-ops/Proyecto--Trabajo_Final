@@ -48,6 +48,7 @@ import controlador.ControladorVistaJuego;
 import controlador.FabricaEntidadesPartida;
 import controlador.FabricaEntidadesPartidaPorDefecto;
 import controlador.MenuControlador;
+import controlador.SonidoJuego;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -62,6 +63,7 @@ import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.Accion;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
+import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
 import vista.VistaFondo;
 import vista.VistaPartida;
@@ -70,10 +72,13 @@ import vista.VistaPartida;
 
 public class App extends Application {
     private final GestorRecursos gestorRecursos;
+    private final GestorAudio gestorAudio;
     private ControladorPartida partidaActual;
 
     public App() {
         this.gestorRecursos = new GestorRecursos();
+        this.gestorAudio = new GestorAudio(this.gestorRecursos);
+        SonidoJuego.precargarTodos(this.gestorAudio);
     }
 
     @Override
@@ -92,6 +97,7 @@ public class App extends Application {
         }
         MenuControlador menuControlador = new MenuControlador(
             gestorRecursos,
+            gestorAudio,
             hojaEstilosMenu.toExternalForm(),
             () -> iniciarPartida(stage),
             Platform::exit
@@ -125,7 +131,8 @@ public class App extends Application {
         ModeloPartida modeloPartida = new Partida();
         FabricaEntidadesPartida fabricaEntidades = new FabricaEntidadesPartidaPorDefecto(
             gestorRecursos,
-            nodoVista -> Platform.runLater(() -> vista.agregarNodoJuego(nodoVista))
+            nodoVista -> Platform.runLater(() -> vista.agregarNodoJuego(nodoVista)),
+            gestorAudio
         );
 
         // 3. Crear Motor genérico
@@ -149,6 +156,7 @@ public class App extends Application {
             vista,
             fondo,
             fabricaEntidades,
+            gestorAudio,
             () -> mostrarMenu(stage),
             () -> iniciarPartida(stage)
         );
@@ -165,6 +173,7 @@ public class App extends Application {
         if (partidaActual != null) {
             partidaActual.detener();
         }
+        gestorAudio.detenerMusica();
     }
 
     /*
@@ -287,7 +296,7 @@ public class App extends Application {
      *     entidades.add(modelo);
      *     enemigos.add(new EnemigoControlador(modelo, jugador, vista, () -> {
      *         int total = bajas.incrementAndGet();
-     *         contadorBajas.setText("Bajas: " + total);
+     *         contadorBajas.setText("Bajas: 0");
      *         ExperienciaControlador experiencia = new ExperienciaControlador(
      *                 modelo.getPosicion(), 10
      *         );

@@ -6,6 +6,7 @@ import modelo.ModeloExperiencia;
 import motor.controlador.ControladorEntidad;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
+import motor.recursos.GestorAudio;
 import motor.util.observer.Observador;
 import vista.VistaImagen;
 
@@ -13,6 +14,7 @@ public final class ExperienciaControlador implements ControladorEntidad {
     private final ModeloExperiencia modelo;
     private final VistaImagen vista;
     private final GestorSheetAnimada gestorSheet;
+    private final GestorAudio gestorAudio;
     private final Observador<Integer> observadorExpiracion;
     private boolean activo;
 
@@ -21,9 +23,19 @@ public final class ExperienciaControlador implements ControladorEntidad {
         VistaImagen vista,
         GestorSheetAnimada gestorSheet
     ) {
+        this(modelo, vista, gestorSheet, null);
+    }
+
+    public ExperienciaControlador(
+        ModeloExperiencia modelo,
+        VistaImagen vista,
+        GestorSheetAnimada gestorSheet,
+        GestorAudio gestorAudio
+    ) {
         this.gestorSheet = Objects.requireNonNull(gestorSheet, "El gestor de sheet no puede ser nulo");
         this.modelo = Objects.requireNonNull(modelo, "El modelo de experiencia no puede ser nulo");
         this.vista = Objects.requireNonNull(vista, "La vista de experiencia no puede ser nula");
+        this.gestorAudio = gestorAudio;
         this.observadorExpiracion = this::alExpirar;
         this.activo = true;
         this.modelo.getNotificadorExpiracion().suscribirObservador(observadorExpiracion);
@@ -36,6 +48,7 @@ public final class ExperienciaControlador implements ControladorEntidad {
     @Override public boolean activo() { return this.activo; }
     @Override public void setActivo(boolean activo) { this.activo = activo; }
     @Override public ModeloEntidad getEntidad() { return this.modelo; }
+    @Override public VistaImagen getVista() { return this.vista; }
 
     @Override
     public void tick(double dt) {
@@ -45,9 +58,14 @@ public final class ExperienciaControlador implements ControladorEntidad {
     }
 
     private void alExpirar(int e) {
-        gestorSheet.setAnimacion("expirar", false);
-        gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
-            f -> { vista.setVisible(false); setActivo(false); }
-        );
+        SonidoJuego.RECOGER_EXPERIENCIA.reproducirEn(gestorAudio);
+        if (gestorSheet.setAnimacion("expirar", false)) {
+            gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
+                f -> { vista.setVisible(false); setActivo(false); }
+            );
+        } else {
+            vista.setVisible(false);
+            setActivo(false);
+        }
     }
 }

@@ -1,4 +1,5 @@
 package motor.recursos.cache;
+import java.net.URL;
 import javafx.scene.media.AudioClip;
 import motor.recursos.Extension;
 
@@ -12,7 +13,11 @@ public class CacheSonido extends CacheRecursos<AudioClip> {
         return cache.computeIfAbsent(
             resolverPathRecurso(nombre, ext),
             k -> { 
-                AudioClip audio = new  AudioClip(k);
+                URL url = getClass().getResource(k);
+                if (url == null) {
+                    throw new RuntimeException("No se encontro el recurso de sonido: " + k);
+                }
+                AudioClip audio = new AudioClip(url.toExternalForm());
                 loggearCarga(k);
                 return audio;
             }
