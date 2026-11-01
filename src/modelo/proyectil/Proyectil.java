@@ -21,11 +21,15 @@ extends Entidad
         Hitbox hitbox,
         VecDouble2D posicion,
         VecDouble2D velocidad,
+        double aceleracion,
+        double friccion,
+        double velocidadMax,
         double tiempoVida,
         int penetracion,
         double daño,
         List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision
+        List<Interaccion> interaccionesColision,
+        String animacionDefault
     ) {
         super(
             idGlobal,
@@ -33,11 +37,12 @@ extends Entidad
             hitbox,
             posicion,
             velocidad,
-            0.0,
-            0.0,
-            0.0,
+            aceleracion,
+            friccion,
+            velocidadMax,
             estrategiasExpiracion,
-            interaccionesColision
+            interaccionesColision,
+            animacionDefault
         );
         if (!Double.isFinite(tiempoVida) || tiempoVida <= 0) { throw new IllegalArgumentException("El tiempo de vida debe ser positivo y finito."); }
         if (daño > 0) { System.out.println("Hola"); añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(), daño)); }

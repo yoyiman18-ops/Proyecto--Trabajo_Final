@@ -1,7 +1,5 @@
-package modelo;
-
-import motor.modelo.ModeloEntidad;
+package motor.modelo;
 
 public interface EstrategiaExpiracion {
-    void ejecutar(ModeloEntidad entidad);
+    int ejecutar(ModeloEntidad entidad);
 }

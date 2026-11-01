@@ -14,8 +14,6 @@ public abstract class ProyectilFactory extends EntidadFactory {
     private double daño;
 
     public ProyectilFactory(
-        int idGlobal,
-        String nombre,
         HitboxFactory hitboxFactory,
         VecDouble2D posicion,
         VecDouble2D velocidad,
@@ -26,8 +24,6 @@ public abstract class ProyectilFactory extends EntidadFactory {
         List<Interaccion> interaccionesColision
     ) {
         this(
-            idGlobal,
-            nombre,
             hitboxFactory,
             posicion,
             velocidad,
@@ -43,8 +39,6 @@ public abstract class ProyectilFactory extends EntidadFactory {
     }
 
     public ProyectilFactory(
-        int idGlobal,
-        String nombre,
         HitboxFactory hitboxFactory,
         VecDouble2D posicion,
         VecDouble2D velocidad,
@@ -58,8 +52,6 @@ public abstract class ProyectilFactory extends EntidadFactory {
         int penetracion
     ) {
         super(
-            idGlobal,
-            nombre,
             hitboxFactory,
             posicion,
             velocidad,
@@ -69,30 +61,30 @@ public abstract class ProyectilFactory extends EntidadFactory {
             estrategiasExpiracion,
             interaccionesColision
         );
-        setTiempoVida(tiempoVida);
-        setPenetracion(penetracion);
-        setDaño(daño);
+        setTiempoVidaAdicional(tiempoVida);
+        setPenetracionAdicional(penetracion);
+        setDañoAdicional(daño);
     }
 
-    public void setTiempoVida(double tiempoVida) {
-        if (!Double.isFinite(tiempoVida) || tiempoVida <= 0) {
-            throw new IllegalArgumentException("El tiempo de vida debe ser positivo y finito.");
+    public void setTiempoVidaAdicional(double tiempoVida) {
+        if (!Double.isFinite(tiempoVida)) {
+            throw new IllegalArgumentException("El tiempo de vida debe ser finito");
         }
-        this.tiempoVida = tiempoVida;
+        this.tiempoVida = Math.max(0,tiempoVida);
     }
 
-    public void setPenetracion(int penetracion) {
-        this.penetracion = penetracion;
+    public void setPenetracionAdicional(int penetracion) {
+        this.penetracion = Math.max(-1,penetracion);
     }
 
-    public void setDaño(double daño) {
+    public void setDañoAdicional(double daño) {
         if (!Double.isFinite(daño)) { throw new IllegalArgumentException("Daño debe ser finito"); }
         this.daño = Math.max(0.0, daño);
     }
 
-    public double getDaño() { return this.daño; }
-    public double getTiempoVida() { return this.tiempoVida; }
-    public int getPenetracion() { return this.penetracion; }
+    public double getDañoAdicional() { return this.daño; }
+    public double getTiempoVidaAdicional() { return this.tiempoVida; }
+    public int getPenetracionAdicional() { return this.penetracion; }
 
 
     @Override

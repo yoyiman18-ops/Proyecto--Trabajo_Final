@@ -4,14 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import modelo.EstrategiaExpiracion;
 import motor.colisiones.hitboxes.HitboxFactory;
 import motor.util.VecDouble2D;
 
 public abstract class EntidadFactory {
-    private int idGlobal;
-    private String nombre;
-    private HitboxFactory hitboxFactory;
+    private final HitboxFactory hitboxFactory;
     private VecDouble2D posicion;
     private VecDouble2D velocidad;
     private double aceleracion;
@@ -21,12 +18,10 @@ public abstract class EntidadFactory {
     private List<Interaccion> interaccionesColision;
 
     public EntidadFactory(HitboxFactory hitboxFactory) {
-        this(0, null, hitboxFactory, new VecDouble2D(), new VecDouble2D(), 0.0, 0.0, 0.0, new ArrayList<>(), new ArrayList<>());
+        this(hitboxFactory, new VecDouble2D(), new VecDouble2D(), 0.0, 0.0, 0.0, new ArrayList<>(), new ArrayList<>());
     }
 
     public EntidadFactory(
-        int idGlobal,
-        String nombre,
         HitboxFactory hitboxFactory,
         VecDouble2D posicion,
         VecDouble2D velocidad,
@@ -36,9 +31,6 @@ public abstract class EntidadFactory {
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision
     ) {
-        if (nombre == null || nombre.isBlank() || nombre.isEmpty()) { throw new IllegalArgumentException("Nombre no puede ser nulo ni vacío"); }
-        this.nombre = nombre;
-        this.idGlobal = idGlobal;
         this.hitboxFactory = Objects.requireNonNull(hitboxFactory, "HitboxFactory no puede ser nula.");
         this.posicion = posicion != null ? posicion : new VecDouble2D();
         this.velocidad = velocidad != null ? velocidad.clone() : new VecDouble2D();
@@ -47,10 +39,6 @@ public abstract class EntidadFactory {
         this.velocidadMax = velocidadMax;
         this.estrategiasExpiracion = estrategiasExpiracion != null ? new ArrayList<>(estrategiasExpiracion) : new ArrayList<>();
         this.interaccionesColision = interaccionesColision != null ? new ArrayList<>(interaccionesColision) : new ArrayList<>();
-    }
-
-    public void setHitboxFactory(HitboxFactory hitboxFactory) {
-        this.hitboxFactory = hitboxFactory;
     }
 
     public void setPosicion(VecDouble2D posicion) {
@@ -101,9 +89,7 @@ public abstract class EntidadFactory {
             this.interaccionesColision.add(interaccion);
         }
     }
-
-    protected int getIdGlobal() { return this.idGlobal; }
-    protected String getNombre() { return this.nombre; }
+    
     protected HitboxFactory getHitboxFactory() { return this.hitboxFactory; }
     protected VecDouble2D getPosicion() { return this.posicion != null ? this.posicion.clone() : new VecDouble2D(); }
     protected VecDouble2D getVelocidad() { return this.velocidad != null ? this.velocidad.clone() : new VecDouble2D(); }

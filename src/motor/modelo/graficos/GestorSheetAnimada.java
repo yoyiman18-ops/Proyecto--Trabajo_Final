@@ -25,15 +25,14 @@ implements Ticking
         this.notificadorFinAnimacion = new NotificadorFuerte<>();
     }
     
-    public boolean setAnimacion(String nombre, boolean conservarFrame) { 
+    public boolean setAnimacion(String nombre) { 
         Animacion a = getSheet().getAnimacion(nombre);
         if (a == null) { return false; }
         this.animacionActual = a;
         this.indiceFinal = a.getFrames().size() - 1;
         cs.setIntervaloSegundos(((double) animacionActual.getFrames().getFirst().getDuracion()) / 1000);
-        if (conservarFrame) { if (indiceFinal < indiceActual) { indiceActual = indiceFinal; }}
-        else { indiceActual = 0; cs.reset(); }
-        notificar();
+        indiceActual = 0; cs.reset();
+        getNotificadorRectangulo().notificar(a.getFrames().get(indiceActual).getRecorte().getRectangulo());
         notificadorFinAnimacion.notificar(true);
         notificadorFinAnimacion.limpiarObservadores();
         return true;
@@ -45,13 +44,13 @@ implements Ticking
     private boolean avanzarFrame(int numeroFrames) {
         if (animacionActual.esBucle()) { 
             this.indiceActual = (indiceActual + numeroFrames) % (indiceFinal + 1);
-            notificar();
+            getNotificadorRectangulo().notificar(getRectangulo());
             return true;
         }
         else {
             if (fin()) { return false; }
             this.indiceActual = Math.min(indiceActual + numeroFrames, indiceFinal);
-            notificar();
+            getNotificadorRectangulo().notificar(getRectangulo());
             if (fin()) { notificadorFinAnimacion.notificar(true); }
             return true;
         }
@@ -69,4 +68,5 @@ implements Ticking
     protected Rectangle2D getRectangulo() {
         return animacionActual.getFrames().get(indiceActual).getRecorte().getRectangulo();
     }
+
 }

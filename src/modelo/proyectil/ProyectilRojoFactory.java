@@ -1,7 +1,5 @@
 package modelo.proyectil;
 import java.util.ArrayList;
-import java.util.List;
-
 import motor.colisiones.hitboxes.HitboxRectangularFactory;
 import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
@@ -13,32 +11,31 @@ public class ProyectilRojoFactory extends ProyectilFactory {
         MascaraColision categoriasColision,
         MascaraColision capasColision,
         VecDouble2D posicion,
-        VecDouble2D velocidad
+        VecDouble2D velocidad,
+        double dañoAdicional,
+        double tiempoVidaAdicional,
+        int penetracionAdicional
     ) {
         super(
-            4,
-            "Proyectil Rojo",
             new HitboxRectangularFactory(16, 16, TipoHitbox.FANTASMA, categoriasColision, capasColision),
             posicion,
             velocidad,
-            3,
-            2,
-            1,
+            dañoAdicional,
+            tiempoVidaAdicional,
+            penetracionAdicional,
             new ArrayList<>(),
             new ArrayList<>()
         );
     }
 
     @Override public Proyectil get() {
-        return new Proyectil(
-            getIdGlobal(),
-            getNombre(),
-            getHitboxFactory().getHitbox(),
+        return new ProyectilRojo(
             getPosicion(),
             getVelocidad(),
-            getTiempoVida(),
-            getPenetracion(),
-            getDaño(),
+            getHitboxFactory().getHitbox(),
+            getDañoAdicional(),
+            getTiempoVidaAdicional(),
+            getPenetracionAdicional(),
             getEstrategiasExpiracion(),
             getInteraccionesColision()
         );
