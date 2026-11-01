@@ -91,14 +91,9 @@ public class App extends Application {
             partidaActual.detener();
             partidaActual = null;
         }
-        URL hojaEstilosMenu = App.class.getResource("/vista/menu-vista.css");
-        if (hojaEstilosMenu == null) {
-            throw new IllegalStateException("No se encontró menu-vista.css");
-        }
         MenuControlador menuControlador = new MenuControlador(
             gestorRecursos,
             gestorAudio,
-            hojaEstilosMenu.toExternalForm(),
             () -> iniciarPartida(stage),
             Platform::exit
         );
