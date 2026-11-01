@@ -1,9 +1,11 @@
 package motor.modelo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import modelo.EstrategiaExpiracion;
+import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.util.Eje;
 import motor.util.VecDouble2D;
@@ -22,6 +24,7 @@ implements ModeloEntidad {
     private double friccion;
     private double velocidadMax;
 
+    private final List<Interaccion> interaccionesColision;
     private final List<EstrategiaExpiracion> estrategiasExpiracion;
 
     private final Notificador<VecDouble2D> notificadorPosicion;
@@ -85,6 +88,7 @@ implements ModeloEntidad {
             this.notificadorPosicion.suscribirObservador(hitbox);
             this.hitbox.cambio(this.posicion);
         }
+        this.interaccionesColision = new ArrayList<>();
         this.estrategiasExpiracion = estrategiasExpiracion;
     }
 
@@ -146,6 +150,15 @@ implements ModeloEntidad {
     @Override public Hitbox getHitbox() { return this.hitbox; }
     @Override public int getIdGlobal() { return this.idGlobal; }
     @Override public boolean colisionesActivas() { return this.hitbox.estaActiva(); }
+
+    @Override public void colisionar(Colisionable o) {
+        for (Interaccion i : interaccionesColision) { o.interactuar(i); }
+    }
+
+    protected boolean añadirInteraccionColision(Interaccion i) {
+        if (!interaccionesColision.contains(i)) { interaccionesColision.add(i); return true; }
+        return false;
+    }
 
     protected void mover(double dt) {
         if (velocidad.getX() != 0 || velocidad.getY() != 0) {

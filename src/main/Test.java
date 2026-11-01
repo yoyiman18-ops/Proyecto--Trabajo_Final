@@ -19,7 +19,6 @@ import modelo.EstrategiaExpiracionSimple;
 import modelo.EstrategiaExpiracionSpawnear;
 import modelo.ModeloEnemigo;
 import modelo.proyectil.EnsambladorControladorProyectil;
-import modelo.proyectil.ModeloProyectil;
 import modelo.proyectil.Proyectil;
 import motor.Motor;
 import motor.colisiones.hitboxes.CategoriaColision;
@@ -280,7 +279,7 @@ public class Test extends Application {
         gestorHud.suscribir(vistaHud.getObservadorRectangulo());
 
         Sheet sheetProyectil = sheetDAO.cargar(6);
-        ModeloProyectil modeloProyectil = new Proyectil(
+        Proyectil modeloProyectil = new Proyectil(
             6,
             "proyectil",
             new HitboxRectangular(
@@ -295,7 +294,7 @@ public class Test extends Application {
             new ArrayList<>(List.of(new EstrategiaExpiracionSpawnear(
                 List.of(
                     new Proyectil(
-                    4,
+                    5,
                     "proyectil",
                     new HitboxRectangular(
                         new java.awt.geom.Rectangle2D.Double(0.0, 0.0, 10.0, 10.0),
@@ -319,8 +318,8 @@ public class Test extends Application {
 
         
 
-        Sheet sheetProyectil2 = sheetDAO.cargar(4);
-        ModeloProyectil modeloProyectil2 = new Proyectil(
+        Sheet sheetProyectil2 = sheetDAO.cargar(5);
+        Proyectil modeloProyectil2 = new Proyectil(
             4,
             "proyectil",
             new HitboxRectangular(

@@ -76,6 +76,11 @@ public class VecDouble2D implements Cloneable {
         return this;
     }
 
+    public static VecDouble2D izquierda() { return new VecDouble2D(-1,0); }
+    public static VecDouble2D derecha() { return new VecDouble2D(1,0); }
+    public static VecDouble2D abajo() { return new VecDouble2D(0,1); }
+    public static VecDouble2D arriba() { return new VecDouble2D(0, -1); }
+
     @Override
     public VecDouble2D clone() { return new VecDouble2D(this.x,this.y); }
 
