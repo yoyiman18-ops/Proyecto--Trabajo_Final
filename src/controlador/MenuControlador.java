@@ -1,10 +1,13 @@
 package controlador;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import javafx.scene.Parent;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
+import modelo.OpcionMenu;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
 import motor.persistencia.dao.sqlite.Conexion;
@@ -12,28 +15,28 @@ import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.Extension;
 import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
-import modelo.BotonMenu;
+import vista.BotonMenu;
 import vista.VistaMenu;
 
+/**
+ * Controlador del menú principal en la arquitectura MVC.
+ * Coordina los modelos de opciones de menú (OpcionMenu), el audio y la vista (VistaMenu).
+ */
 public final class MenuControlador {
 
-    public static final String RECURSO_IMAGEN_MENU = "menu";
-    public static final String URL_BD = "jdbc:sqlite:src/recursos/datos.db";
-    public static final int ID_SHEET_HUD = 2;
+    public static final String RECURSO_IMAGEN_MENU_DEFAULT = "menu";
+    public static final String URL_BD_DEFAULT = "jdbc:sqlite:src/recursos/datos.db";
+    public static final int ID_SHEET_HUD_DEFAULT = 2;
 
     private final VistaMenu vista;
+    private final List<OpcionMenu> opciones;
 
     public MenuControlador(
         GestorRecursos gestorRecursos,
         Runnable onJugar,
         Runnable onSalir
     ) {
-        this(
-            crearVistaMenu(gestorRecursos),
-            null,
-            onJugar,
-            onSalir
-        );
+        this(gestorRecursos, (GestorAudio) null, onJugar, onSalir);
     }
 
     public MenuControlador(
@@ -43,10 +46,35 @@ public final class MenuControlador {
         Runnable onSalir
     ) {
         this(
-            crearVistaMenu(gestorRecursos),
+            gestorRecursos,
             gestorAudio,
-            onJugar,
-            onSalir
+            crearOpcionesPorDefecto(gestorAudio, onJugar, onSalir)
+        );
+    }
+
+    public MenuControlador(
+        GestorRecursos gestorRecursos,
+        GestorAudio gestorAudio,
+        List<OpcionMenu> opciones
+    ) {
+        this(
+            gestorRecursos,
+            cargarSheetHudDesdeBaseDeDatos(gestorRecursos, URL_BD_DEFAULT, ID_SHEET_HUD_DEFAULT),
+            gestorAudio,
+            opciones
+        );
+    }
+
+    public MenuControlador(
+        GestorRecursos gestorRecursos,
+        Sheet sheetHud,
+        GestorAudio gestorAudio,
+        List<OpcionMenu> opciones
+    ) {
+        this(
+            crearVistaMenu(gestorRecursos, sheetHud, RECURSO_IMAGEN_MENU_DEFAULT, opciones),
+            gestorAudio,
+            opciones
         );
     }
 
@@ -58,78 +86,10 @@ public final class MenuControlador {
         Runnable onSalir
     ) {
         this(
-            crearVistaMenu(gestorRecursos, sheetHud),
+            gestorRecursos,
+            sheetHud,
             gestorAudio,
-            onJugar,
-            onSalir
-        );
-    }
-
-    public MenuControlador(
-        GestorRecursos gestorRecursos,
-        BotonMenu botonJugar,
-        BotonMenu botonSalir,
-        Sheet sheetHud,
-        GestorAudio gestorAudio,
-        Runnable onJugar,
-        Runnable onSalir
-    ) {
-        this(
-            new VistaMenu(
-                gestorRecursos.getImagen(RECURSO_IMAGEN_MENU, Extension.Imagen.PNG),
-                botonJugar,
-                botonSalir,
-                sheetHud,
-                null
-            ),
-            gestorAudio,
-            onJugar,
-            onSalir
-        );
-    }
-
-    public MenuControlador(
-        GestorRecursos gestorRecursos,
-        String hojaEstilosUrl,
-        Runnable onJugar,
-        Runnable onSalir
-    ) {
-        this(
-            crearVistaMenu(gestorRecursos, hojaEstilosUrl),
-            null,
-            onJugar,
-            onSalir
-        );
-    }
-
-    public MenuControlador(
-        GestorRecursos gestorRecursos,
-        GestorAudio gestorAudio,
-        String hojaEstilosUrl,
-        Runnable onJugar,
-        Runnable onSalir
-    ) {
-        this(
-            crearVistaMenu(gestorRecursos, hojaEstilosUrl),
-            gestorAudio,
-            onJugar,
-            onSalir
-        );
-    }
-
-    public MenuControlador(
-        GestorRecursos gestorRecursos,
-        Sheet sheetHud,
-        GestorAudio gestorAudio,
-        String hojaEstilosUrl,
-        Runnable onJugar,
-        Runnable onSalir
-    ) {
-        this(
-            crearVistaMenu(gestorRecursos, sheetHud, hojaEstilosUrl),
-            gestorAudio,
-            onJugar,
-            onSalir
+            crearOpcionesPorDefecto(gestorAudio, onJugar, onSalir)
         );
     }
 
@@ -147,49 +107,68 @@ public final class MenuControlador {
         Runnable onJugar,
         Runnable onSalir
     ) {
+        this(vista, gestorAudio, crearOpcionesPorDefecto(gestorAudio, onJugar, onSalir));
+    }
+
+    public MenuControlador(
+        VistaMenu vista,
+        GestorAudio gestorAudio,
+        List<OpcionMenu> opciones
+    ) {
         this.vista = Objects.requireNonNull(vista, "La vista del menú no puede ser nula");
+        this.opciones = new ArrayList<>(Objects.requireNonNullElse(opciones, List.of()));
+
+        MusicaJuego.MENU.reproducirEn(gestorAudio);
+    }
+
+    private static List<OpcionMenu> crearOpcionesPorDefecto(
+        GestorAudio gestorAudio,
+        Runnable onJugar,
+        Runnable onSalir
+    ) {
         Objects.requireNonNull(onJugar, "La acción de jugar no puede ser nula");
         Objects.requireNonNull(onSalir, "La acción de salir no puede ser nula");
 
-        MusicaJuego.MENU.reproducirEn(gestorAudio);
-
-        this.vista.setOnJugar(() -> {
-            SonidoJuego.BOTON.reproducirEn(gestorAudio);
-            onJugar.run();
-        });
-        this.vista.setOnSalir(() -> {
-            SonidoJuego.BOTON.reproducirEn(gestorAudio);
-            onSalir.run();
-        });
+        return List.of(
+            new OpcionMenu("JUGAR", () -> {
+                SonidoJuego.BOTON.reproducirEn(gestorAudio);
+                onJugar.run();
+            }),
+            new OpcionMenu("SALIR", () -> {
+                SonidoJuego.BOTON.reproducirEn(gestorAudio);
+                onSalir.run();
+            })
+        );
     }
 
     public static Sheet cargarSheetHudDesdeBaseDeDatos(GestorRecursos gestorRecursos) {
+        return cargarSheetHudDesdeBaseDeDatos(gestorRecursos, URL_BD_DEFAULT, ID_SHEET_HUD_DEFAULT);
+    }
+
+    public static Sheet cargarSheetHudDesdeBaseDeDatos(
+        GestorRecursos gestorRecursos,
+        String urlBaseDatos,
+        int idSheet
+    ) {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
+        Objects.requireNonNull(urlBaseDatos, "La URL de la base de datos no puede ser nula");
         DAOSoloLectura<Integer, Sheet> sheetDAO = new SheetDAOSQLite(
-            Conexion.getInstancia(URL_BD).getConexion(),
+            Conexion.getInstancia(urlBaseDatos).getConexion(),
             gestorRecursos
         );
-        return sheetDAO.cargar(ID_SHEET_HUD);
+        return sheetDAO.cargar(idSheet);
     }
 
-    private static VistaMenu crearVistaMenu(GestorRecursos gestorRecursos) {
-        return crearVistaMenu(gestorRecursos, cargarSheetHudDesdeBaseDeDatos(gestorRecursos));
-    }
-
-    private static VistaMenu crearVistaMenu(GestorRecursos gestorRecursos, Sheet sheetHud) {
+    private static VistaMenu crearVistaMenu(
+        GestorRecursos gestorRecursos,
+        Sheet sheetHud,
+        String recursoFondo,
+        List<OpcionMenu> opciones
+    ) {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
-        Image imagenMenu = gestorRecursos.getImagen(RECURSO_IMAGEN_MENU, Extension.Imagen.PNG);
-        return new VistaMenu(imagenMenu, sheetHud);
-    }
-
-    private static VistaMenu crearVistaMenu(GestorRecursos gestorRecursos, String hojaEstilosUrl) {
-        return crearVistaMenu(gestorRecursos, cargarSheetHudDesdeBaseDeDatos(gestorRecursos), hojaEstilosUrl);
-    }
-
-    private static VistaMenu crearVistaMenu(GestorRecursos gestorRecursos, Sheet sheetHud, String hojaEstilosUrl) {
-        Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
-        Image imagenMenu = gestorRecursos.getImagen(RECURSO_IMAGEN_MENU, Extension.Imagen.PNG);
-        return new VistaMenu(imagenMenu, sheetHud, hojaEstilosUrl);
+        Objects.requireNonNull(recursoFondo, "El recurso de fondo no puede ser nulo");
+        Image imagenMenu = gestorRecursos.getImagen(recursoFondo, Extension.Imagen.PNG);
+        return new VistaMenu(imagenMenu, sheetHud, opciones);
     }
 
     public Parent getVista() {
@@ -198,6 +177,10 @@ public final class MenuControlador {
 
     public StackPane getMarcoMenu() {
         return vista.getMarcoMenu();
+    }
+
+    public List<OpcionMenu> getOpciones() {
+        return List.copyOf(opciones);
     }
 
     public BotonMenu getBotonJugar() {

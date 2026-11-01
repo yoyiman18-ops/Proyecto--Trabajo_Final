@@ -1,4 +1,4 @@
-package modelo;
+package vista;
 
 import java.util.Objects;
 
@@ -19,31 +19,23 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import modelo.OpcionMenu;
 import motor.modelo.graficos.GestorSheetEstatica;
+import motor.modelo.graficos.Recorte;
 import motor.modelo.graficos.Sheet;
-import vista.VistaImagen;
 
+/**
+ * Componente visual de la Vista que renderiza una opción de menú con recortes de spritesheet
+ * y efectos visuales de interacción.
+ */
 public class BotonMenu extends Button {
-
-    public static final double ANCHO_DEFAULT = 240;
-    public static final double ALTO_DEFAULT = 50;
 
     public static final String RECORTE_NORMAL_DEFAULT = "boton_largo";
     public static final String RECORTE_HOVER_DEFAULT = "boton_largo_hover";
     public static final String RECORTE_PRESIONADO_DEFAULT = "boton_largo_presionado";
     public static final String RECORTE_MARCADO_DEFAULT = "boton_largo_marcado";
 
-    private static final Color COLOR_TEXTO_NORMAL = Color.web("#fff2d2");
-    private static final Color COLOR_TEXTO_HOVER = Color.web("#ffe89e");
-    private static final Font FUENTE_BOTON = Font.font("Georgia", FontWeight.BOLD, 16);
-
-    private static final DropShadow SOMBRA_BOTON_NORMAL = new DropShadow(
-        BlurType.GAUSSIAN, Color.rgb(0, 0, 0, 0.85), 5, 0.45, 0, 2
-    );
-    private static final DropShadow SOMBRA_BOTON_HOVER = new DropShadow(
-        BlurType.GAUSSIAN, Color.rgb(255, 215, 110, 0.55), 10, 0.45, 0, 0
-    );
-
+    private final OpcionMenu modelo;
     private final GestorSheetEstatica gestorSheet;
     private final VistaImagen vistaSprite;
     private final String recorteNormal;
@@ -51,17 +43,18 @@ public class BotonMenu extends Button {
     private final String recortePresionado;
     private final String recorteMarcado;
 
-    public BotonMenu(String texto) {
-        this(texto, null, ANCHO_DEFAULT, ALTO_DEFAULT);
+    private Color colorTextoNormal = Color.web("#fff2d2");
+    private Color colorTextoHover = Color.web("#ffe89e");
+    private DropShadow sombraNormal = new DropShadow(BlurType.GAUSSIAN, Color.rgb(0, 0, 0, 0.85), 5, 0.45, 0, 2);
+    private DropShadow sombraHover = new DropShadow(BlurType.GAUSSIAN, Color.rgb(255, 215, 110, 0.55), 10, 0.45, 0, 0);
+
+    public BotonMenu(OpcionMenu modelo, Sheet sheetGui) {
+        this(modelo, sheetGui, 0, 0);
     }
 
-    public BotonMenu(String texto, Sheet sheetGui) {
-        this(texto, sheetGui, ANCHO_DEFAULT, ALTO_DEFAULT);
-    }
-
-    public BotonMenu(String texto, Sheet sheetGui, double ancho, double alto) {
+    public BotonMenu(OpcionMenu modelo, Sheet sheetGui, double ancho, double alto) {
         this(
-            texto,
+            modelo,
             sheetGui,
             RECORTE_NORMAL_DEFAULT,
             RECORTE_HOVER_DEFAULT,
@@ -72,8 +65,16 @@ public class BotonMenu extends Button {
         );
     }
 
+    public BotonMenu(String texto, Runnable accion, Sheet sheetGui) {
+        this(new OpcionMenu(texto, accion), sheetGui);
+    }
+
+    public BotonMenu(String texto, Runnable accion, Sheet sheetGui, double ancho, double alto) {
+        this(new OpcionMenu(texto, accion), sheetGui, ancho, alto);
+    }
+
     public BotonMenu(
-        String texto,
+        OpcionMenu modelo,
         Sheet sheetGui,
         String recorteNormal,
         String recorteHover,
@@ -82,18 +83,29 @@ public class BotonMenu extends Button {
         double ancho,
         double alto
     ) {
-        super(texto);
+        super(modelo != null ? modelo.getTexto() : "");
+        this.modelo = modelo;
         this.recorteNormal = Objects.requireNonNullElse(recorteNormal, RECORTE_NORMAL_DEFAULT);
         this.recorteHover = Objects.requireNonNullElse(recorteHover, RECORTE_HOVER_DEFAULT);
         this.recortePresionado = Objects.requireNonNullElse(recortePresionado, RECORTE_PRESIONADO_DEFAULT);
         this.recorteMarcado = Objects.requireNonNullElse(recorteMarcado, RECORTE_MARCADO_DEFAULT);
 
-        setMaxWidth(Double.MAX_VALUE);
-        setMinHeight(alto);
-        setPrefHeight(alto);
-        setFont(FUENTE_BOTON);
+        if (this.modelo != null) {
+            setDisable(!this.modelo.isHabilitada());
+            setOnAction(event -> this.modelo.ejecutar());
+        }
+
+        setFont(Font.font("Georgia", FontWeight.BOLD, 16));
         setCursor(Cursor.HAND);
         setAlignment(Pos.CENTER);
+        setMaxWidth(Double.MAX_VALUE);
+
+        Recorte corteBase = sheetGui != null ? sheetGui.getRecorte(this.recorteNormal) : null;
+        double anchoFinal = ancho > 0 ? ancho : (corteBase != null ? corteBase.getAncho() : 240);
+        double altoFinal = alto > 0 ? alto : (corteBase != null ? corteBase.getAlto() : 50);
+
+        setMinHeight(altoFinal);
+        setPrefHeight(altoFinal);
 
         if (sheetGui != null && sheetGui.getImagen() != null) {
             GestorSheetEstatica gestor = new GestorSheetEstatica(sheetGui);
@@ -104,8 +116,8 @@ public class BotonMenu extends Button {
                 this.vistaSprite = new VistaImagen(sheetGui.getImagen());
                 this.gestorSheet.suscribir(this.vistaSprite.getObservadorRectangulo());
 
-                this.vistaSprite.setFitWidth(ancho);
-                this.vistaSprite.setFitHeight(alto);
+                this.vistaSprite.setFitWidth(anchoFinal);
+                this.vistaSprite.setFitHeight(altoFinal);
                 this.vistaSprite.setPreserveRatio(false);
                 this.vistaSprite.setSmooth(false);
 
@@ -115,8 +127,8 @@ public class BotonMenu extends Button {
                 setBackground(Background.EMPTY);
                 setBorder(Border.EMPTY);
                 setPadding(Insets.EMPTY);
-                setTextFill(COLOR_TEXTO_NORMAL);
-                setEffect(SOMBRA_BOTON_NORMAL);
+                setTextFill(colorTextoNormal);
+                setEffect(sombraNormal);
 
                 configurarListenersInteraccion();
                 return;
@@ -141,8 +153,8 @@ public class BotonMenu extends Button {
             }
 
             boolean resaltado = isHover() || isFocused();
-            setTextFill(resaltado ? COLOR_TEXTO_HOVER : COLOR_TEXTO_NORMAL);
-            setEffect(resaltado ? SOMBRA_BOTON_HOVER : SOMBRA_BOTON_NORMAL);
+            setTextFill(resaltado ? colorTextoHover : colorTextoNormal);
+            setEffect(resaltado ? sombraHover : sombraNormal);
         };
 
         armedProperty().addListener((obs, antes, ahora) -> actualizarEstado.run());
@@ -158,7 +170,7 @@ public class BotonMenu extends Button {
 
         setBackground(fondoNormal);
         setBorder(bordeNormal);
-        setTextFill(COLOR_TEXTO_NORMAL);
+        setTextFill(colorTextoNormal);
         setPadding(new Insets(12, 24, 12, 24));
 
         Runnable actualizarFallback = () -> {
@@ -170,11 +182,21 @@ public class BotonMenu extends Button {
         focusedProperty().addListener((obs, antes, ahora) -> actualizarFallback.run());
     }
 
+    public OpcionMenu getModelo() {
+        return modelo;
+    }
+
     public GestorSheetEstatica getGestorSheet() {
         return gestorSheet;
     }
 
     public VistaImagen getVistaSprite() {
         return vistaSprite;
+    }
+
+    public void setColoresTexto(Color normal, Color hover) {
+        this.colorTextoNormal = Objects.requireNonNull(normal);
+        this.colorTextoHover = Objects.requireNonNull(hover);
+        setTextFill(isHover() || isFocused() ? colorTextoHover : colorTextoNormal);
     }
 }
