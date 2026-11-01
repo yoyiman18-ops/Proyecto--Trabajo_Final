@@ -28,7 +28,7 @@ public interface FabricaEntidadesPartida {
         int cantidad
     );
 
-    ProyectilControlador crearProyectil(
+    EntidadControlador crearProyectil(
         double x,
         double y,
         VecDouble2D direccion,

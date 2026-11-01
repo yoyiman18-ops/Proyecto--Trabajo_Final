@@ -8,8 +8,6 @@ import motor.modelo.Dañable;
 import motor.modelo.Entidad;
 import motor.modelo.Solido;
 import motor.util.VecDouble2D;
-import motor.util.observer.Notificador;
-import motor.util.observer.NotificadorFuerte;
 
 public final class Experiencia
 extends Entidad
@@ -17,15 +15,26 @@ implements ModeloExperiencia
 {
     private final ModeloJugador jugador;
     private final int cantidad;
-    private final Notificador<Integer> notificadorExpiracion;
 
     public Experiencia(
         int idGlobal,
         String nombre,
         Hitbox hitbox,
         VecDouble2D posicion,
-         int cantidad,
+        int cantidad,
         ModeloJugador jugador
+    ) {
+        this(idGlobal, nombre, hitbox, posicion, cantidad, jugador, null);
+    }
+
+    public Experiencia(
+        int idGlobal,
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        int cantidad,
+        ModeloJugador jugador,
+        Integer idSonidoExpiracion
     ) {
         super(
             idGlobal,
@@ -35,14 +44,15 @@ implements ModeloExperiencia
             new VecDouble2D(),
             0.0,
             0.0,
-            0.0
+            0.0,
+            null,
+            idSonidoExpiracion
         );
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad de experiencia debe ser positiva.");
         }
         this.jugador = Objects.requireNonNull(jugador, "El jugador no puede ser nulo.");
         this.cantidad = cantidad;
-        this.notificadorExpiracion = new NotificadorFuerte<>();
     }
 
     @Override
@@ -57,7 +67,7 @@ implements ModeloExperiencia
             return false;
         }
         jugadorObjetivo.ganarExperiencia(cantidad);
-        expirar();
+        expirar(1);
         return true;
     }
 
@@ -73,14 +83,4 @@ implements ModeloExperiencia
 
     @Override
     public void colisionarCon(Solido o) {}
-
-    @Override
-    public Notificador<Integer> getNotificadorExpiracion() {
-        return this.notificadorExpiracion;
-    }
-
-    private void expirar() {
-        setActivo(false);
-        this.notificadorExpiracion.notificar(1);
-    }
 }

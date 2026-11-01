@@ -22,13 +22,13 @@ import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
 import motor.persistencia.dao.sqlite.Conexion;
 import motor.persistencia.dao.sqlite.SheetDAOSQLite;
-import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
 import vista.VistaImagen;
 
 public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidadesPartida {
+    private static final String URL_BD_POR_DEFECTO = "jdbc:sqlite:src/recursos/datos.db";
     private static final int ID_SHEET_JUGADOR = 1;
     private static final int ID_SHEET_ENEMIGO = 1;
     private static final int ID_SHEET_EXPERIENCIA = 1;
@@ -36,8 +36,9 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
 
     private final DAOSoloLectura<Integer, Sheet> sheetDAO;
     private final Consumer<VistaImagen> alCrearVista;
-    private final GestorAudio gestorAudio;
+    private final Observador<Integer> observadorSonido;
 
+    /* Constructores secundarios sin observador (conservados para pruebas o prototipos):
     public FabricaEntidadesPartidaPorDefecto(GestorRecursos gestorRecursos) {
         this(gestorRecursos, vista -> {});
     }
@@ -46,46 +47,42 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         GestorRecursos gestorRecursos,
         Consumer<VistaImagen> alCrearVista
     ) {
-        this(
-            new SheetDAOSQLite(
-                Conexion.getInstancia().get(),
-                Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo")
-            ),
-            alCrearVista,
-            null
-        );
+        this(gestorRecursos, alCrearVista, id -> {});
     }
+    */
 
     public FabricaEntidadesPartidaPorDefecto(
         GestorRecursos gestorRecursos,
         Consumer<VistaImagen> alCrearVista,
-        GestorAudio gestorAudio
+        Observador<Integer> observadorSonido
     ) {
         this(
             new SheetDAOSQLite(
-                Conexion.getInstancia().get(),
+                Conexion.getInstancia(URL_BD_POR_DEFECTO).getConexion(),
                 Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo")
             ),
             alCrearVista,
-            gestorAudio
+            observadorSonido
         );
     }
 
+    /* Constructor secundario con DAO sin observador:
     public FabricaEntidadesPartidaPorDefecto(
         DAOSoloLectura<Integer, Sheet> sheetDAO,
         Consumer<VistaImagen> alCrearVista
     ) {
-        this(sheetDAO, alCrearVista, null);
+        this(sheetDAO, alCrearVista, id -> {});
     }
+    */
 
     public FabricaEntidadesPartidaPorDefecto(
         DAOSoloLectura<Integer, Sheet> sheetDAO,
         Consumer<VistaImagen> alCrearVista,
-        GestorAudio gestorAudio
+        Observador<Integer> observadorSonido
     ) {
         this.sheetDAO = Objects.requireNonNull(sheetDAO, "El DAO de sheets no puede ser nulo");
         this.alCrearVista = Objects.requireNonNull(alCrearVista, "El callback de vista no puede ser nulo");
-        this.gestorAudio = gestorAudio;
+        this.observadorSonido = Objects.requireNonNull(observadorSonido, "El observador de sonido no puede ser nulo");
     }
 
     @Override
@@ -108,6 +105,9 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         .friccion(2500)
         .aceleracion(3000)
         .velocidadMax(240)
+        .idSonidoDaño(SonidoJuego.DAÑO_JUGADOR.getId())
+        .idSonidoMuerte(SonidoJuego.MUERTE_JUGADOR.getId())
+        .idSonidoSubirNivel(SonidoJuego.SUBIR_NIVEL.getId())
         .build();
     }
 
@@ -126,8 +126,8 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
             vista,
             gestorSheet,
             observadorVida,
-            accionAtaque,
-            gestorAudio
+            observadorSonido,
+            accionAtaque
         );
     }
 
@@ -152,14 +152,16 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
             50,
             10,
             10,
-            objetivo
+            objetivo,
+            SonidoJuego.DAÑO_ENEMIGO.getId(),
+            SonidoJuego.EXPIRAR_ENEMIGO.getId()
         );
 
         Sheet sheet = cargarSheet(modeloEnemigo.getIdGlobal());
         VistaImagen vista = new VistaImagen(sheet.getImagen());
         GestorSheetAnimada gestorSheet = new GestorSheetAnimada(sheet);
         alCrearVista.accept(vista);
-        return new EnemigoControlador(modeloEnemigo, vista, gestorSheet, gestorAudio);
+        return new EnemigoControlador(modeloEnemigo, vista, gestorSheet, observadorSonido);
     }
 
     @Override
@@ -180,18 +182,19 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
             ),
             new VecDouble2D(x, y),
             cantidad,
-            jugador
+            jugador,
+            SonidoJuego.RECOGER_EXPERIENCIA.getId()
         );
 
         Sheet sheet = cargarSheet(modeloExp.getIdGlobal());
         VistaImagen vista = new VistaImagen(sheet.getImagen());
         GestorSheetAnimada gestorSheet = new GestorSheetAnimada(sheet);
         alCrearVista.accept(vista);
-        return new ExperienciaControlador(modeloExp, vista, gestorSheet, gestorAudio);
+        return new ExperienciaControlador(modeloExp, vista, gestorSheet, observadorSonido);
     }
 
     @Override
-    public ProyectilControlador crearProyectil(
+    public EntidadControlador crearProyectil(
         double x,
         double y,
         VecDouble2D direccion,
@@ -225,7 +228,7 @@ public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidades
         VistaImagen vista = new VistaImagen(sheet.getImagen());
         GestorSheetAnimada gestorSheet = new GestorSheetAnimada(sheet);
         alCrearVista.accept(vista);
-        return new ProyectilControlador(modeloProyectil, vista, gestorSheet, gestorAudio, esCritico);
+        return new EntidadControlador(modeloProyectil, vista, gestorSheet, observadorSonido);
     }
 
     private Sheet cargarSheet(int idGlobal) {

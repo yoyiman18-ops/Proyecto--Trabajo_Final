@@ -6,6 +6,7 @@ import motor.util.observer.Notificador;
 
 public interface ModeloPartida {
     Notificador<EstadoOleadas> getNotificadorOleadas();
+    Notificador<Integer> getNotificadorSonido();
     boolean isEnPausa();
     void setEnPausa(boolean enPausa);
     boolean isEleccionMejoraActiva();

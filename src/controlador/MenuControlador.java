@@ -15,6 +15,8 @@ import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.Extension;
 import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
+import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorFuerte;
 import vista.BotonMenu;
 import vista.VistaMenu;
 
@@ -30,6 +32,7 @@ public final class MenuControlador {
 
     private final VistaMenu vista;
     private final List<OpcionMenu> opciones;
+    private final Notificador<Integer> notificadorSonido;
 
     public MenuControlador(
         GestorRecursos gestorRecursos,
@@ -47,8 +50,59 @@ public final class MenuControlador {
     ) {
         this(
             gestorRecursos,
+            cargarSheetHudDesdeBaseDeDatos(gestorRecursos, URL_BD_DEFAULT, ID_SHEET_HUD_DEFAULT),
             gestorAudio,
-            crearOpcionesPorDefecto(gestorAudio, onJugar, onSalir)
+            onJugar,
+            onSalir
+        );
+    }
+
+    public MenuControlador(
+        GestorRecursos gestorRecursos,
+        Sheet sheetHud,
+        GestorAudio gestorAudio,
+        Runnable onJugar,
+        Runnable onSalir
+    ) {
+        this(
+            sheetHud,
+            gestorRecursos,
+            gestorAudio,
+            crearNotificadorSonido(gestorAudio),
+            onJugar,
+            onSalir
+        );
+    }
+
+    private MenuControlador(
+        Sheet sheetHud,
+        GestorRecursos gestorRecursos,
+        GestorAudio gestorAudio,
+        Notificador<Integer> notificadorSonido,
+        Runnable onJugar,
+        Runnable onSalir
+    ) {
+        this(
+            sheetHud,
+            gestorRecursos,
+            gestorAudio,
+            notificadorSonido,
+            crearOpcionesPorDefecto(notificadorSonido, onJugar, onSalir)
+        );
+    }
+
+    private MenuControlador(
+        Sheet sheetHud,
+        GestorRecursos gestorRecursos,
+        GestorAudio gestorAudio,
+        Notificador<Integer> notificadorSonido,
+        List<OpcionMenu> opciones
+    ) {
+        this(
+            crearVistaMenu(gestorRecursos, sheetHud, RECURSO_IMAGEN_MENU_DEFAULT, opciones),
+            gestorAudio,
+            notificadorSonido,
+            opciones
         );
     }
 
@@ -79,26 +133,11 @@ public final class MenuControlador {
     }
 
     public MenuControlador(
-        GestorRecursos gestorRecursos,
-        Sheet sheetHud,
-        GestorAudio gestorAudio,
-        Runnable onJugar,
-        Runnable onSalir
-    ) {
-        this(
-            gestorRecursos,
-            sheetHud,
-            gestorAudio,
-            crearOpcionesPorDefecto(gestorAudio, onJugar, onSalir)
-        );
-    }
-
-    public MenuControlador(
         VistaMenu vista,
         Runnable onJugar,
         Runnable onSalir
     ) {
-        this(vista, null, onJugar, onSalir);
+        this(vista, (GestorAudio) null, onJugar, onSalir);
     }
 
     public MenuControlador(
@@ -107,7 +146,17 @@ public final class MenuControlador {
         Runnable onJugar,
         Runnable onSalir
     ) {
-        this(vista, gestorAudio, crearOpcionesPorDefecto(gestorAudio, onJugar, onSalir));
+        this(vista, gestorAudio, crearNotificadorSonido(gestorAudio), onJugar, onSalir);
+    }
+
+    private MenuControlador(
+        VistaMenu vista,
+        GestorAudio gestorAudio,
+        Notificador<Integer> notificadorSonido,
+        Runnable onJugar,
+        Runnable onSalir
+    ) {
+        this(vista, gestorAudio, notificadorSonido, crearOpcionesPorDefecto(notificadorSonido, onJugar, onSalir));
     }
 
     public MenuControlador(
@@ -115,14 +164,32 @@ public final class MenuControlador {
         GestorAudio gestorAudio,
         List<OpcionMenu> opciones
     ) {
+        this(vista, gestorAudio, crearNotificadorSonido(gestorAudio), opciones);
+    }
+
+    public MenuControlador(
+        VistaMenu vista,
+        GestorAudio gestorAudio,
+        Notificador<Integer> notificadorSonido,
+        List<OpcionMenu> opciones
+    ) {
         this.vista = Objects.requireNonNull(vista, "La vista del menú no puede ser nula");
         this.opciones = new ArrayList<>(Objects.requireNonNullElse(opciones, List.of()));
+        this.notificadorSonido = notificadorSonido != null ? notificadorSonido : crearNotificadorSonido(gestorAudio);
 
         MusicaJuego.MENU.reproducirEn(gestorAudio);
     }
 
+    private static Notificador<Integer> crearNotificadorSonido(GestorAudio gestorAudio) {
+        Notificador<Integer> notificador = new NotificadorFuerte<>();
+        if (gestorAudio != null) {
+            notificador.suscribirObservador(gestorAudio.getObservadorSonido());
+        }
+        return notificador;
+    }
+
     private static List<OpcionMenu> crearOpcionesPorDefecto(
-        GestorAudio gestorAudio,
+        Notificador<Integer> notificadorSonido,
         Runnable onJugar,
         Runnable onSalir
     ) {
@@ -131,11 +198,15 @@ public final class MenuControlador {
 
         return List.of(
             new OpcionMenu("JUGAR", () -> {
-                SonidoJuego.BOTON.reproducirEn(gestorAudio);
+                if (notificadorSonido != null) {
+                    notificadorSonido.notificar(SonidoJuego.BOTON.getId());
+                }
                 onJugar.run();
             }),
             new OpcionMenu("SALIR", () -> {
-                SonidoJuego.BOTON.reproducirEn(gestorAudio);
+                if (notificadorSonido != null) {
+                    notificadorSonido.notificar(SonidoJuego.BOTON.getId());
+                }
                 onSalir.run();
             })
         );
@@ -189,5 +260,9 @@ public final class MenuControlador {
 
     public BotonMenu getBotonSalir() {
         return vista.getBotonSalir();
+    }
+
+    public Notificador<Integer> getNotificadorSonido() {
+        return notificadorSonido;
     }
 }

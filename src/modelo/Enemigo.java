@@ -25,7 +25,7 @@ implements ModeloEnemigo
     private double tiempoHastaAtaque;
     private boolean contactoConObjetivo;
     private final Notificador<Double> notificadorDaño;
-    private final Notificador<Integer> notificadorExpiracion;
+    private final Integer idSonidoDaño;
 
     public Enemigo(
         int idGlobal,
@@ -48,7 +48,38 @@ implements ModeloEnemigo
             daño,
             experienciaRecompensa,
             objetivo,
-            1.0
+            1.0,
+            null,
+            null
+        );
+    }
+
+    public Enemigo(
+        int idGlobal,
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        double velocidadMaxima,
+        double vidaMaxima,
+        double daño,
+        int experienciaRecompensa,
+        Posicionable objetivo,
+        Integer idSonidoDaño,
+        Integer idSonidoExpiracion
+    ) {
+        this(
+            idGlobal,
+            nombre,
+            hitbox,
+            posicion,
+            velocidadMaxima,
+            vidaMaxima,
+            daño,
+            experienciaRecompensa,
+            objetivo,
+            1.0,
+            idSonidoDaño,
+            idSonidoExpiracion
         );
     }
 
@@ -64,6 +95,36 @@ implements ModeloEnemigo
         Posicionable objetivo,
         double intervaloAtaque
     ) {
+        this(
+            idGlobal,
+            nombre,
+            hitbox,
+            posicion,
+            velocidadMaxima,
+            vidaMaxima,
+            daño,
+            experienciaRecompensa,
+            objetivo,
+            intervaloAtaque,
+            null,
+            null
+        );
+    }
+
+    public Enemigo(
+        int idGlobal,
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        double velocidadMaxima,
+        double vidaMaxima,
+        double daño,
+        int experienciaRecompensa,
+        Posicionable objetivo,
+        double intervaloAtaque,
+        Integer idSonidoDaño,
+        Integer idSonidoExpiracion
+    ) {
         super(
             idGlobal,
             nombre,
@@ -72,7 +133,9 @@ implements ModeloEnemigo
             new VecDouble2D(),
             0.0,
             0.0,
-            velocidadMaxima
+            velocidadMaxima,
+            null,
+            idSonidoExpiracion
         );
         if (!Double.isFinite(vidaMaxima) || vidaMaxima <= 0) {
             throw new IllegalArgumentException("La vida máxima debe ser positiva y finita.");
@@ -95,7 +158,7 @@ implements ModeloEnemigo
         this.tiempoHastaAtaque = 0;
         this.contactoConObjetivo = false;
         this.notificadorDaño = new NotificadorFuerte<>();
-        this.notificadorExpiracion = new NotificadorFuerte<>();
+        this.idSonidoDaño = idSonidoDaño;
     }
 
     @Override
@@ -149,9 +212,12 @@ implements ModeloEnemigo
             return false;
         }
         vida = Math.max(0, vida - cantidad);
+        if (vida > 0) {
+            emitirSonido(idSonidoDaño);
+        }
         notificadorDaño.notificar(cantidad);
         if (vida == 0) {
-            expirar();
+            expirar(1);
         }
         return vida == 0;
     }
@@ -176,10 +242,4 @@ implements ModeloEnemigo
 
     @Override public Dañable getDañable() { return this; }
     @Override public Notificador<Double> getNotificadorDaño() { return this.notificadorDaño; }
-    @Override public Notificador<Integer> getNotificadorExpiracion() { return this.notificadorExpiracion; }
-
-    private void expirar() {
-        setActivo(false);
-        this.notificadorExpiracion.notificar(1);
-    }
 }

@@ -7,6 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
+import motor.util.observer.NotificadorFuerte;
 
 public final class Partida implements ModeloPartida {
     private static final ItemMejoraAtributo.Atributo[] ATRIBUTOS_DISPONIBLES =
@@ -17,6 +18,11 @@ public final class Partida implements ModeloPartida {
     private final int maxEnemigosSimultaneos;
     private final double intervaloOleadas;
     private final Notificador<EstadoOleadas> notificadorOleadas;
+    private final Notificador<Integer> notificadorSonido;
+    private final Integer idSonidoMostrarMejoras;
+    private final Integer idSonidoMejoraAplicada;
+    private final Integer idSonidoVictoria;
+    private final Integer idSonidoDerrota;
 
     private int oleadaActual;
     private int enemigosActivos;
@@ -35,10 +41,53 @@ public final class Partida implements ModeloPartida {
     }
 
     public Partida(
+        Integer idSonidoMostrarMejoras,
+        Integer idSonidoMejoraAplicada,
+        Integer idSonidoVictoria,
+        Integer idSonidoDerrota
+    ) {
+        this(
+            5,
+            6,
+            6.0,
+            new NotificadorDebil<>(),
+            new NotificadorFuerte<>(),
+            idSonidoMostrarMejoras,
+            idSonidoMejoraAplicada,
+            idSonidoVictoria,
+            idSonidoDerrota
+        );
+    }
+
+    public Partida(
         int cantidadOleadas,
         int maxEnemigosSimultaneos,
         double intervaloOleadas,
         Notificador<EstadoOleadas> notificadorOleadas
+    ) {
+        this(
+            cantidadOleadas,
+            maxEnemigosSimultaneos,
+            intervaloOleadas,
+            notificadorOleadas,
+            new NotificadorFuerte<>(),
+            null,
+            null,
+            null,
+            null
+        );
+    }
+
+    public Partida(
+        int cantidadOleadas,
+        int maxEnemigosSimultaneos,
+        double intervaloOleadas,
+        Notificador<EstadoOleadas> notificadorOleadas,
+        Notificador<Integer> notificadorSonido,
+        Integer idSonidoMostrarMejoras,
+        Integer idSonidoMejoraAplicada,
+        Integer idSonidoVictoria,
+        Integer idSonidoDerrota
     ) {
         if (cantidadOleadas <= 0 || maxEnemigosSimultaneos <= 0) {
             throw new IllegalArgumentException("La cantidad de oleadas y el máximo de enemigos deben ser positivos.");
@@ -50,6 +99,11 @@ public final class Partida implements ModeloPartida {
         this.maxEnemigosSimultaneos = maxEnemigosSimultaneos;
         this.intervaloOleadas = intervaloOleadas;
         this.notificadorOleadas = Objects.requireNonNull(notificadorOleadas, "El notificador de oleadas no puede ser nulo");
+        this.notificadorSonido = Objects.requireNonNull(notificadorSonido, "El notificador de sonido no puede ser nulo");
+        this.idSonidoMostrarMejoras = idSonidoMostrarMejoras;
+        this.idSonidoMejoraAplicada = idSonidoMejoraAplicada;
+        this.idSonidoVictoria = idSonidoVictoria;
+        this.idSonidoDerrota = idSonidoDerrota;
 
         this.oleadaActual = 0;
         this.enemigosActivos = 0;
@@ -67,6 +121,11 @@ public final class Partida implements ModeloPartida {
     @Override
     public Notificador<EstadoOleadas> getNotificadorOleadas() {
         return notificadorOleadas;
+    }
+
+    @Override
+    public Notificador<Integer> getNotificadorSonido() {
+        return notificadorSonido;
     }
 
     @Override
@@ -93,10 +152,14 @@ public final class Partida implements ModeloPartida {
 
     @Override
     public void finalizarPartida() {
+        if (this.partidaFinalizada) {
+            return;
+        }
         this.partidaFinalizada = true;
         this.enPausa = false;
         this.eleccionMejoraActiva = false;
         this.opcionesMejoraActuales = List.of();
+        emitirSonido(oleadasCompletadas ? idSonidoVictoria : idSonidoDerrota);
     }
 
     @Override
@@ -117,6 +180,7 @@ public final class Partida implements ModeloPartida {
         }
 
         this.opcionesMejoraActuales = List.copyOf(generadas);
+        emitirSonido(idSonidoMostrarMejoras);
         return this.opcionesMejoraActuales;
     }
 
@@ -128,6 +192,9 @@ public final class Partida implements ModeloPartida {
         }
         this.opcionesMejoraActuales = List.of();
         this.eleccionMejoraActiva = false;
+        if (seleccionada != null) {
+            emitirSonido(idSonidoMejoraAplicada);
+        }
         return seleccionada;
     }
 
@@ -217,5 +284,11 @@ public final class Partida implements ModeloPartida {
             segundosRestantes,
             oleadasCompletadas
         ));
+    }
+
+    private void emitirSonido(Integer idSonido) {
+        if (idSonido != null) {
+            notificadorSonido.notificar(idSonido);
+        }
     }
 }

@@ -25,7 +25,8 @@ implements ModeloJugador
     private double defensaPorcentual;
     private final Notificador<ModeloJugador> notificadorVida;
     private final Notificador<Double> notificadorDaño;
-    private final Notificador<Integer> notificadorExpiracion;
+    private final Integer idSonidoDaño;
+    private final Integer idSonidoSubirNivel;
     private int experiencia;
     private int nivel;
     private int experienciaSiguiente;
@@ -49,7 +50,12 @@ implements ModeloJugador
             b.aceleracion,
             b.friccion,
             b.velocidadMax,
-            b.notificadorPosicion
+            b.notificadorPosicion,
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            null,
+            b.idSonidoMuerte
         );
         this.vida = b.vida;
         this.vidaMax = b.vidaMax;
@@ -69,7 +75,8 @@ implements ModeloJugador
         this.acumuladorDireccionTick = new VecDouble2D(0, 0);
         this.notificadorVida = Objects.requireNonNull(b.notificadorVida, "El notificador de vida no puede ser nulo");
         this.notificadorDaño = new NotificadorFuerte<>();
-        this.notificadorExpiracion = new NotificadorFuerte<>();
+        this.idSonidoDaño = b.idSonidoDaño;
+        this.idSonidoSubirNivel = b.idSonidoSubirNivel;
     }
 
     @Override
@@ -206,6 +213,7 @@ implements ModeloJugador
             return false;
         }
         nivelesPendientes--;
+        emitirSonido(idSonidoSubirNivel);
         return true;
     }
 
@@ -229,7 +237,6 @@ implements ModeloJugador
 
     @Override public Notificador<ModeloJugador> getNotificadorVida() { return notificadorVida; }
     @Override public Notificador<Double> getNotificadorDaño() { return notificadorDaño; }
-    @Override public Notificador<Integer> getNotificadorExpiracion() { return notificadorExpiracion; }
 
     @Override
     public boolean recibirDaño(double cantidad) {
@@ -240,10 +247,13 @@ implements ModeloJugador
         }
         double danioEfectivo = cantidad * (1 - defensaPorcentual / 100);
         vida = Math.max(0, vida - danioEfectivo);
+        if (vida > 0) {
+            emitirSonido(idSonidoDaño);
+        }
         notificadorDaño.notificar(danioEfectivo);
         notificadorVida.notificar(this);
         if (vida == 0) {
-            expirar();
+            expirar(1);
         }
         return vida == 0;
     }
@@ -286,11 +296,6 @@ implements ModeloJugador
         notificadorVida.notificar(this);
     }
 
-    private void expirar() {
-        setActivo(false);
-        this.notificadorExpiracion.notificar(1);
-    }
-
     private void validarCantidadNoNegativa(double cantidad) {
         if (!Double.isFinite(cantidad) || cantidad < 0) {
             throw new IllegalArgumentException("La cantidad debe ser finita y no negativa.");
@@ -316,6 +321,9 @@ implements ModeloJugador
         private double probabilidadMultidisparo;
         private Notificador<VecDouble2D> notificadorPosicion;
         private Notificador<ModeloJugador> notificadorVida;
+        private Integer idSonidoDaño;
+        private Integer idSonidoMuerte;
+        private Integer idSonidoSubirNivel;
 
         public Builder(String nombre, Hitbox hitbox) {
             this(0, nombre, hitbox);
@@ -459,6 +467,21 @@ implements ModeloJugador
                 notificadorVida,
                 "El notificador de vida no puede ser nulo"
             );
+            return this;
+        }
+
+        public Builder idSonidoDaño(Integer idSonidoDaño) {
+            this.idSonidoDaño = idSonidoDaño;
+            return this;
+        }
+
+        public Builder idSonidoMuerte(Integer idSonidoMuerte) {
+            this.idSonidoMuerte = idSonidoMuerte;
+            return this;
+        }
+
+        public Builder idSonidoSubirNivel(Integer idSonidoSubirNivel) {
+            this.idSonidoSubirNivel = idSonidoSubirNivel;
             return this;
         }
 

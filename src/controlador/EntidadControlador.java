@@ -5,7 +5,6 @@ import java.util.Objects;
 import motor.controlador.ControladorEntidad;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
-import motor.recursos.GestorAudio;
 import motor.util.observer.Observador;
 import vista.VistaImagen;
 
@@ -13,31 +12,28 @@ public class EntidadControlador implements ControladorEntidad {
     private final ModeloEntidad modelo;
     private final VistaImagen vista;
     private final Observador<Integer> observadorExpiracion;
+    private final Observador<Integer> observadorSonido;
     private final GestorSheetAnimada gestorSheet;
     private boolean activo;
 
     public EntidadControlador(
         ModeloEntidad modelo,
         VistaImagen vista,
-        GestorSheetAnimada gestorSheet
-    ) {
-        this(modelo, vista, gestorSheet, null);
-    }
-
-    public EntidadControlador(
-        ModeloEntidad modelo,
-        VistaImagen vista,
         GestorSheetAnimada gestorSheet,
-        GestorAudio gestorAudio) {
+        Observador<Integer> observadorSonido
+    ) {
         this.activo = true;
         this.gestorSheet = Objects.requireNonNull(gestorSheet, "El gestor de sheet no puede ser nulo");
-        this.modelo = Objects.requireNonNull(modelo, "El modelo del proyectil no puede ser nulo");
-        this.vista = Objects.requireNonNull(vista, "La vista del proyectil no puede ser nula");
+        this.modelo = Objects.requireNonNull(modelo, "El modelo de la entidad no puede ser nulo");
+        this.vista = Objects.requireNonNull(vista, "La vista de la entidad no puede ser nula");
+        this.observadorSonido = Objects.requireNonNull(observadorSonido, "El observador de sonido no puede ser nulo");
         this.observadorExpiracion = this::alExpirar;
         this.modelo.getNotificadorExpiracion().suscribirObservador(observadorExpiracion);
         this.gestorSheet.setAnimacion("idle", false);
         this.gestorSheet.suscribir(this.vista.getObservadorRectangulo());
         this.modelo.getNotificadorPosicion().suscribirObservador(this.vista.getObservadorPosicion());
+        this.modelo.getNotificadorSonido().suscribirObservador(this.observadorSonido);
+        this.vista.setPosicion(this.modelo.getPosicion());
     }
 
     @Override public boolean activo() { return this.activo; }
@@ -55,10 +51,10 @@ public class EntidadControlador implements ControladorEntidad {
     private void alExpirar(int e) {
         if (gestorSheet.setAnimacion("expirar", false)) {
             gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
-                f -> { vista.setVisible(false); setActivo(false); }
+                f -> { vista.setVisbilidad(false); setActivo(false); }
             );
         } else {
-            vista.setVisible(false);
+            vista.setVisbilidad(false);
             setActivo(false);
         }
     }
