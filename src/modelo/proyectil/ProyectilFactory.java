@@ -2,9 +2,9 @@ package modelo.proyectil;
 
 import java.util.List;
 
-import modelo.EstrategiaExpiracion;
 import motor.colisiones.hitboxes.HitboxFactory;
 import motor.modelo.EntidadFactory;
+import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.Interaccion;
 import motor.util.VecDouble2D;
 

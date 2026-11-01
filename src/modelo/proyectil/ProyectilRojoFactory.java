@@ -1,5 +1,6 @@
 package modelo.proyectil;
 import java.util.ArrayList;
+import java.util.List;
 
 import motor.colisiones.hitboxes.HitboxRectangularFactory;
 import motor.colisiones.hitboxes.MascaraColision;

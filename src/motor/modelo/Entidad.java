@@ -3,7 +3,6 @@ package motor.modelo;
 import java.util.List;
 import java.util.Objects;
 
-import modelo.EstrategiaExpiracion;
 import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.util.Eje;
@@ -171,10 +170,13 @@ implements ModeloEntidad {
         }
     }
 
-    protected void expirar(int estado) {
+    protected void expirar() {
         if (!activo()) { return; }
         setActivo(false);
-        if (estrategiasExpiracion != null) { for (EstrategiaExpiracion e : estrategiasExpiracion) {e.ejecutar(this);} }
+        int estado = 0; // >= 1 para forzar terminación
+        if (estrategiasExpiracion != null) { 
+            for (EstrategiaExpiracion e : estrategiasExpiracion) { if ((estado = e.ejecutar(this)) >= 1) {continue; };}
+        }
         getNotificadorExpiracion().notificar(estado);
     }
 

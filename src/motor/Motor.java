@@ -73,6 +73,8 @@ public class Motor implements Ticking {
     private final Conexion conexion;
     private final DAOSoloLectura<Integer,Sheet> sheetDAO;
 
+    private boolean pausa;
+
     /**
      * Crear motor default.
      */
@@ -114,6 +116,7 @@ public class Motor implements Ticking {
         this.colaLimpieza = new ArrayDeque<>();
         this.conexion = Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db");
         this.sheetDAO = new SheetDAOSQLite(conexion.getConexion(), gestorRecursos);
+        this.pausa = false;
         
         // el observador más importante del sistema, propaga los ticks a todos los demás
         this.relojDelta.suscribirObservador(this::tick); 
@@ -126,13 +129,16 @@ public class Motor implements Ticking {
         instanciarControladores();
         this.gestorEntradaTeclado.tick(dt);
         this.colisionables.clear();
-        for (ControladorEntidad c : controladores) { 
-            c.tick(dt);
-            if (!c.activo()) { colaLimpieza.add(c); }
-            else {colisionables.add(c.getEntidad()); }
+        if (!pausa) {
+            for (ControladorEntidad c : controladores) { 
+                c.tick(dt);
+                if (!c.activo()) { colaLimpieza.add(c); }
+                else {colisionables.add(c.getEntidad()); }
+                this.sistemaColisiones.resolverColisiones(colisionables);
+            }
         }
         limpiarControladores();
-        this.sistemaColisiones.resolverColisiones(colisionables);
+  
     }
 
     public GestorRecursos recursos() { return this.gestorRecursos; }
@@ -145,9 +151,10 @@ public class Motor implements Ticking {
     public DAOSoloLectura<Integer,Sheet> getSheetDAO() { return this.sheetDAO; }
     public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }
+    public void setPausa(boolean pausa) { this.pausa = pausa; }
 
     public void encolarControlador(ControladorEntidad c) { colaInstanciacion.add(c); }
-
+    
     private void instanciarControladores() {
         ControladorEntidad c;
         while ((c = colaInstanciacion.poll()) != null) {

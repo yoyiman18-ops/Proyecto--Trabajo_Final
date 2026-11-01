@@ -1,10 +1,11 @@
 package modelo.proyectil;
 
 import java.util.List;
-import modelo.EstrategiaExpiracion;
+
 import modelo.TipoInteraccion;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
+import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.Interaccion;
 import motor.util.VecDouble2D;
 
@@ -48,7 +49,7 @@ extends Entidad
         if (!activo()) { return; }
         tiempoVida = Math.max(0, tiempoVida - dt); 
         super.tick(dt);
-        if (estaExpirado()) { expirar(1); }
+        if (estaExpirado()) { expirar(); }
     }
 
     @Override public boolean interactuar(Interaccion i) {
@@ -64,7 +65,7 @@ extends Entidad
         if (!activo() || penetracion < 0) { return false; }
         System.out.println(this.getHitbox().getId() + " ha recibido " + daño);
         penetracion -= daño;
-        if (penetracion <= 0) { expirar(1); }
+        if (penetracion <= 0) { expirar(); }
         return true;
     }
 
