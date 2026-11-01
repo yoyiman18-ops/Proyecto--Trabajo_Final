@@ -32,7 +32,7 @@ public final class JugadorControlador implements ControladorEntidad,ReceptorEsta
         ModeloJugador modelo,
         VistaImagen vista,
         GestorSheetAnimada gestorSheet,
-        Observador<ModeloJugador> observadorVida,
+        Observador<ModeloJugador> observadorVida
     ) {
         this(modelo, vista, gestorSheet, observadorVida, null);
     }
@@ -41,7 +41,7 @@ public final class JugadorControlador implements ControladorEntidad,ReceptorEsta
         ModeloJugador modelo,
         VistaImagen vista,
         GestorSheetAnimada gestorSheet,
-        Observador<ModeloJugador> observadorVida,
+        Observador<ModeloJugador> observadorVida,
         GestorAudio gestorAudio
     ) {
         this.gestorSheet = Objects.requireNonNull(gestorSheet, "El gestor de sheet no puede ser nulo");

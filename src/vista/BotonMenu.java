@@ -2,6 +2,7 @@ package vista;
 
 import java.util.Objects;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -23,10 +24,11 @@ import modelo.OpcionMenu;
 import motor.modelo.graficos.GestorSheetEstatica;
 import motor.modelo.graficos.Recorte;
 import motor.modelo.graficos.Sheet;
+import motor.vista.VistaImagen;
 
 /**
- * Componente visual de la Vista que renderiza una opción de menú con recortes de spritesheet
- * y efectos visuales de interacción.
+ * Componente visual que renderiza una opción de menú con recortes de spritesheet
+ * o estilos vectoriales de respaldo, sincronizándose reactivamente con el modelo OpcionMenu.
  */
 public class BotonMenu extends Button {
 
@@ -45,6 +47,7 @@ public class BotonMenu extends Button {
 
     private Color colorTextoNormal = Color.web("#fff2d2");
     private Color colorTextoHover = Color.web("#ffe89e");
+    private Color colorTextoDeshabilitado = Color.web("#7a7263");
     private DropShadow sombraNormal = new DropShadow(BlurType.GAUSSIAN, Color.rgb(0, 0, 0, 0.85), 5, 0.45, 0, 2);
     private DropShadow sombraHover = new DropShadow(BlurType.GAUSSIAN, Color.rgb(255, 215, 110, 0.55), 10, 0.45, 0, 0);
 
@@ -93,6 +96,14 @@ public class BotonMenu extends Button {
         if (this.modelo != null) {
             setDisable(!this.modelo.isHabilitada());
             setOnAction(event -> this.modelo.ejecutar());
+
+            this.modelo.getNotificadorHabilitada().suscribirObservador(habilitada -> {
+                Platform.runLater(() -> setDisable(!habilitada));
+            });
+
+            this.modelo.getNotificadorTexto().suscribirObservador(nuevoTexto -> {
+                Platform.runLater(() -> setText(nuevoTexto));
+            });
         }
 
         setFont(Font.font("Georgia", FontWeight.BOLD, 16));
@@ -142,14 +153,28 @@ public class BotonMenu extends Button {
 
     private void configurarListenersInteraccion() {
         Runnable actualizarEstado = () -> {
+            if (isDisabled()) {
+                if (gestorSheet != null) {
+                    gestorSheet.setRecorte(recorteNormal);
+                }
+                setTextFill(colorTextoDeshabilitado);
+                setEffect(null);
+                setOpacity(0.55);
+                setCursor(Cursor.DEFAULT);
+                return;
+            }
+
+            setOpacity(1.0);
+            setCursor(Cursor.HAND);
+
             if (isArmed()) {
-                gestorSheet.setRecorte(recortePresionado);
+                if (gestorSheet != null) gestorSheet.setRecorte(recortePresionado);
             } else if (isHover()) {
-                gestorSheet.setRecorte(recorteHover);
+                if (gestorSheet != null) gestorSheet.setRecorte(recorteHover);
             } else if (isFocused()) {
-                gestorSheet.setRecorte(recorteMarcado);
+                if (gestorSheet != null) gestorSheet.setRecorte(recorteMarcado);
             } else {
-                gestorSheet.setRecorte(recorteNormal);
+                if (gestorSheet != null) gestorSheet.setRecorte(recorteNormal);
             }
 
             boolean resaltado = isHover() || isFocused();
@@ -157,9 +182,11 @@ public class BotonMenu extends Button {
             setEffect(resaltado ? sombraHover : sombraNormal);
         };
 
+        disabledProperty().addListener((obs, antes, ahora) -> actualizarEstado.run());
         armedProperty().addListener((obs, antes, ahora) -> actualizarEstado.run());
         hoverProperty().addListener((obs, antes, ahora) -> actualizarEstado.run());
         focusedProperty().addListener((obs, antes, ahora) -> actualizarEstado.run());
+        actualizarEstado.run();
     }
 
     private void aplicarEstiloFallback() {
@@ -174,16 +201,34 @@ public class BotonMenu extends Button {
         setPadding(new Insets(12, 24, 12, 24));
 
         Runnable actualizarFallback = () -> {
+            if (isDisabled()) {
+                setBackground(fondoNormal);
+                setBorder(bordeNormal);
+                setTextFill(colorTextoDeshabilitado);
+                setOpacity(0.55);
+                setCursor(Cursor.DEFAULT);
+                return;
+            }
+            setOpacity(1.0);
+            setCursor(Cursor.HAND);
             boolean resaltado = isHover() || isFocused();
             setBackground(resaltado ? fondoHover : fondoNormal);
             setBorder(resaltado ? bordeHover : bordeNormal);
+            setTextFill(resaltado ? colorTextoHover : colorTextoNormal);
         };
+
+        disabledProperty().addListener((obs, antes, ahora) -> actualizarFallback.run());
         hoverProperty().addListener((obs, antes, ahora) -> actualizarFallback.run());
         focusedProperty().addListener((obs, antes, ahora) -> actualizarFallback.run());
+        actualizarFallback.run();
     }
 
     public OpcionMenu getModelo() {
         return modelo;
+    }
+
+    public String getIdOpcion() {
+        return modelo != null ? modelo.getId() : getText().trim().toLowerCase();
     }
 
     public GestorSheetEstatica getGestorSheet() {
@@ -197,6 +242,10 @@ public class BotonMenu extends Button {
     public void setColoresTexto(Color normal, Color hover) {
         this.colorTextoNormal = Objects.requireNonNull(normal);
         this.colorTextoHover = Objects.requireNonNull(hover);
-        setTextFill(isHover() || isFocused() ? colorTextoHover : colorTextoNormal);
+        if (isDisabled()) {
+            setTextFill(colorTextoDeshabilitado);
+        } else {
+            setTextFill(isHover() || isFocused() ? colorTextoHover : colorTextoNormal);
+        }
     }
 }

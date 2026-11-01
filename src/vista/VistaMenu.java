@@ -38,11 +38,12 @@ import modelo.OpcionMenu;
 import motor.modelo.graficos.GestorSheetEstatica;
 import motor.modelo.graficos.Recorte;
 import motor.modelo.graficos.Sheet;
+import motor.vista.VistaImagen;
 
 /**
- * Vista del menú principal desacoplada del modelo y de dimensiones fijas.
- * Permite renderizar cualquier lista de opciones o botones de manera dinámica,
- * calculando el marco según las dimensiones reales de los recortes de la base de datos.
+ * Vista del menú principal desacoplada y orientada al principio Abierto/Cerrado.
+ * Renderiza dinámicamente cualquier colección de opciones (OpcionMenu),
+ * adaptando el marco gráfico de spritesheet o el contenedor de respaldo.
  */
 public final class VistaMenu extends StackPane {
 
@@ -99,6 +100,15 @@ public final class VistaMenu extends StackPane {
         StackPane.setMargin(this.marcoMenu, new Insets(0, 0, 48, 0));
     }
 
+    public void setOpciones(List<OpcionMenu> nuevasOpciones) {
+        limpiarOpciones();
+        if (nuevasOpciones != null) {
+            for (OpcionMenu opcion : nuevasOpciones) {
+                agregarOpcion(opcion);
+            }
+        }
+    }
+
     public void agregarOpcion(OpcionMenu opcion) {
         Objects.requireNonNull(opcion, "La opción de menú no puede ser nula");
         BotonMenu boton = new BotonMenu(opcion, sheetGui);
@@ -114,8 +124,60 @@ public final class VistaMenu extends StackPane {
         }
     }
 
+    public boolean removerOpcionPorId(String id) {
+        if (id == null) return false;
+        String idBuscado = id.trim().toLowerCase();
+        for (int i = 0; i < botones.size(); i++) {
+            BotonMenu boton = botones.get(i);
+            if (idBuscado.equals(boton.getIdOpcion())) {
+                removerBoton(boton);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean removerBoton(BotonMenu boton) {
+        if (boton == null) return false;
+        boolean removido = botones.remove(boton);
+        if (removido) {
+            contenedorBotones.getChildren().remove(boton);
+            if (boton.getGestorSheet() != null) {
+                gestoresSheet.remove(boton.getGestorSheet());
+            }
+        }
+        return removido;
+    }
+
+    public void limpiarOpciones() {
+        botones.clear();
+        gestoresSheet.clear();
+        contenedorBotones.getChildren().clear();
+    }
+
     public List<BotonMenu> getBotones() {
         return Collections.unmodifiableList(botones);
+    }
+
+    public List<OpcionMenu> getOpciones() {
+        List<OpcionMenu> lista = new ArrayList<>();
+        for (BotonMenu b : botones) {
+            if (b.getModelo() != null) {
+                lista.add(b.getModelo());
+            }
+        }
+        return Collections.unmodifiableList(lista);
+    }
+
+    public BotonMenu getBotonPorId(String id) {
+        if (id == null) return null;
+        String idBuscado = id.trim().toLowerCase();
+        for (BotonMenu boton : botones) {
+            if (idBuscado.equals(boton.getIdOpcion())) {
+                return boton;
+            }
+        }
+        return null;
     }
 
     public BotonMenu getBotonPorTexto(String texto) {
@@ -129,30 +191,32 @@ public final class VistaMenu extends StackPane {
     }
 
     public BotonMenu getBotonJugar() {
-        return getBotonPorTexto("JUGAR");
+        BotonMenu boton = getBotonPorId("jugar");
+        return boton != null ? boton : getBotonPorTexto("JUGAR");
     }
 
     public BotonMenu getBotonSalir() {
-        return getBotonPorTexto("SALIR");
+        BotonMenu boton = getBotonPorId("salir");
+        return boton != null ? boton : getBotonPorTexto("SALIR");
     }
 
     public void setOnJugar(Runnable accion) {
         Objects.requireNonNull(accion, "La acción de jugar no puede ser nula");
         BotonMenu boton = getBotonJugar();
-        if (boton != null) {
-            boton.setOnAction(event -> accion.run());
+        if (boton != null && boton.getModelo() != null) {
+            boton.getModelo().setAccion(accion);
         } else {
-            agregarOpcion(new OpcionMenu("JUGAR", accion));
+            agregarOpcion(new OpcionMenu("jugar", "JUGAR", accion));
         }
     }
 
     public void setOnSalir(Runnable accion) {
         Objects.requireNonNull(accion, "La acción de salir no puede ser nula");
         BotonMenu boton = getBotonSalir();
-        if (boton != null) {
-            boton.setOnAction(event -> accion.run());
+        if (boton != null && boton.getModelo() != null) {
+            boton.getModelo().setAccion(accion);
         } else {
-            agregarOpcion(new OpcionMenu("SALIR", accion));
+            agregarOpcion(new OpcionMenu("salir", "SALIR", accion));
         }
     }
 

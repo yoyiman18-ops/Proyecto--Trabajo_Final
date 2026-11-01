@@ -20,7 +20,8 @@ import vista.VistaMenu;
 
 /**
  * Controlador del menú principal en la arquitectura MVC.
- * Coordina los modelos de opciones de menú (OpcionMenu), el audio y la vista (VistaMenu).
+ * Coordina los modelos de opciones de menú (OpcionMenu), el audio y la vista (VistaMenu)
+ * respetando el principio Abierto/Cerrado (OCP).
  */
 public final class MenuControlador {
 
@@ -118,6 +119,13 @@ public final class MenuControlador {
         this.vista = Objects.requireNonNull(vista, "La vista del menú no puede ser nula");
         this.opciones = new ArrayList<>(Objects.requireNonNullElse(opciones, List.of()));
 
+        // Sincronizar las opciones del controlador con la vista para garantizar que siempre se rendericen
+        if (!this.opciones.isEmpty()) {
+            this.vista.setOpciones(this.opciones);
+        } else if (!this.vista.getOpciones().isEmpty()) {
+            this.opciones.addAll(this.vista.getOpciones());
+        }
+
         MusicaJuego.MENU.reproducirEn(gestorAudio);
     }
 
@@ -130,15 +138,73 @@ public final class MenuControlador {
         Objects.requireNonNull(onSalir, "La acción de salir no puede ser nula");
 
         return List.of(
-            new OpcionMenu("JUGAR", () -> {
+            new OpcionMenu("jugar", "JUGAR", () -> {
                 SonidoJuego.BOTON.reproducirEn(gestorAudio);
                 onJugar.run();
             }),
-            new OpcionMenu("SALIR", () -> {
+            new OpcionMenu("salir", "SALIR", () -> {
                 SonidoJuego.BOTON.reproducirEn(gestorAudio);
                 onSalir.run();
             })
         );
+    }
+
+    public void agregarOpcion(OpcionMenu opcion) {
+        Objects.requireNonNull(opcion, "La opción no puede ser nula");
+        this.opciones.add(opcion);
+        this.vista.agregarOpcion(opcion);
+    }
+
+    public void setOpciones(List<OpcionMenu> nuevasOpciones) {
+        this.opciones.clear();
+        if (nuevasOpciones != null) {
+            this.opciones.addAll(nuevasOpciones);
+        }
+        this.vista.setOpciones(this.opciones);
+    }
+
+    public boolean removerOpcionPorId(String id) {
+        if (id == null) return false;
+        String idBuscado = id.trim().toLowerCase();
+        boolean removidoModelo = this.opciones.removeIf(op -> idBuscado.equals(op.getId()));
+        boolean removidoVista = this.vista.removerOpcionPorId(idBuscado);
+        return removidoModelo || removidoVista;
+    }
+
+    public OpcionMenu getOpcionPorId(String id) {
+        if (id == null) return null;
+        String idBuscado = id.trim().toLowerCase();
+        for (OpcionMenu opcion : opciones) {
+            if (idBuscado.equals(opcion.getId())) {
+                return opcion;
+            }
+        }
+        return null;
+    }
+
+    public OpcionMenu getOpcionPorTexto(String texto) {
+        if (texto == null) return null;
+        for (OpcionMenu opcion : opciones) {
+            if (texto.equalsIgnoreCase(opcion.getTexto())) {
+                return opcion;
+            }
+        }
+        return null;
+    }
+
+    public BotonMenu getBotonPorId(String id) {
+        return vista.getBotonPorId(id);
+    }
+
+    public BotonMenu getBotonPorTexto(String texto) {
+        return vista.getBotonPorTexto(texto);
+    }
+
+    public void ejecutarOpcion(String id) {
+        OpcionMenu opcion = getOpcionPorId(id);
+        if (opcion != null) {
+            opcion.ejecutar();
+        }
     }
 
     public static Sheet cargarSheetHudDesdeBaseDeDatos(GestorRecursos gestorRecursos) {
