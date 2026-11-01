@@ -94,13 +94,14 @@ public class App extends Application {
         }
         MenuControlador menuControlador = new MenuControlador(
             gestorRecursos,
-            gestorAudio,
+            gestorAudio.getObservadorSonido(),
             () -> iniciarPartida(stage),
             Platform::exit
         );
         Scene escena = new Scene(menuControlador.getVista(), 960, 720);
         stage.setScene(escena);
         stage.setTitle("Waves 2D");
+        MusicaJuego.MENU.reproducirEn(gestorAudio);
         stage.show();
     }
 

@@ -4,7 +4,7 @@ import motor.recursos.Extension;
 import motor.recursos.GestorAudio;
 
   public enum MusicaJuego {
-        MENU(Extension.Sonido.MP3, "Soundtrack/blinkenlights"),
+        MENU(Extension.Sonido.MP3, "Soundtrack/menu_0"),
         PARTIDA(Extension.Sonido.MP3,
             "Soundtrack/Heat Of Battle",
             "Soundtrack/Battle",
