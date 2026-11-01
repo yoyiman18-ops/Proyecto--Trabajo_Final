@@ -3,7 +3,7 @@ package motor.controlador;
 import motor.modelo.Activable;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.Ticking;
-import vista.VistaImagen;
+import motor.vista.VistaImagen;
 
 public interface ControladorEntidad extends Activable, Ticking
 {

@@ -13,7 +13,7 @@ import motor.modelo.graficos.GestorSheetAnimada;
 import motor.recursos.GestorAudio;
 import motor.util.Eje;
 import motor.util.observer.Observador;
-import vista.VistaImagen;
+import motor.vista.VistaImagen;
 
 public final class JugadorControlador implements ControladorEntidad,ReceptorEstadoAcciones {
     private final ModeloJugador modelo;

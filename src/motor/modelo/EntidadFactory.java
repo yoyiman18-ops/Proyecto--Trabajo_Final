@@ -36,10 +36,11 @@ public abstract class EntidadFactory {
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision
     ) {
+        if (nombre == null || nombre.isBlank() || nombre.isEmpty()) { throw new IllegalArgumentException("Nombre no puede ser nulo ni vacío"); }
+        this.nombre = nombre;
         this.idGlobal = idGlobal;
-        this.nombre = Objects.requireNonNullElse(nombre, "PLACEHOLDER");
-        this.hitboxFactory = hitboxFactory;
-        this.posicion = posicion != null ? posicion.clone() : new VecDouble2D();
+        this.hitboxFactory = Objects.requireNonNull(hitboxFactory, "HitboxFactory no puede ser nula.");
+        this.posicion = posicion != null ? posicion : new VecDouble2D();
         this.velocidad = velocidad != null ? velocidad.clone() : new VecDouble2D();
         this.aceleracion = aceleracion;
         this.friccion = friccion;
@@ -48,20 +49,12 @@ public abstract class EntidadFactory {
         this.interaccionesColision = interaccionesColision != null ? new ArrayList<>(interaccionesColision) : new ArrayList<>();
     }
 
-    public void setIdGlobal(int idGlobal) {
-        this.idGlobal = idGlobal;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = Objects.requireNonNull(nombre, "El nombre no puede ser nulo");
-    }
-
     public void setHitboxFactory(HitboxFactory hitboxFactory) {
         this.hitboxFactory = hitboxFactory;
     }
 
     public void setPosicion(VecDouble2D posicion) {
-        this.posicion = Objects.requireNonNull(posicion, "La posición no puede ser nula").clone();
+        this.posicion = Objects.requireNonNull(posicion, "La posición no puede ser nula");
     }
 
     public void setVelocidad(VecDouble2D velocidad) {

@@ -1,6 +1,5 @@
 package motor.modelo;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,7 +39,8 @@ implements ModeloEntidad {
         double aceleracion,
         double friccion,
         double velocidadMax,
-        List<EstrategiaExpiracion> estrategiasExpiracion
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision
     ) {
         this(
             idGlobal,
@@ -54,7 +54,8 @@ implements ModeloEntidad {
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
-            estrategiasExpiracion
+            estrategiasExpiracion,
+            interaccionesColision
         );
     }
 
@@ -70,7 +71,8 @@ implements ModeloEntidad {
         Notificador<VecDouble2D> notificadorPosicion,
         Notificador<ModeloEntidad> notificadorInstanciacion,
         Notificador<Integer> notificadorExpiracion,
-        List<EstrategiaExpiracion> estrategiasExpiracion
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision
     ) {
         this.activa = true;
         this.idGlobal = idGlobal;
@@ -88,8 +90,8 @@ implements ModeloEntidad {
             this.notificadorPosicion.suscribirObservador(hitbox);
             this.hitbox.cambio(this.posicion);
         }
-        this.interaccionesColision = new ArrayList<>();
-        this.estrategiasExpiracion = estrategiasExpiracion;
+        this.interaccionesColision = Objects.requireNonNull(interaccionesColision);
+        this.estrategiasExpiracion = Objects.requireNonNull(estrategiasExpiracion);
     }
 
     public void acelerar(Direccion direccion, double dt) {

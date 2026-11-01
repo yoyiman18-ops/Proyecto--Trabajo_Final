@@ -8,7 +8,7 @@ import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.recursos.GestorAudio;
 import motor.util.observer.Observador;
-import vista.VistaImagen;
+import motor.vista.VistaImagen;
 
 public final class EnemigoControlador implements ControladorEntidad {
     private final ModeloEnemigo modelo;

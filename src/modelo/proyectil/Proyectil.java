@@ -20,10 +20,11 @@ extends Entidad
         Hitbox hitbox,
         VecDouble2D posicion,
         VecDouble2D velocidad,
-        double daño,
         double tiempoVida,
         int penetracion,
-        List<EstrategiaExpiracion> estrategiasExpiracion
+        double daño,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision
     ) {
         super(
             idGlobal,
@@ -34,14 +35,13 @@ extends Entidad
             0.0,
             0.0,
             0.0,
-            estrategiasExpiracion
+            estrategiasExpiracion,
+            interaccionesColision
         );
-        if (!Double.isFinite(daño) || daño < 0) { throw new IllegalArgumentException("El daño debe ser finito y no negativo.");}
         if (!Double.isFinite(tiempoVida) || tiempoVida <= 0) { throw new IllegalArgumentException("El tiempo de vida debe ser positivo y finito."); }
-        this.añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(),daño));
+        if (daño > 0) { System.out.println("Hola"); añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(), daño)); }
         this.tiempoVida = tiempoVida;
         this.penetracion = penetracion;
-        añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(), daño));
     }
 
     @Override public void tick(double dt) {

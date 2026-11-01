@@ -26,7 +26,7 @@ import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
-import vista.VistaImagen;
+import motor.vista.VistaImagen;
 
 public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidadesPartida {
     private static final int ID_SHEET_JUGADOR = 1;

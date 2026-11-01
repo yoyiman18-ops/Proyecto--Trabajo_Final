@@ -1,12 +1,12 @@
 package main;
 
-import modelo.proyectil.ProyectilRojo;
+import modelo.proyectil.ProyectilRojoFactory;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
 import motor.persistencia.dao.sqlite.Conexion;
-import controlador.EntidadControlador;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Rectangle2D;
@@ -14,18 +14,21 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import modelo.EnsambladorControlador;
 import modelo.EstrategiaExpiracion;
 import modelo.EstrategiaExpiracionSimple;
 import modelo.EstrategiaExpiracionSpawnear;
 import modelo.ModeloEnemigo;
-import modelo.proyectil.EnsambladorControladorProyectil;
+import modelo.proyectil.EnsambladorControladorEntidad;
 import modelo.proyectil.Proyectil;
+import modelo.proyectil.ProyectilFactory;
 import motor.Motor;
 import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.HitboxRectangular;
 import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
 import motor.controlador.ControladorEntidad;
+import motor.controlador.EntidadControlador;
 import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
 import motor.entrada.GestorEntradaTeclado;
@@ -47,7 +50,7 @@ import motor.util.observer.Contador;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorFuerte;
 import motor.util.observer.Observador;
-import vista.VistaImagen;
+import motor.vista.VistaImagen;
 
 public class Test extends Application {
 
@@ -278,85 +281,32 @@ public class Test extends Application {
         gestorHud.setRecorte(sheetHUD.getRecortes().get(i).getNombreRecorte());
         gestorHud.suscribir(vistaHud.getObservadorRectangulo());
 
-        Sheet sheetProyectil = sheetDAO.cargar(6);
-        Proyectil modeloProyectil = new Proyectil(
-            6,
-            "proyectil",
-            new HitboxRectangular(
-                new java.awt.geom.Rectangle2D.Double(0.0, 0.0, 10.0, 10.0),
-                TipoHitbox.SOLIDA,
-                MascaraColision.of(CategoriaColision.ENEMIGO),
-                MascaraColision.of(CategoriaColision.ALIADO)
-            ),
-            new VecDouble2D(20,0),
-            new VecDouble2D(100,0),
-            2, 2, 1,
-            new ArrayList<>(List.of(new EstrategiaExpiracionSpawnear(
-                List.of(
-                    new Proyectil(
-                    5,
-                    "proyectil",
-                    new HitboxRectangular(
-                        new java.awt.geom.Rectangle2D.Double(0.0, 0.0, 10.0, 10.0),
-                        TipoHitbox.SOLIDA,
-                        MascaraColision.of(CategoriaColision.ENEMIGO),
-                        MascaraColision.of(CategoriaColision.ALIADO)
-                    ),
-                    new VecDouble2D(0,0),
-                    new VecDouble2D(500,0),
-                    2, 0.5, 2,null
-                ))
-            )))
+        ProyectilFactory proyectilFactory = new ProyectilRojoFactory(
+            MascaraColision.of(CategoriaColision.ALIADO),
+            MascaraColision.of(CategoriaColision.ENEMIGO),
+            new VecDouble2D(),
+            new VecDouble2D(200,0)
         );
-        VistaImagen vistaProyectil = new VistaImagen(sheetProyectil.getImagen());
-        GestorSheetAnimada gestorSheetProyectil = new GestorSheetAnimada(sheetProyectil);
-        EntidadControlador proyectilControlador = new EntidadControlador(
-            modeloProyectil, 
-            vistaProyectil,
-            gestorSheetProyectil
-        );
-
         
+        EnsambladorControladorEntidad ensamblador = new EnsambladorControladorEntidad(sheetDAO);
 
-        Sheet sheetProyectil2 = sheetDAO.cargar(5);
-        Proyectil modeloProyectil2 = new Proyectil(
-            4,
-            "proyectil",
-            new HitboxRectangular(
-                new java.awt.geom.Rectangle2D.Double(0.0, 0.0, 10.0, 10.0),
-                TipoHitbox.SOLIDA,
-                MascaraColision.of(CategoriaColision.ALIADO),
-                MascaraColision.of(CategoriaColision.ENEMIGO)
-            ),
-            new VecDouble2D(400,0),
-            new VecDouble2D(-100,0),
-            2, 2, 1,
-            new ArrayList<>(List.of(new EstrategiaExpiracionSimple()))
-        );
-        VistaImagen vistaProyectil2 = new VistaImagen(sheetProyectil2.getImagen());
-        GestorSheetAnimada gestorSheetProyectil2 = new GestorSheetAnimada(sheetProyectil);
-        EntidadControlador proyectilControlador2 = new EntidadControlador(
-            modeloProyectil2, 
-            vistaProyectil2,
-            gestorSheetProyectil2
-        );
+        motor.encolarControlador(ensamblador.crearControlador(proyectilFactory.get()));
 
-        Scene escena = new Scene(motor.getRoot(), 1080, 740);
+        ProyectilFactory proyectilFactory2 = new ProyectilRojoFactory(
+            MascaraColision.of(CategoriaColision.ENEMIGO),
+            MascaraColision.of(CategoriaColision.ALIADO),
+            new VecDouble2D(600,0),
+            new VecDouble2D(-200,0)
+        );
+        motor.encolarControlador(ensamblador.crearControlador(proyectilFactory2.get()));
+
+        Scene escena = new Scene(motor.getRoot(), 720, 720);
         stage.setScene(escena);
         stage.setTitle("TEST");
         stage.show();
+        motor.teclado().setEscenaRoot(escena);
 
         motor.iniciar();
-        motor.encolarControlador(proyectilControlador);
-
-        proyectilControlador.getEntidad().getNotificadorInstanciacion().suscribirObservador(e ->
-            {
-                motor.encolarControlador(crearControlador(e, vistaProyectil2, gestorSheetProyectil2));
-            }
-        );
+        
     }
-
-    private ControladorEntidad crearControlador(ModeloEntidad m, VistaImagen v, GestorSheetAnimada gs) {
-        return new EntidadControlador(m, v, gs);
-    } 
 }

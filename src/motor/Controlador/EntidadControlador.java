@@ -1,13 +1,12 @@
-package controlador;
+package motor.controlador;
 
 import java.util.Objects;
 
-import motor.controlador.ControladorEntidad;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.recursos.GestorAudio;
 import motor.util.observer.Observador;
-import vista.VistaImagen;
+import motor.vista.VistaImagen;
 
 public class EntidadControlador implements ControladorEntidad {
     private final ModeloEntidad modelo;
@@ -31,8 +30,8 @@ public class EntidadControlador implements ControladorEntidad {
         GestorAudio gestorAudio) {
         this.activo = true;
         this.gestorSheet = Objects.requireNonNull(gestorSheet, "El gestor de sheet no puede ser nulo");
-        this.modelo = Objects.requireNonNull(modelo, "El modelo del proyectil no puede ser nulo");
-        this.vista = Objects.requireNonNull(vista, "La vista del proyectil no puede ser nula");
+        this.modelo = Objects.requireNonNull(modelo, "El modelo no puede ser nulo");
+        this.vista = Objects.requireNonNull(vista, "La vista no puede ser nula");
         this.observadorExpiracion = this::alExpirar;
         this.modelo.getNotificadorExpiracion().suscribirObservador(observadorExpiracion);
         this.gestorSheet.setAnimacion("idle", false);
