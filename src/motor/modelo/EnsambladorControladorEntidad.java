@@ -1,8 +1,7 @@
-package modelo.proyectil;
+package motor.modelo;
 
 import motor.controlador.ControladorEntidad;
 import motor.controlador.EntidadControlador;
-import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;

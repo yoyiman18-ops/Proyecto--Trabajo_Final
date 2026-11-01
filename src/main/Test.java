@@ -14,11 +14,8 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import modelo.EnsambladorControlador;
 import modelo.EstrategiaExpiracionSimple;
 import modelo.EstrategiaExpiracionSpawnear;
-import modelo.ModeloEnemigo;
-import modelo.proyectil.EnsambladorControladorEntidad;
 import modelo.proyectil.Proyectil;
 import modelo.proyectil.ProyectilFactory;
 import motor.Motor;
@@ -33,6 +30,7 @@ import motor.entrada.EstadoAcciones;
 import motor.entrada.GestorEntradaTeclado;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
+import motor.modelo.EnsambladorControladorEntidad;
 import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
@@ -279,7 +277,7 @@ public class Test extends Application {
         VistaImagen vistaHud = new VistaImagen(sheetHUD.getImagen());
         GestorSheetEstatica gestorHud = new GestorSheetEstatica(sheetHUD);
         gestorHud.setAnimacion(sheetHUD.getRecortes().get(i).getNombreRecorte());
-        gestorHud.getNotificadorRectangulo().suscribirObservador(vistaHud.getObservadorRectangulo());
+        gestorHud.suscribir(vistaHud.getObservadorRectangulo());
 
         
         EnsambladorControladorEntidad ensamblador = new EnsambladorControladorEntidad(sheetDAO);
@@ -288,20 +286,18 @@ public class Test extends Application {
             MascaraColision.of(CategoriaColision.ALIADO),
             MascaraColision.of(CategoriaColision.ENEMIGO),
             new VecDouble2D(),
-            new VecDouble2D(50,0), 
+            new VecDouble2D(1, 0),
+            50.0,
             0,
             0,
             0
         );
-        
-        motor.encolarControlador(ensamblador.crearControlador(proyectilFactory2.get()));
 
         Scene escena = new Scene(motor.getRoot(), 720, 720);
         stage.setScene(escena);
         stage.setTitle("TEST");
         stage.show();
         motor.teclado().setEscenaRoot(escena);
-
         motor.iniciar();
         
     }

@@ -12,6 +12,8 @@ import motor.util.VecDouble2D;
 public class Proyectil
 extends Entidad
 {
+    private VecDouble2D direccion;
+    private double velocidad;
     private double tiempoVida;
     private int penetracion; // <0 para que tenga penetracion infinita
 
@@ -20,7 +22,8 @@ extends Entidad
         String nombre,
         Hitbox hitbox,
         VecDouble2D posicion,
-        VecDouble2D velocidad,
+        VecDouble2D direccion,
+        double velocidad,
         double aceleracion,
         double friccion,
         double velocidadMax,
@@ -31,21 +34,62 @@ extends Entidad
         List<Interaccion> interaccionesColision,
         String animacionDefault
     ) {
+        this(
+            idGlobal,
+            nombre,
+            hitbox,
+            posicion,
+            direccion,
+            velocidad,
+            aceleracion,
+            friccion,
+            velocidadMax,
+            tiempoVida,
+            penetracion,
+            daño,
+            estrategiasExpiracion,
+            interaccionesColision,
+            animacionDefault,
+            "expirar"
+        );
+    }
+
+    public Proyectil(
+        int idGlobal,
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        VecDouble2D direccion,
+        double velocidad,
+        double aceleracion,
+        double friccion,
+        double velocidadMax,
+        double tiempoVida,
+        int penetracion,
+        double daño,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision,
+        String animacionDefault,
+        String animacionExpirar
+    ) {
         super(
             idGlobal,
             nombre,
             hitbox,
             posicion,
-            velocidad,
+            direccion.clone().normalizar().producto(velocidad),
             aceleracion,
             friccion,
             velocidadMax,
             estrategiasExpiracion,
             interaccionesColision,
-            animacionDefault
+            animacionDefault,
+            animacionExpirar
         );
         if (!Double.isFinite(tiempoVida) || tiempoVida <= 0) { throw new IllegalArgumentException("El tiempo de vida debe ser positivo y finito."); }
         if (daño > 0) { System.out.println("Hola"); añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(), daño)); }
+        this.direccion = direccion.clone().normalizar();
+        this.velocidad = velocidad;
         this.tiempoVida = tiempoVida;
         this.penetracion = penetracion;
     }
@@ -73,6 +117,9 @@ extends Entidad
         if (penetracion <= 0) { expirar(); }
         return true;
     }
+
+    public VecDouble2D getDireccion() { return this.direccion.clone(); }
+    public double getVelocidadDouble() { return this.velocidad; }
 
     private boolean estaExpirado() { return tiempoVida == 0; }
 }

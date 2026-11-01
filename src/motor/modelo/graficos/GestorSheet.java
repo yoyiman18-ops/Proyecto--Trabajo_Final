@@ -16,7 +16,9 @@ public abstract class GestorSheet {
         this.observadorAnimacion = this::setAnimacion;
     }
 
-    public Notificador<Rectangle2D> getNotificadorRectangulo() { return this.notificadorRectangulo; }
+    public void suscribir(Observador<Rectangle2D> o) { this.notificadorRectangulo.suscribirObservador(o); o.cambio(getRectangulo()); }
+    public void desuscribir(Observador<Rectangle2D> o) { this.notificadorRectangulo.desuscribirObservador(o); }
+    public void notificar() { this.notificadorRectangulo.notificar(getRectangulo()); }
     public Observador<String> getObservadorAnimacion() { return this.observadorAnimacion; }
 
     protected Sheet getSheet() { return this.spriteSheet; }

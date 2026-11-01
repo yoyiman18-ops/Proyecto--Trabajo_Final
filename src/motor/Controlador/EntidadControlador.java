@@ -35,7 +35,8 @@ public class EntidadControlador implements ControladorEntidad {
         this.observadorExpiracion = this::alExpirar;
         this.modelo.getNotificadorExpiracion().suscribirObservador(observadorExpiracion);
         this.gestorSheet.setAnimacion(modelo.getAnimacionDefault());
-        this.gestorSheet.getNotificadorRectangulo().suscribirObservador(this.vista.getObservadorRectangulo());
+        this.gestorSheet.suscribir(this.vista.getObservadorRectangulo());
+        this.modelo.getNotificadorAnimacion().suscribirObservador(this.gestorSheet.getObservadorAnimacion());
         this.modelo.getNotificadorPosicion().suscribirObservador(this.vista.getObservadorPosicion());
     }
 
@@ -51,14 +52,9 @@ public class EntidadControlador implements ControladorEntidad {
         gestorSheet.tick(dt);
     }
 
-    private void alExpirar(int e) {
-        if (gestorSheet.setAnimacion("expirar")) {
-            gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
+    private void alExpirar(int e) {    
+        gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
                 f -> { vista.setVisible(false); setActivo(false); }
             );
-        } else {
-            vista.setVisible(false);
-            setActivo(false);
-        }
-    }
+        } 
 }

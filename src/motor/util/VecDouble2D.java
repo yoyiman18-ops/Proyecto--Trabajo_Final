@@ -23,10 +23,10 @@ public class VecDouble2D implements Cloneable {
 
     public double getX() { return x; }
     public double getY() { return y; } 
-    public void setX(double x) { this.x = x; }
-    public void setY(double y) { this.y = y; }
+    public VecDouble2D setX(double x) { this.x = x; return this; }
+    public VecDouble2D setY(double y) { this.y = y; return this; }
 
-    public void normalizar() {
+    public VecDouble2D normalizar() {
         if (x != 0 || y != 0) {
             double magnitud = Math.sqrt(x * x + y * y);
             if (magnitud != 1) {
@@ -34,35 +34,41 @@ public class VecDouble2D implements Cloneable {
                 y = y/magnitud;
             }
         }
+        return this;
     }
 
-    public void sumar(VecDouble2D otro) {
+    public VecDouble2D sumar(VecDouble2D otro) {
         this.x += otro.getX();
         this.y += otro.getY();
+        return this;
     }
 
-    public void sumar(double x, Eje eje) {
+    public VecDouble2D sumar(double x, Eje eje) {
         switch (eje) {
             case Eje.X -> this.x += x;
             case Eje.Y -> this.y += x;
         }
+        return this;
     }
 
-    public void restar(VecDouble2D otro) {
+    public VecDouble2D restar(VecDouble2D otro) {
         this.x -= otro.getX();
         this.y -= otro.getY();
+        return this;
     }
 
-    public void restar(double x, Eje eje) {
+    public VecDouble2D restar(double x, Eje eje) {
         switch (eje) {
-            case Eje.X -> this.x -= x;
-            case Eje.Y -> this.y -= x;
+            case Eje.X -> this.x += x;
+            case Eje.Y -> this.y += x;
         }
+        return this;
     }
 
-    public void producto(double x) {
+    public VecDouble2D producto(double x) {
         this.x *= x;
         this.y *= x;
+        return this;
     }
 
     public VecDouble2D normalizado() {

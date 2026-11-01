@@ -32,7 +32,7 @@ implements Ticking
         this.indiceFinal = a.getFrames().size() - 1;
         cs.setIntervaloSegundos(((double) animacionActual.getFrames().getFirst().getDuracion()) / 1000);
         indiceActual = 0; cs.reset();
-        getNotificadorRectangulo().notificar(a.getFrames().get(indiceActual).getRecorte().getRectangulo());
+        notificar();
         notificadorFinAnimacion.notificar(true);
         notificadorFinAnimacion.limpiarObservadores();
         return true;
@@ -44,13 +44,13 @@ implements Ticking
     private boolean avanzarFrame(int numeroFrames) {
         if (animacionActual.esBucle()) { 
             this.indiceActual = (indiceActual + numeroFrames) % (indiceFinal + 1);
-            getNotificadorRectangulo().notificar(getRectangulo());
+            notificar();
             return true;
         }
         else {
             if (fin()) { return false; }
             this.indiceActual = Math.min(indiceActual + numeroFrames, indiceFinal);
-            getNotificadorRectangulo().notificar(getRectangulo());
+            notificar();
             if (fin()) { notificadorFinAnimacion.notificar(true); }
             return true;
         }

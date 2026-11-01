@@ -11,7 +11,8 @@ public class ProyectilRojo extends Proyectil {
 
     public ProyectilRojo(
         VecDouble2D posicion,
-        VecDouble2D velocidad,
+        VecDouble2D direccion,
+        double velocidad,
         Hitbox hitbox,
         double dañoAdicional,
         double tiempoVidaAdicional,
@@ -19,11 +20,38 @@ public class ProyectilRojo extends Proyectil {
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision
     ) {
+        this(
+            posicion,
+            direccion,
+            velocidad,
+            hitbox,
+            dañoAdicional,
+            tiempoVidaAdicional,
+            penetracionAdicional,
+            estrategiasExpiracion,
+            interaccionesColision,
+            "expirar"
+        );
+    }
+
+    public ProyectilRojo(
+        VecDouble2D posicion,
+        VecDouble2D direccion,
+        double velocidad,
+        Hitbox hitbox,
+        double dañoAdicional,
+        double tiempoVidaAdicional,
+        int penetracionAdicional,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision,
+        String animacionExpirar
+    ) {
         super(
             4,
             "Proyectil Rojo",
             hitbox,
             posicion,
+            direccion,
             velocidad,
             0,
             0,
@@ -33,8 +61,8 @@ public class ProyectilRojo extends Proyectil {
             1 + dañoAdicional,
             estrategiasExpiracion,
             interaccionesColision,
-            "idle"
+            "idle",
+            animacionExpirar
         );
-
     }
 }

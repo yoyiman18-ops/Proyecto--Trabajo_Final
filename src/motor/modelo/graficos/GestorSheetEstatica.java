@@ -10,7 +10,7 @@ public class GestorSheetEstatica extends GestorSheet {
     @Override public boolean setAnimacion(String nombre) { 
         Recorte r = getSheet().getRecorte(nombre); 
         if (r == null) { return false;} 
-        else { recorteActual = r; this.getNotificadorRectangulo().notificar(recorteActual.getRectangulo()); return true; }
+        else { recorteActual = r; notificar(); return true; }
     }
 
     @Override
