@@ -1,6 +1,6 @@
 package modelo.proyectil;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.EstrategiaExpiracion;
@@ -11,22 +11,58 @@ public class ProyectilRojo extends Proyectil {
 
     public ProyectilRojo(
         VecDouble2D posicion,
-        VecDouble2D velocidad,
+        VecDouble2D direccion,
+        double velocidad,
         Hitbox hitbox,
-        ArrayList<EstrategiaExpiracion> estrategiasExpiracion,
-        ArrayList<Interaccion> interaccionesColision
+        double dañoAdicional,
+        double tiempoVidaAdicional,
+        int penetracionAdicional,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision
+    ) {
+        this(
+            posicion,
+            direccion,
+            velocidad,
+            hitbox,
+            dañoAdicional,
+            tiempoVidaAdicional,
+            penetracionAdicional,
+            estrategiasExpiracion,
+            interaccionesColision,
+            "expirar"
+        );
+    }
+
+    public ProyectilRojo(
+        VecDouble2D posicion,
+        VecDouble2D direccion,
+        double velocidad,
+        Hitbox hitbox,
+        double dañoAdicional,
+        double tiempoVidaAdicional,
+        int penetracionAdicional,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision,
+        String animacionExpirar
     ) {
         super(
             4,
             "Proyectil Rojo",
             hitbox,
             posicion,
+            direccion,
             velocidad,
-            3,
-            2,
-            1,
+            0,
+            0,
+            1000,
+            1 + tiempoVidaAdicional,
+            1 + penetracionAdicional,
+            1 + dañoAdicional,
             estrategiasExpiracion,
-            interaccionesColision
+            interaccionesColision,
+            "idle",
+            animacionExpirar
         );
     }
 }

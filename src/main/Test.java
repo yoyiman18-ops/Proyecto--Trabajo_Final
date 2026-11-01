@@ -14,12 +14,8 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import modelo.EnsambladorControlador;
-import modelo.EstrategiaExpiracion;
 import modelo.EstrategiaExpiracionSimple;
 import modelo.EstrategiaExpiracionSpawnear;
-import modelo.ModeloEnemigo;
-import modelo.proyectil.EnsambladorControladorEntidad;
 import modelo.proyectil.Proyectil;
 import modelo.proyectil.ProyectilFactory;
 import motor.Motor;
@@ -34,6 +30,8 @@ import motor.entrada.EstadoAcciones;
 import motor.entrada.GestorEntradaTeclado;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
+import motor.modelo.EnsambladorControladorEntidad;
+import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.modelo.graficos.GestorSheetEstatica;
@@ -278,34 +276,28 @@ public class Test extends Application {
         Sheet sheetHUD = sheetDAO.cargar(2);
         VistaImagen vistaHud = new VistaImagen(sheetHUD.getImagen());
         GestorSheetEstatica gestorHud = new GestorSheetEstatica(sheetHUD);
-        gestorHud.setRecorte(sheetHUD.getRecortes().get(i).getNombreRecorte());
+        gestorHud.setAnimacion(sheetHUD.getRecortes().get(i).getNombreRecorte());
         gestorHud.suscribir(vistaHud.getObservadorRectangulo());
 
-        ProyectilFactory proyectilFactory = new ProyectilRojoFactory(
-            MascaraColision.of(CategoriaColision.ALIADO),
-            MascaraColision.of(CategoriaColision.ENEMIGO),
-            new VecDouble2D(),
-            new VecDouble2D(200,0)
-        );
         
         EnsambladorControladorEntidad ensamblador = new EnsambladorControladorEntidad(sheetDAO);
 
-        motor.encolarControlador(ensamblador.crearControlador(proyectilFactory.get()));
-
         ProyectilFactory proyectilFactory2 = new ProyectilRojoFactory(
-            MascaraColision.of(CategoriaColision.ENEMIGO),
             MascaraColision.of(CategoriaColision.ALIADO),
-            new VecDouble2D(600,0),
-            new VecDouble2D(-200,0)
+            MascaraColision.of(CategoriaColision.ENEMIGO),
+            new VecDouble2D(),
+            new VecDouble2D(1, 0),
+            50.0,
+            0,
+            0,
+            0
         );
-        motor.encolarControlador(ensamblador.crearControlador(proyectilFactory2.get()));
 
         Scene escena = new Scene(motor.getRoot(), 720, 720);
         stage.setScene(escena);
         stage.setTitle("TEST");
         stage.show();
         motor.teclado().setEscenaRoot(escena);
-
         motor.iniciar();
         
     }

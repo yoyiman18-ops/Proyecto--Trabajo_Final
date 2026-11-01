@@ -49,6 +49,9 @@ import motor.colisiones.sistema.FaseEspecificaSimple;
 import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.controlador.ControladorEntidad;
 import motor.entrada.GestorEntradaTeclado;
+import motor.modelo.EnsambladorControladorEntidad;
+import motor.modelo.Entidad;
+import motor.modelo.ModeloEntidad;
 import motor.modelo.Ticking;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
@@ -63,6 +66,7 @@ public class Motor implements Ticking {
     private final GestorRecursos gestorRecursos;
     private final GestorEntradaTeclado gestorEntradaTeclado;
     private final RelojDelta relojDelta;
+    private final EnsambladorControladorEntidad ensambladorControladorEntidad;
     
     private final List<ControladorEntidad> controladores;
     private final List<Colisionable> colisionables;
@@ -116,6 +120,7 @@ public class Motor implements Ticking {
         this.colaLimpieza = new ArrayDeque<>();
         this.conexion = Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db");
         this.sheetDAO = new SheetDAOSQLite(conexion.getConexion(), gestorRecursos);
+        this.ensambladorControladorEntidad = new EnsambladorControladorEntidad(sheetDAO);
         this.pausa = false;
         
         // el observador más importante del sistema, propaga los ticks a todos los demás
@@ -153,13 +158,18 @@ public class Motor implements Ticking {
     public void detener() { this.relojDelta.detener(); }
     public void setPausa(boolean pausa) { this.pausa = pausa; }
 
-    public void encolarControlador(ControladorEntidad c) { colaInstanciacion.add(c); }
+    public void ensamblarEntidad(ModeloEntidad e) { 
+        encolarControlador(ensambladorControladorEntidad.crearControlador(e));
+    }
+
+    protected  void encolarControlador(ControladorEntidad c) { colaInstanciacion.add(c); }
     
     private void instanciarControladores() {
         ControladorEntidad c;
         while ((c = colaInstanciacion.poll()) != null) {
             controladores.add(c);
             getRoot().getChildren().add(c.getVista());
+            c.getEntidad().getNotificadorInstanciacion().suscribirObservador(this::ensamblarEntidad);
         }
     }
 

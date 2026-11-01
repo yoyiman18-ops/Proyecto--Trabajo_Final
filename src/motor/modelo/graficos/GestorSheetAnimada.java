@@ -25,14 +25,13 @@ implements Ticking
         this.notificadorFinAnimacion = new NotificadorFuerte<>();
     }
     
-    public boolean setAnimacion(String nombre, boolean conservarFrame) { 
+    public boolean setAnimacion(String nombre) { 
         Animacion a = getSheet().getAnimacion(nombre);
         if (a == null) { return false; }
         this.animacionActual = a;
         this.indiceFinal = a.getFrames().size() - 1;
         cs.setIntervaloSegundos(((double) animacionActual.getFrames().getFirst().getDuracion()) / 1000);
-        if (conservarFrame) { if (indiceFinal < indiceActual) { indiceActual = indiceFinal; }}
-        else { indiceActual = 0; cs.reset(); }
+        indiceActual = 0; cs.reset();
         notificar();
         notificadorFinAnimacion.notificar(true);
         notificadorFinAnimacion.limpiarObservadores();
@@ -69,4 +68,5 @@ implements Ticking
     protected Rectangle2D getRectangulo() {
         return animacionActual.getFrames().get(indiceActual).getRecorte().getRectangulo();
     }
+
 }

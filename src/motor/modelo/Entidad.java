@@ -28,6 +28,10 @@ implements ModeloEntidad {
     private final Notificador<VecDouble2D> notificadorPosicion;
     private final Notificador<ModeloEntidad> notificadorInstanciacion;
     private final Notificador<Integer> notificadorExpiracion;
+    private final Notificador<String> notificadorAnimacion;
+
+    private final String animacionDefault;
+    private final String animacionExpirar;
 
     public Entidad(
         int idGlobal,
@@ -39,7 +43,38 @@ implements ModeloEntidad {
         double friccion,
         double velocidadMax,
         List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision
+        List<Interaccion> interaccionesColision,
+        String animacionDefault
+    ) {
+        this(
+            idGlobal,
+            nombre,
+            hitbox,
+            posicion,
+            velocidad,
+            aceleracion,
+            friccion,
+            velocidadMax,
+            estrategiasExpiracion,
+            interaccionesColision,
+            animacionDefault,
+            "expirar"
+        );
+    }
+
+    public Entidad(
+        int idGlobal,
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        VecDouble2D velocidad,
+        double aceleracion,
+        double friccion,
+        double velocidadMax,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision,
+        String animacionDefault,
+        String animacionExpirar
     ) {
         this(
             idGlobal,
@@ -53,8 +88,11 @@ implements ModeloEntidad {
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
             estrategiasExpiracion,
-            interaccionesColision
+            interaccionesColision,
+            animacionDefault,
+            animacionExpirar
         );
     }
 
@@ -70,8 +108,11 @@ implements ModeloEntidad {
         Notificador<VecDouble2D> notificadorPosicion,
         Notificador<ModeloEntidad> notificadorInstanciacion,
         Notificador<Integer> notificadorExpiracion,
+        Notificador<String> notificadorAnimacion,
         List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision
+        List<Interaccion> interaccionesColision,
+        String animacionDefault,
+        String animacionExpirar
     ) {
         this.activa = true;
         this.idGlobal = idGlobal;
@@ -85,12 +126,15 @@ implements ModeloEntidad {
         this.notificadorPosicion = Objects.requireNonNull(notificadorPosicion, "El notificadorPosicion no puede ser nulo");
         this.notificadorInstanciacion = Objects.requireNonNull(notificadorInstanciacion, "El notificadorInstanciacion no puede ser nulo");
         this.notificadorExpiracion = Objects.requireNonNull(notificadorExpiracion, "El notificadorExpiracion no puede ser nulo");
+        this.notificadorAnimacion = Objects.requireNonNull(notificadorAnimacion, "El notificadorAnimacion no puede ser nulo");
         if (this.hitbox != null && this.posicion != null) {
             this.notificadorPosicion.suscribirObservador(hitbox);
             this.hitbox.cambio(this.posicion);
         }
         this.interaccionesColision = Objects.requireNonNull(interaccionesColision);
         this.estrategiasExpiracion = Objects.requireNonNull(estrategiasExpiracion);
+        this.animacionDefault = animacionDefault;
+        this.animacionExpirar = animacionExpirar;
     }
 
     public void acelerar(Direccion direccion, double dt) {
@@ -134,10 +178,13 @@ implements ModeloEntidad {
     public double getAceleracion() { return this.aceleracion; }
     public double getFriccion() { return this.friccion; }
     public double getVelocidadMax() { return this.velocidadMax; }
+    @Override public String getAnimacionDefault() { return this.animacionDefault; }
+    @Override public String getAnimacionExpirar() { return this.animacionExpirar; }
 
     @Override public Notificador<VecDouble2D> getNotificadorPosicion() { return this.notificadorPosicion; }
     @Override public Notificador<ModeloEntidad> getNotificadorInstanciacion() { return this.notificadorInstanciacion; }
     @Override public Notificador<Integer> getNotificadorExpiracion() { return this.notificadorExpiracion; }
+    @Override public Notificador<String> getNotificadorAnimacion() { return this.notificadorAnimacion; }
 
     public void setVelocidadMax(double velocidadMax) {
         if (!Double.isFinite(velocidadMax) || velocidadMax < 0) {
@@ -176,6 +223,9 @@ implements ModeloEntidad {
         int estado = 0; // >= 1 para forzar terminación
         if (estrategiasExpiracion != null) { 
             for (EstrategiaExpiracion e : estrategiasExpiracion) { if ((estado = e.ejecutar(this)) >= 1) {continue; };}
+        }
+        if (animacionExpirar != null) {
+            getNotificadorAnimacion().notificar(animacionExpirar);
         }
         getNotificadorExpiracion().notificar(estado);
     }
