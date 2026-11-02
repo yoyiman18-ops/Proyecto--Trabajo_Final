@@ -13,45 +13,20 @@ public class ProyectilRojoFactory extends ProyectilFactory {
         VecDouble2D posicion,
         VecDouble2D direccion,
         double velocidad,
-        double dañoAdicional,
-        double tiempoVidaAdicional,
-        int penetracionAdicional
-    ) {
-        this(
-            categoriasColision,
-            capasColision,
-            posicion,
-            direccion,
-            velocidad,
-            dañoAdicional,
-            tiempoVidaAdicional,
-            penetracionAdicional,
-            "expirar"
-        );
-    }
-
-    public ProyectilRojoFactory(
-        MascaraColision categoriasColision,
-        MascaraColision capasColision,
-        VecDouble2D posicion,
-        VecDouble2D direccion,
-        double velocidad,
-        double dañoAdicional,
         double tiempoVidaAdicional,
         int penetracionAdicional,
-        String animacionExpirar
+        double dañoAdicional
     ) {
         super(
-            new HitboxRectangularFactory(16, 16, TipoHitbox.FANTASMA, categoriasColision, capasColision),
+            new HitboxRectangularFactory(16, 16, TipoHitbox.SOLIDA, categoriasColision, capasColision),
             posicion,
             direccion,
             velocidad,
-            dañoAdicional,
             tiempoVidaAdicional,
             penetracionAdicional,
+            dañoAdicional,
             new ArrayList<>(),
-            new ArrayList<>(),
-            animacionExpirar
+            new ArrayList<>()
         );
     }
 
@@ -65,8 +40,7 @@ public class ProyectilRojoFactory extends ProyectilFactory {
             getTiempoVidaAdicional(),
             getPenetracionAdicional(),
             getEstrategiasExpiracion(),
-            getInteraccionesColision(),
-            getAnimacionExpirar()
+            getInteraccionesColision()
         );
 
     }

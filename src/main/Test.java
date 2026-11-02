@@ -18,9 +18,13 @@ import modelo.EstrategiaExpiracionSimple;
 import modelo.EstrategiaExpiracionSpawnear;
 import modelo.proyectil.Proyectil;
 import modelo.proyectil.ProyectilFactory;
+import modelo.proyectil.ProyectilRojo;
 import motor.Motor;
 import motor.colisiones.hitboxes.CategoriaColision;
+import motor.colisiones.hitboxes.Hitbox;
+import motor.colisiones.hitboxes.HitboxFactory;
 import motor.colisiones.hitboxes.HitboxRectangular;
+import motor.colisiones.hitboxes.HitboxRectangularFactory;
 import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
 import motor.controlador.ControladorEntidad;
@@ -31,7 +35,9 @@ import motor.entrada.GestorEntradaTeclado;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
 import motor.modelo.EnsambladorControladorEntidad;
+import motor.modelo.Entidad;
 import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.modelo.graficos.GestorSheetEstatica;
@@ -279,19 +285,38 @@ public class Test extends Application {
         gestorHud.setAnimacion(sheetHUD.getRecortes().get(i).getNombreRecorte());
         gestorHud.suscribir(vistaHud.getObservadorRectangulo());
 
-        
-        EnsambladorControladorEntidad ensamblador = new EnsambladorControladorEntidad(sheetDAO);
 
         ProyectilFactory proyectilFactory2 = new ProyectilRojoFactory(
             MascaraColision.of(CategoriaColision.ALIADO),
             MascaraColision.of(CategoriaColision.ENEMIGO),
             new VecDouble2D(),
-            new VecDouble2D(1, 0),
-            50.0,
-            0,
-            0,
-            0
+            VecDouble2D.derecha(),
+            120.0,
+            10,
+            100,
+            -1
         );
+
+        motor.ensamblarEntidad(proyectilFactory2.get());
+        HitboxRectangularFactory hb =
+        new HitboxRectangularFactory(32, 32, TipoHitbox.INAMOVIBLE,
+            MascaraColision.of(CategoriaColision.ENEMIGO),
+            MascaraColision.of(CategoriaColision.ALIADO)
+        );
+
+        ProyectilRojo pr = new ProyectilRojo(
+            new VecDouble2D(500,0),
+            VecDouble2D.izquierda(),
+            0,
+            hb.getHitbox(),
+            -1,
+            5,
+            500,
+            new ArrayList<>(),
+            new ArrayList<>()
+        );
+
+        motor.ensamblarEntidad(pr);
 
         Scene escena = new Scene(motor.getRoot(), 720, 720);
         stage.setScene(escena);
@@ -299,6 +324,6 @@ public class Test extends Application {
         stage.show();
         motor.teclado().setEscenaRoot(escena);
         motor.iniciar();
-        
+
     }
 }

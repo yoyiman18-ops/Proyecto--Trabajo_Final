@@ -12,47 +12,21 @@ import motor.util.VecDouble2D;
 public abstract class ProyectilFactory extends EntidadFactory {
     private VecDouble2D direccion;
     private double velocidad;
-    private double tiempoVida;
-    private int penetracion;
-    private double daño;
-    private String animacionExpirar;
+    private double tiempoVidaAdicional;
+    private int penetracionAdicional;
+    private double dañoAdicional;
+
 
     public ProyectilFactory(
         HitboxFactory hitboxFactory,
         VecDouble2D posicion,
         VecDouble2D direccion,
         double velocidad,
-        double daño,
         double tiempoVida,
         int penetracion,
+        double daño,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision
-    ) {
-        this(
-            hitboxFactory,
-            posicion,
-            direccion,
-            velocidad,
-            daño,
-            tiempoVida,
-            penetracion,
-            estrategiasExpiracion,
-            interaccionesColision,
-            "expirar"
-        );
-    }
-
-    public ProyectilFactory(
-        HitboxFactory hitboxFactory,
-        VecDouble2D posicion,
-        VecDouble2D direccion,
-        double velocidad,
-        double daño,
-        double tiempoVida,
-        int penetracion,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision,
-        String animacionExpirar
     ) {
         this(
             hitboxFactory,
@@ -64,10 +38,9 @@ public abstract class ProyectilFactory extends EntidadFactory {
             1000.0,
             estrategiasExpiracion,
             interaccionesColision,
-            daño,
             tiempoVida,
             penetracion,
-            animacionExpirar
+            daño
         );
     }
 
@@ -81,41 +54,9 @@ public abstract class ProyectilFactory extends EntidadFactory {
         double velocidadMax,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision,
-        double daño,
-        double tiempoVida,
-        int penetracion
-    ) {
-        this(
-            hitboxFactory,
-            posicion,
-            direccion,
-            velocidad,
-            aceleracion,
-            friccion,
-            velocidadMax,
-            estrategiasExpiracion,
-            interaccionesColision,
-            daño,
-            tiempoVida,
-            penetracion,
-            "expirar"
-        );
-    }
-
-    public ProyectilFactory(
-        HitboxFactory hitboxFactory,
-        VecDouble2D posicion,
-        VecDouble2D direccion,
-        double velocidad,
-        double aceleracion,
-        double friccion,
-        double velocidadMax,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision,
-        double daño,
         double tiempoVida,
         int penetracion,
-        String animacionExpirar
+        double daño
     ) {
         super(
             hitboxFactory,
@@ -132,27 +73,22 @@ public abstract class ProyectilFactory extends EntidadFactory {
         setTiempoVidaAdicional(tiempoVida);
         setPenetracionAdicional(penetracion);
         setDañoAdicional(daño);
-        setAnimacionExpirar(animacionExpirar);
     }
 
     public void setTiempoVidaAdicional(double tiempoVida) {
         if (!Double.isFinite(tiempoVida)) {
             throw new IllegalArgumentException("El tiempo de vida debe ser finito");
         }
-        this.tiempoVida = Math.max(0,tiempoVida);
+        this.tiempoVidaAdicional = tiempoVida;
     }
 
     public void setPenetracionAdicional(int penetracion) {
-        this.penetracion = Math.max(-1,penetracion);
+        this.penetracionAdicional = Math.max(-1,penetracion);
     }
 
     public void setDañoAdicional(double daño) {
         if (!Double.isFinite(daño)) { throw new IllegalArgumentException("Daño debe ser finito"); }
-        this.daño = Math.max(0.0, daño);
-    }
-
-    public void setAnimacionExpirar(String animacionExpirar) {
-        this.animacionExpirar = animacionExpirar;
+        this.dañoAdicional = Math.max(0.0, daño);
     }
 
     public void setDireccion(VecDouble2D direccion) {
@@ -169,11 +105,9 @@ public abstract class ProyectilFactory extends EntidadFactory {
 
     public VecDouble2D getDireccion() { return this.direccion != null ? this.direccion.clone() : new VecDouble2D(); }
     public double getVelocidadDouble() { return this.velocidad; }
-
-    public double getDañoAdicional() { return this.daño; }
-    public double getTiempoVidaAdicional() { return this.tiempoVida; }
-    public int getPenetracionAdicional() { return this.penetracion; }
-    public String getAnimacionExpirar() { return this.animacionExpirar; }
+    public double getDañoAdicional() { return this.dañoAdicional; }
+    public double getTiempoVidaAdicional() { return this.tiempoVidaAdicional; }
+    public int getPenetracionAdicional() { return this.penetracionAdicional; }
 
     @Override
     public abstract Proyectil get();

@@ -27,48 +27,11 @@ extends Entidad
         double aceleracion,
         double friccion,
         double velocidadMax,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision,
         double tiempoVida,
         int penetracion,
         double daño,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision,
-        String animacionDefault
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            direccion,
-            velocidad,
-            aceleracion,
-            friccion,
-            velocidadMax,
-            tiempoVida,
-            penetracion,
-            daño,
-            estrategiasExpiracion,
-            interaccionesColision,
-            animacionDefault,
-            "expirar"
-        );
-    }
-
-    public Proyectil(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        VecDouble2D direccion,
-        double velocidad,
-        double aceleracion,
-        double friccion,
-        double velocidadMax,
-        double tiempoVida,
-        int penetracion,
-        double daño,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision,
         String animacionDefault,
         String animacionExpirar
     ) {
@@ -91,7 +54,7 @@ extends Entidad
         this.direccion = direccion.clone().normalizar();
         this.velocidad = velocidad;
         this.tiempoVida = tiempoVida;
-        this.penetracion = penetracion;
+        this.penetracion = Math.max(-1,penetracion);
     }
 
     @Override public void tick(double dt) {

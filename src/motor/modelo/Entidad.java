@@ -1,10 +1,12 @@
 package motor.modelo;
 
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.Objects;
 
 import motor.colisiones.Colisionable;
 import motor.colisiones.hitboxes.Hitbox;
+import motor.colisiones.hitboxes.TipoHitbox;
 import motor.util.Eje;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
@@ -111,6 +113,43 @@ implements ModeloEntidad {
         Notificador<String> notificadorAnimacion,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision,
+        String animacionDefault
+    ) {
+        this(
+            idGlobal,
+            nombre,
+            hitbox,
+            posicion,
+            velocidad,
+            aceleracion,
+            friccion,
+            velocidadMax,
+            notificadorPosicion,
+            notificadorInstanciacion,
+            notificadorExpiracion,
+            notificadorAnimacion,
+            estrategiasExpiracion,
+            interaccionesColision,
+            animacionDefault,
+            "expirar"
+        );
+    }
+
+    public Entidad(
+        int idGlobal,
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        VecDouble2D velocidad,
+        double aceleracion,
+        double friccion,
+        double velocidadMax,
+        Notificador<VecDouble2D> notificadorPosicion,
+        Notificador<ModeloEntidad> notificadorInstanciacion,
+        Notificador<Integer> notificadorExpiracion,
+        Notificador<String> notificadorAnimacion,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision,
         String animacionDefault,
         String animacionExpirar
     ) {
@@ -174,7 +213,12 @@ implements ModeloEntidad {
     public String getNombre() { return this.nombre; }
     public VecDouble2D getVelocidad() { return this.velocidad; }
     @Override public VecDouble2D getPosicion() { return this.posicion; }
-    @Override public void setPosicion(VecDouble2D posicion) { this.posicion = posicion.clone(); }
+    @Override public void setPosicion(VecDouble2D posicion) {
+        this.posicion = Objects.requireNonNull(posicion, "Posicion no puede ser nula").clone();
+        if (this.notificadorPosicion != null) {
+            this.notificadorPosicion.notificar(this.posicion);
+        }
+    }
     public double getAceleracion() { return this.aceleracion; }
     public double getFriccion() { return this.friccion; }
     public double getVelocidadMax() { return this.velocidadMax; }
@@ -201,6 +245,53 @@ implements ModeloEntidad {
 
     @Override public void colisionar(Colisionable o) {
         for (Interaccion i : interaccionesColision) { o.interactuar(i); }
+        resolverColisionFisica(o);
+    }
+
+    private void resolverColisionFisica(Colisionable o) {
+        if (o == null || this.getHitbox() == null || o.getHitbox() == null) { return; }
+
+        TipoHitbox tipoPropio = this.getHitbox().getTipo();
+        TipoHitbox tipoOtro = o.getHitbox().getTipo();
+
+        if (tipoPropio == TipoHitbox.FANTASMA || tipoOtro == TipoHitbox.FANTASMA
+            || tipoPropio == TipoHitbox.INAMOVIBLE) { return; }
+
+        if (!this.getHitbox().intersecta(o.getHitbox())) { return; }
+
+        Rectangle2D b1 = this.getHitbox().getBounds();
+        Rectangle2D b2 = o.getHitbox().getBounds();
+
+        double overlapLeft = b1.getMaxX() - b2.getMinX();
+        double overlapRight = b2.getMaxX() - b1.getMinX();
+        double overlapUp = b1.getMaxY() - b2.getMinY();
+        double overlapDown = b2.getMaxY() - b1.getMinY();
+
+        if (overlapLeft <= 0 || overlapRight <= 0 || overlapUp <= 0 || overlapDown <= 0) { return; }
+
+        double pushX = (overlapLeft < overlapRight) ? -overlapLeft : overlapRight;
+        double pushY = (overlapUp < overlapDown) ? -overlapUp : overlapDown;
+
+        double absPushX = Math.abs(pushX);
+        double absPushY = Math.abs(pushY);
+
+        VecDouble2D nuevaPos = this.posicion.clone();
+        if (absPushX < absPushY) {
+            nuevaPos.sumar(pushX, Eje.X);
+        } else {
+            nuevaPos.sumar(pushY, Eje.Y);
+        }
+        setPosicion(nuevaPos);
+
+        if (this.getHitbox().intersecta(o.getHitbox())) {
+            double epsilon = Math.copySign(1e-4, (absPushX < absPushY) ? pushX : pushY);
+            if (absPushX < absPushY) {
+                nuevaPos.sumar(epsilon, Eje.X);
+            } else {
+                nuevaPos.sumar(epsilon, Eje.Y);
+            }
+            setPosicion(nuevaPos);
+        }
     }
 
     protected boolean añadirInteraccionColision(Interaccion i) {
@@ -209,7 +300,7 @@ implements ModeloEntidad {
     }
 
     protected void mover(double dt) {
-        if (velocidad.getX() != 0 || velocidad.getY() != 0) {
+        {
             VecDouble2D desplazamiento = velocidad.clone();
             desplazamiento.producto(dt);
             posicion.sumar(desplazamiento);
