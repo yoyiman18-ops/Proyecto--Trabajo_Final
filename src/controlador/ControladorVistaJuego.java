@@ -1,18 +1,27 @@
 package controlador;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import javafx.application.Platform;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import modelo.ModeloPartida;
+import motor.Motor;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
 import motor.persistencia.dao.sqlite.Conexion;
 import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.Extension;
 import motor.recursos.GestorRecursos;
+import motor.util.observer.Observador;
 import vista.ConfiguracionMazmorra;
+import vista.OpcionMejoraVisual;
 import vista.VistaFondo;
 import vista.VistaHud;
 import vista.VistaJuego;
@@ -37,6 +46,10 @@ public final class ControladorVistaJuego {
 
     private final VistaPartida vista;
     private final VistaFondo fondoMazmorra;
+    private final ControladorFondoMazmorra controladorFondo;
+    private final Observador<Double> observadorActualizacion;
+    private boolean eleccionMejoraActiva;
+    private boolean enPausa;
 
     public ControladorVistaJuego(VistaPartida vista) {
         this(vista, null);
@@ -45,6 +58,10 @@ public final class ControladorVistaJuego {
     public ControladorVistaJuego(VistaPartida vista, VistaFondo fondoMazmorra) {
         this.vista = Objects.requireNonNull(vista, "La vista del juego no puede ser nula");
         this.fondoMazmorra = fondoMazmorra;
+        this.controladorFondo = fondoMazmorra != null ? new ControladorFondoMazmorra(fondoMazmorra) : null;
+        this.observadorActualizacion = this::actualizar;
+        this.eleccionMejoraActiva = false;
+        this.enPausa = false;
     }
 
     public ControladorVistaJuego(
@@ -94,13 +111,16 @@ public final class ControladorVistaJuego {
         VistaHud vistaHud = new VistaHud(imagenesHud, recortesHud);
         this.vista = new VistaJuego(vistaHud, hojaEstilosUrl);
 
-        ControladorFondoMazmorra controladorFondo = new ControladorFondoMazmorra(
+        this.controladorFondo = new ControladorFondoMazmorra(
             this.vista.getAreaJuego(),
             gestorRecursos,
             configuracionMazmorra
         );
-        this.fondoMazmorra = controladorFondo.getVista();
+        this.fondoMazmorra = this.controladorFondo.getVista();
         this.vista.agregarNodoJuego(this.fondoMazmorra.getNodo());
+        this.observadorActualizacion = this::actualizar;
+        this.eleccionMejoraActiva = false;
+        this.enPausa = false;
     }
 
     public static Sheet cargarSheetHudDesdeBaseDeDatos(GestorRecursos gestorRecursos) {
@@ -118,6 +138,149 @@ public final class ControladorVistaJuego {
 
     public VistaFondo getFondoMazmorra() {
         return fondoMazmorra;
+    }
+
+    public ControladorFondoMazmorra getControladorFondo() {
+        return controladorFondo;
+    }
+
+    public Observador<Double> getObservadorActualizacion() {
+        return observadorActualizacion;
+    }
+
+    public boolean isEleccionMejoraActiva() {
+        return eleccionMejoraActiva;
+    }
+
+    public boolean isEnPausa() {
+        return enPausa;
+    }
+
+    public void setEnPausa(boolean enPausa) {
+        this.enPausa = enPausa;
+    }
+
+    public void actualizar(double dt) {
+        if (controladorFondo != null && !enPausa) {
+            controladorFondo.actualizar(dt);
+        }
+    }
+
+    public void mostrarPausa() {
+        vista.mostrarPausa();
+    }
+
+    public void cerrarPausa() {
+        vista.cerrarPausa();
+    }
+
+    public void mostrarFinPartida(String mensaje) {
+        vista.mostrarFinPartida(mensaje);
+    }
+
+    public void mostrarEleccionMejora(int nivel, List<OpcionMejoraVisual> opciones) {
+        this.eleccionMejoraActiva = true;
+        vista.mostrarEleccionMejora(nivel, opciones);
+    }
+
+    public void cerrarEleccionMejora() {
+        this.eleccionMejoraActiva = false;
+        vista.cerrarEleccionMejora();
+    }
+
+    public void configurarControlesModales(
+        Motor motor,
+        ModeloPartida modeloPartida,
+        Runnable onVolverAlMenu,
+        Runnable onReintentar
+    ) {
+        Objects.requireNonNull(motor, "El motor no puede ser nulo");
+        Objects.requireNonNull(modeloPartida, "El modelo de partida no puede ser nulo");
+        Objects.requireNonNull(onVolverAlMenu, "La acción de volver al menú no puede ser nula");
+        Objects.requireNonNull(onReintentar, "La acción de reintentar no puede ser nula");
+
+        Runnable accionPausar = () -> {
+            if (!modeloPartida.isPartidaFinalizada()) {
+                this.enPausa = true;
+                modeloPartida.setEnPausa(true);
+                motor.setPausa(true);
+                vista.mostrarPausa();
+            }
+        };
+
+        Runnable accionReanudar = () -> {
+            vista.cerrarPausa();
+            if (!isEleccionMejoraActiva()) {
+                this.enPausa = false;
+                modeloPartida.setEnPausa(false);
+                motor.setPausa(false);
+            }
+            Platform.runLater(vista::solicitarFoco);
+        };
+
+        vista.setOnPausa(accionPausar);
+        vista.setOnReanudar(accionReanudar);
+
+        vista.setOnVolverAlMenuDesdePausa(() -> {
+            vista.cerrarPausa();
+            this.enPausa = false;
+            motor.setPausa(false);
+            motor.detener();
+            motor.limpiar();
+            onVolverAlMenu.run();
+        });
+
+        vista.setOnReintentar(() -> {
+            this.enPausa = false;
+            motor.detener();
+            motor.limpiar();
+            motor.setPausa(false);
+            onReintentar.run();
+        });
+
+        vista.setOnVolverAlMenuDesdeFinPartida(() -> {
+            this.enPausa = false;
+            motor.detener();
+            motor.limpiar();
+            motor.setPausa(false);
+            onVolverAlMenu.run();
+        });
+
+        vista.setOnSeleccionarMejora(indice -> {
+            cerrarEleccionMejora();
+            this.enPausa = false;
+            motor.setPausa(false);
+            modeloPartida.setEnPausa(false);
+            Platform.runLater(vista::solicitarFoco);
+        });
+    }
+
+    public void configurarAtajoTecladoPausa(Scene escena, Motor motor, ModeloPartida modeloPartida) {
+        if (escena == null || motor == null || modeloPartida == null) {
+            return;
+        }
+        escena.addEventFilter(KeyEvent.KEY_PRESSED, evento -> {
+            if (evento.getCode() == KeyCode.ESCAPE || evento.getCode() == KeyCode.P) {
+                if (modeloPartida.isPartidaFinalizada()) {
+                    return;
+                }
+                if (modeloPartida.isEnPausa()) {
+                    vista.cerrarPausa();
+                    if (!isEleccionMejoraActiva()) {
+                        this.enPausa = false;
+                        modeloPartida.setEnPausa(false);
+                        motor.setPausa(false);
+                    }
+                    Platform.runLater(vista::solicitarFoco);
+                } else {
+                    this.enPausa = true;
+                    modeloPartida.setEnPausa(true);
+                    motor.setPausa(true);
+                    vista.mostrarPausa();
+                }
+                evento.consume();
+            }
+        });
     }
 
     public Node getVista() {

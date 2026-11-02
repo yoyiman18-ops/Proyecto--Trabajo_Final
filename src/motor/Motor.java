@@ -161,6 +161,17 @@ public class Motor implements Ticking {
     public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }
     public void setPausa(boolean pausa) { this.pausa = pausa; }
+    public boolean isPausa() { return this.pausa; }
+
+    public void limpiar() {
+        this.controladores.clear();
+        this.colisionables.clear();
+        this.colaInstanciacion.clear();
+        this.colaLimpieza.clear();
+        if (this.root != null) {
+            this.root.getChildren().clear();
+        }
+    }
 
     public void ensamblarEntidad(ModeloEntidad e) { 
         encolarControlador(ensambladorControladorEntidad.crearControlador(e));
