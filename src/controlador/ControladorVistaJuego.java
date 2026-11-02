@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -43,6 +44,13 @@ public final class ControladorVistaJuego {
         "iconoDanio", "0x72_DungeonTilesetII_v1.7/frames/weapon_red_magic_staff",
         "iconoPuntos", "0x72_DungeonTilesetII_v1.7/frames/coin_anim_f0"
     );
+
+    public static CompletableFuture<Void> precargarRecursosHud(GestorRecursos gestorRecursos) {
+        if (gestorRecursos == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+        return gestorRecursos.precargarImagenes(RECURSOS_ICONOS_HUD.values(), Extension.Imagen.PNG);
+    }
 
     private final VistaPartida vista;
     private final VistaFondo fondoMazmorra;
