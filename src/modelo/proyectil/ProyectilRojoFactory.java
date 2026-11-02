@@ -1,8 +1,10 @@
 package modelo.proyectil;
+
 import java.util.ArrayList;
 import motor.colisiones.hitboxes.HitboxRectangularFactory;
 import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
+import motor.modelo.EstrategiaMovimiento;
 import motor.util.VecDouble2D;
 
 public class ProyectilRojoFactory extends ProyectilFactory {
@@ -11,17 +13,21 @@ public class ProyectilRojoFactory extends ProyectilFactory {
         MascaraColision categoriasColision,
         MascaraColision capasColision,
         VecDouble2D posicion,
-        VecDouble2D direccion,
-        double velocidad,
+        double aceleracion,
+        double friccion,
+        double velocidadMax,
+        EstrategiaMovimiento estrategiaMovimiento,
         double tiempoVidaAdicional,
         int penetracionAdicional,
         double dañoAdicional
     ) {
         super(
-            new HitboxRectangularFactory(16, 16, TipoHitbox.SOLIDA, categoriasColision, capasColision),
+            new HitboxRectangularFactory(16, 16, TipoHitbox.FANTASMA, categoriasColision, capasColision),
             posicion,
-            direccion,
-            velocidad,
+            aceleracion,
+            friccion,
+            velocidadMax,
+            estrategiaMovimiento,
             tiempoVidaAdicional,
             penetracionAdicional,
             dañoAdicional,
@@ -30,18 +36,43 @@ public class ProyectilRojoFactory extends ProyectilFactory {
         );
     }
 
-    @Override public Proyectil get() {
+    public ProyectilRojoFactory(
+        MascaraColision categoriasColision,
+        MascaraColision capasColision,
+        VecDouble2D posicion,
+        EstrategiaMovimiento estrategiaMovimiento,
+        double tiempoVidaAdicional,
+        int penetracionAdicional,
+        double dañoAdicional
+    ) {
+        this(
+            categoriasColision,
+            capasColision,
+            posicion,
+            1000.0,
+            0.0,
+            1000.0,
+            estrategiaMovimiento,
+            tiempoVidaAdicional,
+            penetracionAdicional,
+            dañoAdicional
+        );
+    }
+
+    @Override
+    public Proyectil get() {
         return new ProyectilRojo(
             getPosicion(),
-            getDireccion(),
-            getVelocidadDouble(),
             getHitboxFactory().getHitbox(),
+            getAceleracion(),
+            getFriccion(),
+            getVelocidadMax(),
+            getEstrategiaMovimiento(),
             getDañoAdicional(),
             getTiempoVidaAdicional(),
             getPenetracionAdicional(),
             getEstrategiasExpiracion(),
             getInteraccionesColision()
         );
-
     }
 }

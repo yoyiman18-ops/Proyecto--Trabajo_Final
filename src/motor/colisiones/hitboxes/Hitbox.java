@@ -71,7 +71,7 @@ implements Observador<VecDouble2D> {
     }
     public long combinarIds(Hitbox otra) { return Codificacion.combinarInt(this.getId(), otra.getId()); }
 
-    public void cambio(VecDouble2D posicion) { actualizarTransformacion(posicion); } 
+    public void cambio(VecDouble2D posicion) { if (posicion != null) {actualizarTransformacion(posicion);} } 
 
     private void actualizarTransformacion(VecDouble2D posicion) {
         this.transformacion.setToTranslation(posicion.getX(),posicion.getY());

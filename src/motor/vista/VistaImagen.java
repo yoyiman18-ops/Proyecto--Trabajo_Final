@@ -24,6 +24,6 @@ extends ImageView {
     public Observador<Rectangle2D> getObservadorRectangulo() { return this.observadorRectangulo; }
     public Observador<VecDouble2D> getObservadorPosicion() { return this.observadorPosicion; }
     public void setVisbilidad(boolean visible) { this.setVisible(visible); }
-    public void setPosicion(VecDouble2D posicion) { setX(posicion.getX()); setY(posicion.getY()); }
+    public void setPosicion(VecDouble2D posicion) { if (posicion == null) { return; } setX(posicion.getX()); setY(posicion.getY()); }
 
 }

@@ -1,6 +1,7 @@
 package main;
 
 import modelo.proyectil.ProyectilRojoFactory;
+import motor.modelo.EstrategiaMovimientoLineal;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -37,6 +38,8 @@ import motor.entrada.TipoEntrada;
 import motor.modelo.EnsambladorControladorEntidad;
 import motor.modelo.Entidad;
 import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.EstrategiaMovimiento;
+import motor.modelo.EstrategiaMovimientoPersecucion;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
@@ -290,8 +293,10 @@ public class Test extends Application {
             MascaraColision.of(CategoriaColision.ALIADO),
             MascaraColision.of(CategoriaColision.ENEMIGO),
             new VecDouble2D(),
-            VecDouble2D.derecha(),
+            1000.0,
+            0.0,
             120.0,
+            new EstrategiaMovimientoLineal(VecDouble2D.derecha()),
             10,
             100,
             -1
@@ -322,14 +327,37 @@ public class Test extends Application {
             MascaraColision.of(CategoriaColision.ENEMIGO),
             MascaraColision.of(CategoriaColision.ALIADO),
             new VecDouble2D(500,0),
-            VecDouble2D.izquierda(),
+            1000.0,
+            0.0,
             120.0,
+            new EstrategiaMovimientoLineal(VecDouble2D.izquierda()),
             10,
             100,
             -1
         );
 
+        Proyectil p1 = proyectilFactory1.get();
+
+        Proyectil algo = new Proyectil(
+            5,
+            "test",
+            hb.getHitbox(),
+            new VecDouble2D(200,0),
+            500,
+            500,
+            500,
+            new EstrategiaMovimientoPersecucion(p1),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            20,
+            200,
+            3,
+            "idle",
+            "expirar"
+        );
+
         motor.ensamblarEntidad(proyectilFactory1.get());
+        motor.ensamblarEntidad(algo);
 
         Scene escena = new Scene(motor.getRoot(), 720, 720);
         stage.setScene(escena);

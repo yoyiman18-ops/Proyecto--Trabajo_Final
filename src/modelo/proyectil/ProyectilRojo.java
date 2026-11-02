@@ -4,6 +4,7 @@ import java.util.List;
 
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.EstrategiaMovimiento;
 import motor.modelo.Interaccion;
 import motor.util.VecDouble2D;
 
@@ -11,9 +12,11 @@ public class ProyectilRojo extends Proyectil {
 
     public ProyectilRojo(
         VecDouble2D posicion,
-        VecDouble2D direccion,
-        double velocidad,
         Hitbox hitbox,
+        double aceleracion,
+        double friccion,
+        double velocidadMax,
+        EstrategiaMovimiento estrategiaMovimiento,
         double dañoAdicional,
         double tiempoVidaAdicional,
         int penetracionAdicional,
@@ -25,11 +28,10 @@ public class ProyectilRojo extends Proyectil {
             "Proyectil Rojo",
             hitbox,
             posicion,
-            direccion,
-            velocidad,
-            0,
-            0,
-            1000,
+            aceleracion,
+            friccion,
+            velocidadMax,
+            estrategiaMovimiento,
             estrategiasExpiracion,
             interaccionesColision,
             1 + tiempoVidaAdicional,
@@ -38,6 +40,30 @@ public class ProyectilRojo extends Proyectil {
             "idle",
             "expirar"
         );
+    }
 
+    public ProyectilRojo(
+        VecDouble2D posicion,
+        Hitbox hitbox,
+        EstrategiaMovimiento estrategiaMovimiento,
+        double dañoAdicional,
+        double tiempoVidaAdicional,
+        int penetracionAdicional,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision
+    ) {
+        this(
+            posicion,
+            hitbox,
+            1000.0,
+            0.0,
+            1000.0,
+            estrategiaMovimiento,
+            dañoAdicional,
+            tiempoVidaAdicional,
+            penetracionAdicional,
+            estrategiasExpiracion,
+            interaccionesColision
+        );
     }
 }
