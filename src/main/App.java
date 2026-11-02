@@ -51,6 +51,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import modelo.ModeloPartida;
 import modelo.Partida;
@@ -119,6 +120,28 @@ public class App extends Application {
         // 3. Crear Motor genérico
         Motor motor = Motor.getInstancia();
 
+        // Conectar el nodo de entidades del motor dentro del área de juego
+        Pane rootMotor = motor.getRoot();
+        rootMotor.setPickOnBounds(false);
+        vista.agregarNodoJuego(rootMotor);
+
+        // Conectar la animación del fondo al reloj del motor
+        motor.reloj().suscribirObservador(controladorVista.getObservadorActualizacion());
+
+        // Configurar los controles modales (Pausa, Reanudar, Volver al Menú, Reintentar, Mejoras)
+        controladorVista.configurarControlesModales(
+            motor,
+            modeloPartida,
+            () -> {
+                motor.reloj().desuscribirObservador(controladorVista.getObservadorActualizacion());
+                mostrarMenu(stage);
+            },
+            () -> {
+                motor.reloj().desuscribirObservador(controladorVista.getObservadorActualizacion());
+                iniciarPartida(stage);
+            }
+        );
+
         // 4. Mapeos de entrada de teclado
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.A, TipoEntrada.MANTENER, Accion.MOVER_IZQUIERDA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));
@@ -127,14 +150,19 @@ public class App extends Application {
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.ATACAR));
 
         Scene escena = new Scene(vista.getRaiz(), 960, 720);
+        controladorVista.configurarAtajoTecladoPausa(escena, motor, modeloPartida);
         stage.setScene(escena);
         motor.teclado().setEscenaRoot(escena);
         Platform.runLater(vista::solicitarFoco);
         MusicaJuego.PARTIDA.reproducirEn(gestorAudio);
+
+        // Iniciar el bucle de juego del motor
+        motor.iniciar();
     }
 
     @Override
     public void stop() throws Exception {
+        Motor.getInstancia().detener();
         gestorAudio.cerrar();
     }
 

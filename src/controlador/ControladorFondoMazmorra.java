@@ -57,6 +57,8 @@ public final class ControladorFondoMazmorra {
     }
 
     public void actualizar(double dt) {
-        vista.actualizarAnimacion(dt);
+        if (vista != null && dt > 0 && Double.isFinite(dt)) {
+            vista.actualizarAnimacion(dt);
+        }
     }
 }
