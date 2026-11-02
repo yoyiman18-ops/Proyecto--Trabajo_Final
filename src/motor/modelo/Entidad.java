@@ -181,8 +181,7 @@ implements ModeloEntidad {
 
     protected void mover(double dt) {
         {
-            VecDouble2D desplazamiento = velocidad.clone();
-            desplazamiento.producto(dt);
+            VecDouble2D desplazamiento = velocidad.clone().producto(dt);
             posicion.sumar(desplazamiento);
             notificadorPosicion.notificar(posicion);
         }
