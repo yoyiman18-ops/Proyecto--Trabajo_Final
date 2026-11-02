@@ -1,0 +1,299 @@
+package modelo;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import motor.colisiones.hitboxes.Hitbox;
+import motor.modelo.Entidad;
+import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.Interaccion;
+import motor.modelo.ModeloEntidad;
+import motor.util.VecDouble2D;
+import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorFuerte;
+
+public abstract class Personaje extends Entidad {
+
+    public static final double DEFENSA_MAXIMA_DEFAULT = 75.0;
+    public static final double DEFENSA_INICIAL_DEFAULT = 0.0;
+    public static final double FACTOR_PORCENTUAL = 100.0;
+    public static final String ANIMACION_IDLE_DEFAULT = "idle";
+    public static final String ANIMACION_EXPIRAR_DEFAULT = "expirar";
+
+    private double vidaMax;
+    private double vida;
+    private final double defensaMaximaPorcentual;
+    private double defensaPorcentual;
+    private final Notificador<Double> notificadorDaño;
+    private final Integer idSonidoDaño;
+
+    public Personaje(
+        int idGlobal,
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        VecDouble2D velocidad,
+        double aceleracion,
+        double friccion,
+        double velocidadMax,
+        Notificador<VecDouble2D> notificadorPosicion,
+        Notificador<ModeloEntidad> notificadorInstanciacion,
+        Notificador<Integer> notificadorExpiracion,
+        Notificador<Integer> notificadorSonido,
+        Notificador<String> notificadorAnimacion,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision,
+        String animacionDefault,
+        String animacionExpirar,
+        Integer idSonidoExpiracion,
+        double vidaMaxima,
+        double defensaMaximaPorcentual,
+        Integer idSonidoDaño
+    ) {
+        super(
+            idGlobal,
+            nombre,
+            hitbox,
+            posicion,
+            velocidad,
+            aceleracion,
+            friccion,
+            velocidadMax,
+            notificadorPosicion,
+            notificadorInstanciacion,
+            notificadorExpiracion,
+            notificadorSonido,
+            notificadorAnimacion,
+            estrategiasExpiracion,
+            interaccionesColision,
+            animacionDefault,
+            animacionExpirar,
+            idSonidoExpiracion
+        );
+        if (!Double.isFinite(vidaMaxima) || vidaMaxima <= 0) {
+            throw new IllegalArgumentException("La vida máxima debe ser positiva y finita.");
+        }
+        if (!Double.isFinite(defensaMaximaPorcentual) || defensaMaximaPorcentual < 0 || defensaMaximaPorcentual > FACTOR_PORCENTUAL) {
+            throw new IllegalArgumentException("La defensa máxima porcentual debe estar entre 0 y " + FACTOR_PORCENTUAL + ".");
+        }
+        this.vidaMax = vidaMaxima;
+        this.vida = vidaMaxima;
+        this.defensaMaximaPorcentual = defensaMaximaPorcentual;
+        this.defensaPorcentual = DEFENSA_INICIAL_DEFAULT;
+        this.notificadorDaño = new NotificadorFuerte<>();
+        this.idSonidoDaño = idSonidoDaño;
+    }
+
+    public Personaje(
+        int idGlobal,
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        VecDouble2D velocidad,
+        double aceleracion,
+        double friccion,
+        double velocidadMax,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision,
+        String animacionDefault,
+        String animacionExpirar,
+        Integer idSonidoExpiracion,
+        double vidaMaxima,
+        double defensaMaximaPorcentual,
+        Integer idSonidoDaño
+    ) {
+        this(
+            idGlobal,
+            nombre,
+            hitbox,
+            posicion,
+            velocidad != null ? velocidad : new VecDouble2D(),
+            aceleracion,
+            friccion,
+            velocidadMax,
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            estrategiasExpiracion != null ? estrategiasExpiracion : new ArrayList<>(),
+            interaccionesColision != null ? interaccionesColision : new ArrayList<>(),
+            animacionDefault,
+            animacionExpirar,
+            idSonidoExpiracion,
+            vidaMaxima,
+            defensaMaximaPorcentual,
+            idSonidoDaño
+        );
+    }
+
+    public Personaje(
+        int idGlobal,
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        double velocidadMax,
+        double vidaMaxima,
+        double defensaMaximaPorcentual,
+        Integer idSonidoDaño,
+        Integer idSonidoExpiracion
+    ) {
+        this(
+            idGlobal,
+            nombre,
+            hitbox,
+            posicion,
+            new VecDouble2D(),
+            0.0,
+            0.0,
+            velocidadMax,
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            ANIMACION_IDLE_DEFAULT,
+            ANIMACION_EXPIRAR_DEFAULT,
+            idSonidoExpiracion,
+            vidaMaxima,
+            defensaMaximaPorcentual,
+            idSonidoDaño
+        );
+    }
+
+    public Personaje(
+        int idGlobal,
+        String nombre,
+        Hitbox hitbox,
+        VecDouble2D posicion,
+        double velocidadMax,
+        double vidaMaxima
+    ) {
+        this(
+            idGlobal,
+            nombre,
+            hitbox,
+            posicion,
+            velocidadMax,
+            vidaMaxima,
+            DEFENSA_MAXIMA_DEFAULT,
+            null,
+            null
+        );
+    }
+
+    @Override
+    public boolean interactuar(Interaccion i) {
+        if (i == null) {
+            return false;
+        }
+        TipoInteraccion interaccion = TipoInteraccion.deInt(i.clase());
+        if (interaccion == null) {
+            return false;
+        }
+        return switch (interaccion) {
+            case DAÑAR, SOLIDO -> {
+                recibirDaño(i.valor());
+                yield true;
+            }
+            default -> false;
+        };
+    }
+
+    public boolean recibirDaño(double cantidad) {
+        if (!activo()) {
+            return false;
+        }
+        validarCantidadNoNegativa(cantidad);
+        if (cantidad == 0 || vida == 0) {
+            return false;
+        }
+        double danioEfectivo = cantidad * (1.0 - (defensaPorcentual / FACTOR_PORCENTUAL));
+        vida = Math.max(0, vida - danioEfectivo);
+        if (idSonidoDaño != null) {
+            emitirSonido(idSonidoDaño);
+        }
+        notificadorDaño.notificar(danioEfectivo);
+        alModificarVida();
+        if (vida == 0) {
+            expirar();
+        }
+        return vida == 0;
+    }
+
+    public void curar(double cantidad) {
+        validarCantidadNoNegativa(cantidad);
+        if (cantidad == 0 || vida == vidaMax) {
+            return;
+        }
+        vida = Math.min(vidaMax, vida + cantidad);
+        alModificarVida();
+    }
+
+    public void aumentarVidaMaxima(double cantidad) {
+        validarCantidadNoNegativa(cantidad);
+        if (cantidad == 0) {
+            return;
+        }
+        double nuevaVidaMaxima = vidaMax + cantidad;
+        double nuevaVida = vida + cantidad;
+        if (!Double.isFinite(nuevaVidaMaxima) || !Double.isFinite(nuevaVida)) {
+            throw new IllegalArgumentException("La vida resultante debe ser finita.");
+        }
+        this.vidaMax = nuevaVidaMaxima;
+        this.vida = nuevaVida;
+        alModificarVida();
+    }
+
+    public void aumentarDefensa(double porcentaje) {
+        if (!Double.isFinite(porcentaje) || porcentaje < 0) {
+            throw new IllegalArgumentException("El porcentaje de defensa debe ser finito y no negativo.");
+        }
+        this.defensaPorcentual = Math.min(defensaMaximaPorcentual, defensaPorcentual + porcentaje);
+    }
+
+    protected void setVidaDirecta(double vida) {
+        this.vida = Math.max(0, Math.min(vida, vidaMax));
+        alModificarVida();
+    }
+
+    protected void alModificarVida() {
+        // Método gancho (hook) para que subclases notifiquen a la UI o reaccionen
+    }
+
+    protected void validarCantidadNoNegativa(double cantidad) {
+        if (!Double.isFinite(cantidad) || cantidad < 0) {
+            throw new IllegalArgumentException("La cantidad debe ser finita y no negativa.");
+        }
+    }
+
+    public boolean estaVivo() {
+        return activo() && vida > 0;
+    }
+
+    public double getVida() {
+        return vida;
+    }
+
+    public double getVidaMax() {
+        return vidaMax;
+    }
+
+    public double getDefensaPorcentual() {
+        return defensaPorcentual;
+    }
+
+    public double getDefensaMaximaPorcentual() {
+        return defensaMaximaPorcentual;
+    }
+
+    public Notificador<Double> getNotificadorDaño() {
+        return notificadorDaño;
+    }
+
+    public Integer getIdSonidoDaño() {
+        return idSonidoDaño;
+    }
+}
