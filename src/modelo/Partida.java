@@ -1,19 +1,12 @@
 package modelo;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
 
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 import motor.util.observer.NotificadorFuerte;
 
 public final class Partida implements ModeloPartida {
-    private static final ItemMejoraAtributo.Atributo[] ATRIBUTOS_DISPONIBLES =
-        ItemMejoraAtributo.Atributo.values();
-    private static final int CANTIDAD_OPCIONES_MEJORA = 3;
-
     private final int cantidadOleadas;
     private final int maxEnemigosSimultaneos;
     private final double intervaloOleadas;
@@ -34,7 +27,6 @@ public final class Partida implements ModeloPartida {
     private boolean enPausa;
     private boolean eleccionMejoraActiva;
     private boolean partidaFinalizada;
-    private List<ItemMejoraAtributo> opcionesMejoraActuales;
 
     public Partida() {
         this(5, 6, 6.0, new NotificadorDebil<>());
@@ -115,7 +107,6 @@ public final class Partida implements ModeloPartida {
         this.enPausa = false;
         this.eleccionMejoraActiva = false;
         this.partidaFinalizada = false;
-        this.opcionesMejoraActuales = List.of();
     }
 
     @Override
@@ -158,44 +149,7 @@ public final class Partida implements ModeloPartida {
         this.partidaFinalizada = true;
         this.enPausa = false;
         this.eleccionMejoraActiva = false;
-        this.opcionesMejoraActuales = List.of();
         emitirSonido(oleadasCompletadas ? idSonidoVictoria : idSonidoDerrota);
-    }
-
-    @Override
-    public List<ItemMejoraAtributo> iniciarEleccionMejora() {
-        this.eleccionMejoraActiva = true;
-        ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
-        ItemMejoraAtributo.Atributo[] pool = ATRIBUTOS_DISPONIBLES.clone();
-
-        int cantidadOpciones = Math.min(CANTIDAD_OPCIONES_MEJORA, pool.length);
-        List<ItemMejoraAtributo> generadas = new ArrayList<>(cantidadOpciones);
-        for (int i = 0; i < cantidadOpciones; i++) {
-            int indiceElegido = aleatorio.nextInt(i, pool.length);
-            ItemMejoraAtributo.Atributo atributo = pool[indiceElegido];
-            pool[indiceElegido] = pool[i];
-
-            ItemMejoraAtributo.Rareza rareza = ItemMejoraAtributo.Rareza.sortear(aleatorio.nextDouble());
-            generadas.add(ItemMejoraAtributo.crear(atributo, rareza));
-        }
-
-        this.opcionesMejoraActuales = List.copyOf(generadas);
-        emitirSonido(idSonidoMostrarMejoras);
-        return this.opcionesMejoraActuales;
-    }
-
-    @Override
-    public ItemMejoraAtributo consumirOpcionMejora(int indice) {
-        ItemMejoraAtributo seleccionada = null;
-        if (indice >= 0 && indice < opcionesMejoraActuales.size()) {
-            seleccionada = opcionesMejoraActuales.get(indice);
-        }
-        this.opcionesMejoraActuales = List.of();
-        this.eleccionMejoraActiva = false;
-        if (seleccionada != null) {
-            emitirSonido(idSonidoMejoraAplicada);
-        }
-        return seleccionada;
     }
 
     @Override

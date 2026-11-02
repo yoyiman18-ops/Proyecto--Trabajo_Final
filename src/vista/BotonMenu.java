@@ -120,7 +120,7 @@ public class BotonMenu extends Button {
 
         if (sheetGui != null && sheetGui.getImagen() != null) {
             GestorSheetEstatica gestor = new GestorSheetEstatica(sheetGui);
-            boolean recorteCargado = gestor.setRecorte(this.recorteNormal);
+            boolean recorteCargado = gestor.setAnimacion(this.recorteNormal);
 
             if (recorteCargado) {
                 this.gestorSheet = gestor;
@@ -155,7 +155,7 @@ public class BotonMenu extends Button {
         Runnable actualizarEstado = () -> {
             if (isDisabled()) {
                 if (gestorSheet != null) {
-                    gestorSheet.setRecorte(recorteNormal);
+                    gestorSheet.setAnimacion(recorteNormal);
                 }
                 setTextFill(colorTextoDeshabilitado);
                 setEffect(null);
@@ -168,13 +168,13 @@ public class BotonMenu extends Button {
             setCursor(Cursor.HAND);
 
             if (isArmed()) {
-                if (gestorSheet != null) gestorSheet.setRecorte(recortePresionado);
+                if (gestorSheet != null) gestorSheet.setAnimacion(recortePresionado);
             } else if (isHover()) {
-                if (gestorSheet != null) gestorSheet.setRecorte(recorteHover);
+                if (gestorSheet != null) gestorSheet.setAnimacion(recorteHover);
             } else if (isFocused()) {
-                if (gestorSheet != null) gestorSheet.setRecorte(recorteMarcado);
+                if (gestorSheet != null) gestorSheet.setAnimacion(recorteMarcado);
             } else {
-                if (gestorSheet != null) gestorSheet.setRecorte(recorteNormal);
+                if (gestorSheet != null) gestorSheet.setAnimacion(recorteNormal);
             }
 
             boolean resaltado = isHover() || isFocused();

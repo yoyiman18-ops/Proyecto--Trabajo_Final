@@ -15,12 +15,6 @@ public final class PuntajeDAOSQLite implements PuntajeDAO {
     private final String borrarPuntaje;
     private final Connection conexion;
 
-    public PuntajeDAOSQLite(ProveedorConexion proveedorConexion) throws SQLException {
-        this(
-            Objects.requireNonNull(proveedorConexion, "El proveedor de conexión no puede ser nulo.").getConexion()
-        );
-    }
-
     public PuntajeDAOSQLite(Connection conexion) throws SQLException {
         this.conexion = Objects.requireNonNull(conexion, "La conexión no puede ser nula.");
         this.crearTabla =

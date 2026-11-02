@@ -1,7 +1,5 @@
 package modelo;
 
-import java.util.List;
-
 import motor.util.observer.Notificador;
 
 public interface ModeloPartida {
@@ -12,8 +10,6 @@ public interface ModeloPartida {
     boolean isEleccionMejoraActiva();
     boolean isPartidaFinalizada();
     void finalizarPartida();
-    List<ItemMejoraAtributo> iniciarEleccionMejora();
-    ItemMejoraAtributo consumirOpcionMejora(int indice);
     double calcularVelocidadEnemigoOleadaActual();
     int calcularEnemigosAGenerar();
     void registrarEnemigoGenerado();

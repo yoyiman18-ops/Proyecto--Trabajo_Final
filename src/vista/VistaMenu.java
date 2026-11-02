@@ -331,7 +331,7 @@ public final class VistaMenu extends StackPane {
             return null;
         }
         GestorSheetEstatica gestor = new GestorSheetEstatica(sheetGui);
-        if (!gestor.setRecorte(nombreRecorte)) {
+        if (!gestor.setAnimacion(nombreRecorte)) {
             return null;
         }
         gestoresSheet.add(gestor);

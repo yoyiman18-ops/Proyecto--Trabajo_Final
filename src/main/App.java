@@ -43,10 +43,7 @@ package main;
 
 import java.net.URL;
 
-import controlador.ControladorPartida;
 import controlador.ControladorVistaJuego;
-import controlador.FabricaEntidadesPartida;
-import controlador.FabricaEntidadesPartidaPorDefecto;
 import controlador.MenuControlador;
 import controlador.MusicaJuego;
 import controlador.SonidoJuego;
@@ -58,9 +55,6 @@ import javafx.stage.Stage;
 import modelo.ModeloPartida;
 import modelo.Partida;
 import motor.Motor;
-import motor.colisiones.SistemaColisiones;
-import motor.colisiones.sistema.FaseEspecificaSimple;
-import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.entrada.Accion;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
@@ -74,7 +68,6 @@ import vista.VistaPartida;
 public class App extends Application {
     private final GestorRecursos gestorRecursos;
     private final GestorAudio gestorAudio;
-    private ControladorPartida partidaActual;
 
     public App() {
         this.gestorRecursos = new GestorRecursos();
@@ -88,10 +81,6 @@ public class App extends Application {
     }
 
     private void mostrarMenu(Stage stage) {
-        if (partidaActual != null) {
-            partidaActual.detener();
-            partidaActual = null;
-        }
         MenuControlador menuControlador = new MenuControlador(
             gestorRecursos,
             gestorAudio.getObservadorSonido(),
@@ -106,11 +95,6 @@ public class App extends Application {
     }
 
     private void iniciarPartida(Stage stage) {
-        if (partidaActual != null) {
-            partidaActual.detener();
-            partidaActual = null;
-        }
-
         // 1. Configurar VistaPartida y VistaFondo mediante sus controladores de vista
         URL hojaEstilos = App.class.getResource("/vista/vista-juego.css");
         if (hojaEstilos == null) {
@@ -124,17 +108,12 @@ public class App extends Application {
         VistaPartida vista = controladorVista.getVistaJuego();
         VistaFondo fondo = controladorVista.getFondoMazmorra();
 
-        // 2. Crear Modelo de la partida y Fábrica de entidades
+        // 2. Crear Modelo de la partida
         ModeloPartida modeloPartida = new Partida(
             SonidoJuego.MOSTRAR_MEJORAS.getId(),
             SonidoJuego.MEJORA_APLICADA.getId(),
             SonidoJuego.VICTORIA.getId(),
             SonidoJuego.DERROTA.getId()
-        );
-        FabricaEntidadesPartida fabricaEntidades = new FabricaEntidadesPartidaPorDefecto(
-            gestorRecursos,
-            nodoVista -> Platform.runLater(() -> vista.agregarNodoJuego(nodoVista)),
-            gestorAudio.getObservadorSonido()
         );
 
         // 3. Crear Motor genérico
@@ -147,31 +126,15 @@ public class App extends Application {
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.ATACAR));
 
-        // 5. Instanciar ControladorPartida (orquestador del juego con DI)
-        partidaActual = new ControladorPartida(
-            motor,
-            modeloPartida,
-            vista,
-            fondo,
-            fabricaEntidades,
-            gestorAudio.getObservadorSonido(),
-            () -> mostrarMenu(stage),
-            () -> iniciarPartida(stage)
-        );
-
         Scene escena = new Scene(vista.getRaiz(), 960, 720);
         stage.setScene(escena);
         motor.teclado().setEscenaRoot(escena);
         Platform.runLater(vista::solicitarFoco);
         MusicaJuego.PARTIDA.reproducirEn(gestorAudio);
-        partidaActual.iniciar();
     }
 
     @Override
     public void stop() throws Exception {
-        if (partidaActual != null) {
-            partidaActual.detener();
-        }
         gestorAudio.cerrar();
     }
 

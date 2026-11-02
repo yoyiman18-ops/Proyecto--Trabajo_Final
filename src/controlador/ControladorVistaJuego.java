@@ -1,13 +1,11 @@
 package controlador;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import javafx.scene.Node;
 import javafx.scene.image.Image;
-import modelo.ItemMejoraAtributo;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
 import motor.persistencia.dao.sqlite.Conexion;
@@ -15,7 +13,6 @@ import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.Extension;
 import motor.recursos.GestorRecursos;
 import vista.ConfiguracionMazmorra;
-import vista.OpcionMejoraVisual;
 import vista.VistaFondo;
 import vista.VistaHud;
 import vista.VistaJuego;
@@ -109,52 +106,10 @@ public final class ControladorVistaJuego {
     public static Sheet cargarSheetHudDesdeBaseDeDatos(GestorRecursos gestorRecursos) {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
         DAOSoloLectura<Integer, Sheet> sheetDAO = new SheetDAOSQLite(
-            Conexion.getInstancia().get(),
+            Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db").getConexion(),
             gestorRecursos
         );
         return sheetDAO.cargar(ID_SHEET_HUD);
-    }
-
-    public static List<OpcionMejoraVisual> mapearOpcionesMejora(List<ItemMejoraAtributo> opciones) {
-        Objects.requireNonNull(opciones, "La lista de opciones no puede ser nula");
-        return opciones.stream()
-            .map(ControladorVistaJuego::mapearOpcionMejora)
-            .toList();
-    }
-
-    public static OpcionMejoraVisual mapearOpcionMejora(ItemMejoraAtributo item) {
-        Objects.requireNonNull(item, "El ítem de mejora no puede ser nulo");
-        String rareza = switch (item.rareza()) {
-            case COMUN -> "COMÚN";
-            case RARA -> "RARA";
-            case EPICA -> "ÉPICA";
-            case LEGENDARIA -> "LEGENDARIA";
-        };
-        String bonus = "+" + (int) item.cantidad() + (item.atributo().esPorcentual() ? "%" : "");
-
-        return switch (item.atributo()) {
-            case VIDA_MAXIMA -> new OpcionMejoraVisual(
-                rareza, "Vida máxima", bonus, "Aumenta y restaura tu vitalidad", "corazon"
-            );
-            case DANIO_ATAQUE -> new OpcionMejoraVisual(
-                rareza, "Daño", bonus, "Mayor impacto por proyectil", "danio"
-            );
-            case VELOCIDAD_ATAQUE -> new OpcionMejoraVisual(
-                rareza, "Vel. Ataque", bonus, "Disparás con mayor frecuencia", "experiencia"
-            );
-            case VELOCIDAD_MAXIMA -> new OpcionMejoraVisual(
-                rareza, "Velocidad", bonus, "Mayor agilidad en la mazmorra", "tiempo"
-            );
-            case DEFENSA -> new OpcionMejoraVisual(
-                rareza, "Defensa", bonus, "Reduce el daño recibido", "defensa"
-            );
-            case PROBABILIDAD_CRITICO -> new OpcionMejoraVisual(
-                rareza, "Crítico", bonus, "Chance de disparo carmesí x2 daño", "danio"
-            );
-            case PROBABILIDAD_MULTIDISPARO -> new OpcionMejoraVisual(
-                rareza, "Multidisparo", bonus, "Chance de lanzar 3 orbes en abanico", "experiencia"
-            );
-        };
     }
 
     public VistaPartida getVistaJuego() {
