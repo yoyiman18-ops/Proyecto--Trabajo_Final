@@ -3,24 +3,29 @@ package controlador;
 import motor.recursos.Extension;
 import motor.recursos.GestorAudio;
 
-public enum MusicaJuego {
-    MENU("Soundtrack/blinkenlights", Extension.Sonido.MP3),
-    PARTIDA("Soundtrack/Heat Of Battle", Extension.Sonido.MP3);
+  public enum MusicaJuego {
+        MENU(Extension.Sonido.MP3, "Soundtrack/menu_0"),
+        PARTIDA(Extension.Sonido.MP3,
+            "Soundtrack/Heat Of Battle",
+            "Soundtrack/Battle",
+            "Soundtrack/cannontube",
+            "Soundtrack/Chamber",
+            "Soundtrack/Death-To-All-Who-Groove",
+            "Soundtrack/RoadTrip"
+        );
 
-    private final String nombre;
-    private final Extension.Sonido extension;
+        private final Extension.Sonido extension;
+        private final String[] pistas;
 
-    MusicaJuego(String nombre, Extension.Sonido extension) {
-        this.nombre = nombre;
-        this.extension = extension;
-    }
+        MusicaJuego(Extension.Sonido extension, String... pistas) {
+            this.extension = extension;
+            this.pistas = pistas;
+        }
 
-    public String getNombre() { return nombre; }
-    public Extension.Sonido getExtension() { return extension; }
-
-    public void reproducirEn(GestorAudio gestorAudio) {
-        if (gestorAudio != null) {
-            gestorAudio.reproducirMusica(nombre, extension);
+        public void reproducirEn(GestorAudio gestorAudio) {
+            if (gestorAudio != null && pistas.length > 0) {
+                int indice = (int) (Math.random() * pistas.length);
+                gestorAudio.reproducirMusica(pistas[indice], extension);
+            }
         }
     }
-}

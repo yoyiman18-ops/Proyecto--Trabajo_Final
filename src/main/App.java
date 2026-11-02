@@ -48,6 +48,7 @@ import controlador.ControladorVistaJuego;
 import controlador.FabricaEntidadesPartida;
 import controlador.FabricaEntidadesPartidaPorDefecto;
 import controlador.MenuControlador;
+import controlador.MusicaJuego;
 import controlador.SonidoJuego;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -93,13 +94,14 @@ public class App extends Application {
         }
         MenuControlador menuControlador = new MenuControlador(
             gestorRecursos,
-            gestorAudio,
+            gestorAudio.getObservadorSonido(),
             () -> iniciarPartida(stage),
             Platform::exit
         );
         Scene escena = new Scene(menuControlador.getVista(), 960, 720);
         stage.setScene(escena);
         stage.setTitle("Waves 2D");
+        MusicaJuego.MENU.reproducirEn(gestorAudio);
         stage.show();
     }
 
@@ -123,11 +125,16 @@ public class App extends Application {
         VistaFondo fondo = controladorVista.getFondoMazmorra();
 
         // 2. Crear Modelo de la partida y Fábrica de entidades
-        ModeloPartida modeloPartida = new Partida();
+        ModeloPartida modeloPartida = new Partida(
+            SonidoJuego.MOSTRAR_MEJORAS.getId(),
+            SonidoJuego.MEJORA_APLICADA.getId(),
+            SonidoJuego.VICTORIA.getId(),
+            SonidoJuego.DERROTA.getId()
+        );
         FabricaEntidadesPartida fabricaEntidades = new FabricaEntidadesPartidaPorDefecto(
             gestorRecursos,
             nodoVista -> Platform.runLater(() -> vista.agregarNodoJuego(nodoVista)),
-            gestorAudio
+            gestorAudio.getObservadorSonido()
         );
 
         // 3. Crear Motor genérico
@@ -147,7 +154,7 @@ public class App extends Application {
             vista,
             fondo,
             fabricaEntidades,
-            gestorAudio,
+            gestorAudio.getObservadorSonido(),
             () -> mostrarMenu(stage),
             () -> iniciarPartida(stage)
         );
@@ -156,6 +163,7 @@ public class App extends Application {
         stage.setScene(escena);
         motor.teclado().setEscenaRoot(escena);
         Platform.runLater(vista::solicitarFoco);
+        MusicaJuego.PARTIDA.reproducirEn(gestorAudio);
         partidaActual.iniciar();
     }
 
@@ -164,7 +172,7 @@ public class App extends Application {
         if (partidaActual != null) {
             partidaActual.detener();
         }
-        gestorAudio.detenerMusica();
+        gestorAudio.cerrar();
     }
 
     /*

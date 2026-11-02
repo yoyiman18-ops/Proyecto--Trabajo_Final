@@ -15,8 +15,8 @@ import modelo.ModeloPartida;
 import modelo.Partida;
 import motor.Motor;
 import motor.controlador.ControladorEntidad;
+import motor.controlador.EntidadControlador;
 import motor.modelo.Activable;
-import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
@@ -35,14 +35,11 @@ public final class ControladorPartida {
     private final VistaPartida vistaJuego;
     private final VistaFondo fondoMazmorra;
     private final FabricaEntidadesPartida fabricaEntidades;
-    private final GestorAudio gestorAudio;
+    private final Observador<Integer> observadorSonido;
     private final Runnable onVolverAlMenu;
     private final Runnable onReintentar;
 
     private final List<ControladorEntidad> controladores;
-    private final List<EnemigoControlador> enemigos;
-    private final List<ProyectilControlador> proyectiles;
-    private final List<ExperienciaControlador> experiencias;
 
     private ModeloJugador personaje;
     private JugadorControlador jugadorControlador;
@@ -50,6 +47,7 @@ public final class ControladorPartida {
     private final Observador<Double> observadorReloj;
     private final Observador<EstadoOleadas> observadorOleadas;
 
+    /* Constructores secundarios de conveniencia (conservados para pruebas o prototipos):
     public ControladorPartida(
         Motor motor,
         VistaPartida vistaJuego,
@@ -60,7 +58,12 @@ public final class ControladorPartida {
     ) {
         this(
             motor,
-            new Partida(),
+            new Partida(
+                SonidoJuego.MOSTRAR_MEJORAS.getId(),
+                SonidoJuego.MEJORA_APLICADA.getId(),
+                SonidoJuego.VICTORIA.getId(),
+                SonidoJuego.DERROTA.getId()
+            ),
             vistaJuego,
             fondoMazmorra,
             gestorRecursos,
@@ -85,9 +88,10 @@ public final class ControladorPartida {
             fondoMazmorra,
             new FabricaEntidadesPartidaPorDefecto(
                 Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo"),
-                vista -> Platform.runLater(() -> vistaJuego.agregarNodoJuego(vista))
+                vista -> Platform.runLater(() -> vistaJuego.agregarNodoJuego(vista)),
+                id -> {}
             ),
-            null,
+            id -> {},
             onVolverAlMenu,
             onReintentar
         );
@@ -108,11 +112,12 @@ public final class ControladorPartida {
             vistaJuego,
             fondoMazmorra,
             fabricaEntidades,
-            null,
+            id -> {},
             onVolverAlMenu,
             onReintentar
         );
     }
+    */
 
     public ControladorPartida(
         Motor motor,
@@ -120,7 +125,7 @@ public final class ControladorPartida {
         VistaPartida vistaJuego,
         VistaFondo fondoMazmorra,
         FabricaEntidadesPartida fabricaEntidades,
-        GestorAudio gestorAudio,
+        Observador<Integer> observadorSonido,
         Runnable onVolverAlMenu,
         Runnable onReintentar
     ) {
@@ -129,14 +134,11 @@ public final class ControladorPartida {
         this.vistaJuego = Objects.requireNonNull(vistaJuego, "La vista del juego no puede ser nula");
         this.fondoMazmorra = Objects.requireNonNull(fondoMazmorra, "El fondo de mazmorra no puede ser nulo");
         this.fabricaEntidades = Objects.requireNonNull(fabricaEntidades, "La fábrica de entidades no puede ser nula");
-        this.gestorAudio = gestorAudio;
+        this.observadorSonido = Objects.requireNonNull(observadorSonido, "El observador de sonido no puede ser nulo");
         this.onVolverAlMenu = Objects.requireNonNull(onVolverAlMenu, "El callback de volver al menú es obligatorio");
         this.onReintentar = Objects.requireNonNull(onReintentar, "El callback de reintentar es obligatorio");
 
         this.controladores = new CopyOnWriteArrayList<>();
-        this.enemigos = new CopyOnWriteArrayList<>();
-        this.proyectiles = new CopyOnWriteArrayList<>();
-        this.experiencias = new CopyOnWriteArrayList<>();
 
         this.observadorReloj = this::tick;
         this.observadorOleadas = estado -> Platform.runLater(() -> {
@@ -146,6 +148,7 @@ public final class ControladorPartida {
         });
 
         this.modeloPartida.getNotificadorOleadas().suscribirObservador(observadorOleadas);
+        this.modeloPartida.getNotificadorSonido().suscribirObservador(this.observadorSonido);
 
         configurarVistas();
         inicializarJugador();
@@ -168,9 +171,6 @@ public final class ControladorPartida {
         }
         modeloPartida.setEnPausa(true);
         motor.detener();
-        if (gestorAudio != null) {
-            gestorAudio.pausarMusica();
-        }
         vistaJuego.mostrarPausa();
     }
 
@@ -180,9 +180,6 @@ public final class ControladorPartida {
         }
         modeloPartida.setEnPausa(false);
         vistaJuego.cerrarPausa();
-        if (gestorAudio != null) {
-            gestorAudio.reanudarMusica();
-        }
         if (!modeloPartida.isEleccionMejoraActiva() && !modeloPartida.isPartidaFinalizada()) {
             motor.iniciar();
         }
@@ -293,7 +290,6 @@ public final class ControladorPartida {
                 generarEnemigosPendientes();
             });
 
-            enemigos.add(controlador);
             controladores.add(controlador);
             motor.colisionables().add(modeloEnemigo);
             modeloPartida.registrarEnemigoGenerado();
@@ -320,7 +316,7 @@ public final class ControladorPartida {
             double origenX = personaje.getPosicion().getX() + 17 + direccionDisparo.getX() * 16;
             double origenY = personaje.getPosicion().getY() + 17 + direccionDisparo.getY() * 16;
 
-            ProyectilControlador proyectil = fabricaEntidades.crearProyectil(
+            EntidadControlador proyectil = fabricaEntidades.crearProyectil(
                 origenX,
                 origenY,
                 direccionDisparo,
@@ -328,7 +324,6 @@ public final class ControladorPartida {
                 esCritico
             );
 
-            proyectiles.add(proyectil);
             controladores.add(proyectil);
             motor.colisionables().add(proyectil.getEntidad());
         }
@@ -348,9 +343,6 @@ public final class ControladorPartida {
 
     private void limpiarEntidadesInactivas() {
         motor.colisionables().removeIf(c -> c instanceof Activable a && !a.activo());
-        proyectiles.removeIf(p -> !p.activo());
-        enemigos.removeIf(e -> !e.activo());
-        experiencias.removeIf(exp -> !exp.activo());
         controladores.removeIf(c -> !c.activo());
     }
 
@@ -363,7 +355,6 @@ public final class ControladorPartida {
             verificarSubidaNivel();
         });
 
-        experiencias.add(expControlador);
         controladores.add(expControlador);
         motor.colisionables().add(modeloExp);
     }
@@ -376,7 +367,6 @@ public final class ControladorPartida {
         }
 
         motor.detener();
-        SonidoJuego.SUBIR_NIVEL.reproducirEn(gestorAudio);
 
         List<ItemMejoraAtributo> opciones = modeloPartida.iniciarEleccionMejora();
         List<OpcionMejoraVisual> opcionesVisuales = ControladorVistaJuego.mapearOpcionesMejora(opciones);
@@ -384,7 +374,6 @@ public final class ControladorPartida {
         int nivelActual = personaje.getNivel();
         Platform.runLater(() -> {
             if (!modeloPartida.isPartidaFinalizada()) {
-                SonidoJuego.MOSTRAR_MEJORAS.reproducirEn(gestorAudio);
                 vistaJuego.mostrarEleccionMejora(nivelActual, opcionesVisuales);
             }
         });
@@ -398,7 +387,6 @@ public final class ControladorPartida {
         ItemMejoraAtributo elegida = modeloPartida.consumirOpcionMejora(seleccionIndice);
         if (elegida != null) {
             elegida.aplicar(personaje);
-            SonidoJuego.MEJORA_APLICADA.reproducirEn(gestorAudio);
         }
         actualizarProgresoJugador();
         verificarSubidaNivel();
@@ -414,10 +402,6 @@ public final class ControladorPartida {
             return;
         }
         modeloPartida.finalizarPartida();
-        if (gestorAudio != null) {
-            gestorAudio.detenerMusica();
-        }
-        (personaje.getVida() > 0 ? SonidoJuego.VICTORIA : SonidoJuego.DERROTA).reproducirEn(gestorAudio);
         detener();
         Platform.runLater(() -> {
             vistaJuego.cerrarPausa();
@@ -428,12 +412,15 @@ public final class ControladorPartida {
     }
 
     public void iniciar() {
-        MusicaJuego.PARTIDA.reproducirEn(gestorAudio);
         motor.iniciar();
     }
 
     public void detener() {
+        if (jugadorControlador != null) {
+            motor.teclado().desuscribir(jugadorControlador.getObservadorAcciones());
+        }
         modeloPartida.getNotificadorOleadas().desuscribirObservador(observadorOleadas);
+        modeloPartida.getNotificadorSonido().desuscribirObservador(observadorSonido);
         motor.reloj().desuscribirObservador(observadorReloj);
         motor.detener();
     }

@@ -1,6 +1,7 @@
 package controlador;
 
 import modelo.ModeloJugador;
+import motor.controlador.EntidadControlador;
 import motor.modelo.Posicionable;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
@@ -28,7 +29,7 @@ public interface FabricaEntidadesPartida {
         int cantidad
     );
 
-    ProyectilControlador crearProyectil(
+    EntidadControlador crearProyectil(
         double x,
         double y,
         VecDouble2D direccion,
