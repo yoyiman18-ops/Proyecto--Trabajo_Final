@@ -3,6 +3,7 @@ package modelo;
 public enum TipoInteraccion {
     DAÑAR(1),
     SOLIDO(2),
+    GANAREXP(3),
     AÑADIR_EXP(3);
 
     private final int clase;
