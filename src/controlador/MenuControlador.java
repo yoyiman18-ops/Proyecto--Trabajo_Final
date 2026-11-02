@@ -134,9 +134,9 @@ public final class MenuControlador {
         }
 
         // Sincronizar las opciones del controlador con la vista para garantizar que siempre se rendericen
-        if (!this.opciones.isEmpty()) {
+        if (!this.opciones.isEmpty() && this.vista.getOpciones().isEmpty()) {
             this.vista.setOpciones(this.opciones);
-        } else if (!this.vista.getOpciones().isEmpty()) {
+        } else if (this.opciones.isEmpty() && !this.vista.getOpciones().isEmpty()) {
             this.opciones.addAll(this.vista.getOpciones());
         }
     }

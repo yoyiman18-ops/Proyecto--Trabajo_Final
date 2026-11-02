@@ -109,14 +109,17 @@ public class BotonMenu extends Button {
         setFont(Font.font("Georgia", FontWeight.BOLD, 16));
         setCursor(Cursor.HAND);
         setAlignment(Pos.CENTER);
-        setMaxWidth(Double.MAX_VALUE);
 
         Recorte corteBase = sheetGui != null ? sheetGui.getRecorte(this.recorteNormal) : null;
         double anchoFinal = ancho > 0 ? ancho : (corteBase != null ? corteBase.getAncho() : 240);
         double altoFinal = alto > 0 ? alto : (corteBase != null ? corteBase.getAlto() : 50);
 
+        setMinWidth(anchoFinal);
+        setPrefWidth(anchoFinal);
+        setMaxWidth(anchoFinal);
         setMinHeight(altoFinal);
         setPrefHeight(altoFinal);
+        setMaxHeight(altoFinal);
 
         if (sheetGui != null && sheetGui.getImagen() != null) {
             GestorSheetEstatica gestor = new GestorSheetEstatica(sheetGui);
