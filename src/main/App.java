@@ -131,11 +131,7 @@ public class App extends Application {
         );
 
         // 3. Crear Motor genérico
-        Motor motor = new Motor(
-            new SistemaColisiones(new FaseGeneralSpatialHashGrid(100), new FaseEspecificaSimple()),
-            gestorRecursos,
-            vista.getAreaJuego()
-        );
+        Motor motor = Motor.getInstancia();
 
         // 4. Mapeos de entrada de teclado
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.A, TipoEntrada.MANTENER, Accion.MOVER_IZQUIERDA));

@@ -274,7 +274,7 @@ public class Test extends Application {
 
     // test: instanciacion y colisiones
     @Override public void start(Stage stage) {
-        Motor motor = new Motor();
+        Motor motor = Motor.getInstancia();
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.RIGHT, TipoEntrada.SOLTAR, Accion.MOVER_DERECHA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.LEFT, TipoEntrada.SOLTAR, Accion.MOVER_IZQUIERDA));
         DAOSoloLectura<Integer,Sheet> sheetDAO = new SheetDAOSQLite(Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db").getConexion(), motor.recursos());
@@ -304,6 +304,7 @@ public class Test extends Application {
             MascaraColision.of(CategoriaColision.ALIADO)
         );
 
+        /*
         ProyectilRojo pr = new ProyectilRojo(
             new VecDouble2D(500,0),
             VecDouble2D.izquierda(),
@@ -311,12 +312,24 @@ public class Test extends Application {
             hb.getHitbox(),
             -1,
             5,
-            500,
+            2,
             new ArrayList<>(),
             new ArrayList<>()
         );
+        */
 
-        motor.ensamblarEntidad(pr);
+        ProyectilFactory proyectilFactory1 = new ProyectilRojoFactory(
+            MascaraColision.of(CategoriaColision.ENEMIGO),
+            MascaraColision.of(CategoriaColision.ALIADO),
+            new VecDouble2D(500,0),
+            VecDouble2D.izquierda(),
+            120.0,
+            10,
+            100,
+            -1
+        );
+
+        motor.ensamblarEntidad(proyectilFactory1.get());
 
         Scene escena = new Scene(motor.getRoot(), 720, 720);
         stage.setScene(escena);

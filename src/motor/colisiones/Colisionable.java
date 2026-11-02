@@ -5,6 +5,5 @@ import motor.modelo.Posicionable;
 
 public interface Colisionable extends Posicionable, Interactuable {
     public boolean colisionesActivas();
-    public void colisionar(Colisionable o);
     public Hitbox getHitbox();
 }

@@ -66,6 +66,7 @@ extends Entidad
 
     @Override public boolean interactuar(Interaccion i) {
         TipoInteraccion interaccion = TipoInteraccion.deInt(i.clase());
+        if (interaccion == null) { return false; }
         return switch (interaccion) {
             case DAÑAR -> recibirDaño(i.valor());
             case SOLIDO -> recibirDaño(i.valor());

@@ -44,13 +44,14 @@ import java.util.Queue;
 import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 import motor.colisiones.Colisionable;
+import motor.colisiones.EstrategiaResolucionColisionSimple;
+import motor.colisiones.ResolvedorInteraccionSimple;
 import motor.colisiones.SistemaColisiones;
 import motor.colisiones.sistema.FaseEspecificaSimple;
 import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
 import motor.controlador.ControladorEntidad;
 import motor.entrada.GestorEntradaTeclado;
 import motor.modelo.EnsambladorControladorEntidad;
-import motor.modelo.Entidad;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.Ticking;
 import motor.modelo.graficos.Sheet;
@@ -62,6 +63,8 @@ import motor.util.RelojDelta;
 import motor.util.observer.NotificadorFuerte;
 
 public class Motor implements Ticking {
+    private static Motor instancia;
+
     private final SistemaColisiones sistemaColisiones;
     private final GestorRecursos gestorRecursos;
     private final GestorEntradaTeclado gestorEntradaTeclado;
@@ -79,28 +82,22 @@ public class Motor implements Ticking {
 
     private boolean pausa;
 
-    /**
-     * Crear motor default.
-     */
-    public Motor() {
-        this(
-            new SistemaColisiones(new FaseGeneralSpatialHashGrid(100), new FaseEspecificaSimple()),
-            new GestorRecursos(),
-            new Pane()
-        );
-    }
-
-    public Motor(
-        SistemaColisiones sistemaColisiones,
-        GestorRecursos gestorRecursos,
-        Pane root
-    ) {
-        this(
-            sistemaColisiones,
-            gestorRecursos,
-            new GestorEntradaTeclado(),
-            root
-        );
+    public static Motor getInstancia() {
+        if (Motor.instancia == null) {
+            Motor.instancia = new Motor(
+                new SistemaColisiones(
+                    new FaseGeneralSpatialHashGrid(64),
+                    new FaseEspecificaSimple(
+                        new ResolvedorInteraccionSimple(),
+                        new EstrategiaResolucionColisionSimple()
+                    )
+                ),
+                new GestorRecursos(),
+                new GestorEntradaTeclado(),
+                new Pane()
+            );
+        }
+        return Motor.instancia;
     }
 
     public Motor(
@@ -118,7 +115,7 @@ public class Motor implements Ticking {
         this.colisionables = new ArrayList<>();
         this.colaInstanciacion = new ArrayDeque<>();
         this.colaLimpieza = new ArrayDeque<>();
-        this.conexion = Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db");
+        this.conexion = Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db"); 
         this.sheetDAO = new SheetDAOSQLite(conexion.getConexion(), gestorRecursos);
         this.ensambladorControladorEntidad = new EnsambladorControladorEntidad(sheetDAO);
         this.pausa = false;

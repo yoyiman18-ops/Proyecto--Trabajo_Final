@@ -15,5 +15,5 @@ public record ParColision(Colisionable primera, Colisionable segunda) {
     
     public Colisionable getPrimera() { return primera; } 
     public Colisionable getSegunda() { return segunda; }
-    public void colisionar() { primera.colisionar(segunda); segunda.colisionar(primera);}
+
 }
