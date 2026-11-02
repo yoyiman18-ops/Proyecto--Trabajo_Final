@@ -15,6 +15,7 @@ import modelo.ModeloPartida;
 import modelo.Partida;
 import motor.Motor;
 import motor.controlador.ControladorEntidad;
+import motor.controlador.EntidadControlador;
 import motor.modelo.Activable;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;

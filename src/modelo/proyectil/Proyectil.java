@@ -1,21 +1,19 @@
 package modelo.proyectil;
-import motor.modelo.Dañable;
 
 import java.util.List;
 
-import modelo.EstrategiaExpiracion;
-import motor.colisiones.Colisionable;
+import modelo.TipoInteraccion;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
-import motor.modelo.Solido;
+import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.Interaccion;
 import motor.util.VecDouble2D;
 
 public class Proyectil
 extends Entidad
-implements ModeloProyectil
 {
-
-    private final double daño;
+    private VecDouble2D direccion;
+    private double velocidad;
     private double tiempoVida;
     private int penetracion; // <0 para que tenga penetracion infinita
 
@@ -24,64 +22,67 @@ implements ModeloProyectil
         String nombre,
         Hitbox hitbox,
         VecDouble2D posicion,
-        VecDouble2D velocidad,
-        double daño,
+        VecDouble2D direccion,
+        double velocidad,
+        double aceleracion,
+        double friccion,
+        double velocidadMax,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision,
         double tiempoVida,
         int penetracion,
-        List<EstrategiaExpiracion> estrategiasExpiracion
+        double daño,
+        String animacionDefault,
+        String animacionExpirar
     ) {
         super(
             idGlobal,
             nombre,
             hitbox,
             posicion,
-            velocidad,
-            0.0,
-            0.0,
-            0.0,
-            estrategiasExpiracion
+            direccion.clone().normalizar().producto(velocidad),
+            aceleracion,
+            friccion,
+            velocidadMax,
+            estrategiasExpiracion,
+            interaccionesColision,
+            animacionDefault,
+            animacionExpirar
         );
-        if (!Double.isFinite(daño) || daño < 0) { throw new IllegalArgumentException("El daño debe ser finito y no negativo.");}
         if (!Double.isFinite(tiempoVida) || tiempoVida <= 0) { throw new IllegalArgumentException("El tiempo de vida debe ser positivo y finito."); }
-        this.daño = daño;
+        if (daño > 0) { System.out.println("Hola"); añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(), daño)); }
+        this.direccion = direccion.clone().normalizar();
+        this.velocidad = velocidad;
         this.tiempoVida = tiempoVida;
-        this.penetracion = penetracion;
+        this.penetracion = Math.max(-1,penetracion);
     }
 
     @Override public void tick(double dt) {
         if (!activo()) { return; }
         tiempoVida = Math.max(0, tiempoVida - dt); 
         super.tick(dt);
-        if (estaExpirado()) { expirar(1); }
+        if (estaExpirado()) { expirar(); }
     }
 
-    @Override public double getDaño() { return daño; }
-    @Override public boolean dañar(Dañable o) { return o.recibirDaño(this.getDaño()); }
-    @Override public boolean recibirDaño(double daño) {
+    @Override public boolean interactuar(Interaccion i) {
+        TipoInteraccion interaccion = TipoInteraccion.deInt(i.clase());
+        return switch (interaccion) {
+            case DAÑAR -> recibirDaño(i.valor());
+            case SOLIDO -> recibirDaño(i.valor());
+            default -> false;
+        };
+    }
+
+    protected boolean recibirDaño(double daño) {
         if (!activo() || penetracion < 0) { return false; }
         System.out.println(this.getHitbox().getId() + " ha recibido " + daño);
         penetracion -= daño;
-        if (penetracion <= 0) { expirar(1); }
+        if (penetracion <= 0) { expirar(); }
         return true;
     }
 
-    @Override public void colisionar(Colisionable o) {
-        if (activo()) {
-            o.colisionarCon(getDañable());
-        }
-    }
-    
-    @Override public void colisionarCon(Dañable o) { if (activo()) { dañar(o); recibirDaño(1); }}
-    @Override public void colisionarCon(Solido o) { 
-        if (activo()) { 
-            if (o.getNivelSolidez() > 0) { recibirDaño(o.getNivelSolidez()); }
-            else { expirar(1); }
-        }
-    }
+    public VecDouble2D getDireccion() { return this.direccion.clone(); }
+    public double getVelocidadDouble() { return this.velocidad; }
 
-    @Override public Dañable getDañable() { return this; }
     private boolean estaExpirado() { return tiempoVida == 0; }
-
-    
-
 }

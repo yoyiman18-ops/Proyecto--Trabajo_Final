@@ -1,6 +1,8 @@
 package modelo;
 
 import java.util.List;
+
+import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.ModeloEntidad;
 
 public class EstrategiaExpiracionSpawnear implements EstrategiaExpiracion {
@@ -11,7 +13,8 @@ public class EstrategiaExpiracionSpawnear implements EstrategiaExpiracion {
     }
 
     @Override 
-    public void ejecutar(ModeloEntidad entidad) {
+    public int ejecutar(ModeloEntidad entidad) {
         for (ModeloEntidad e : spawneados) { e.setPosicion(entidad.getPosicion()); entidad.getNotificadorInstanciacion().notificar(e); }
+        return 0;
     }
 }

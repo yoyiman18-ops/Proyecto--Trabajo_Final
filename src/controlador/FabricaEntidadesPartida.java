@@ -1,6 +1,7 @@
 package controlador;
 
 import modelo.ModeloJugador;
+import motor.controlador.EntidadControlador;
 import motor.modelo.Posicionable;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;

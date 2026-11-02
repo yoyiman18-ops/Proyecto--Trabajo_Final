@@ -12,7 +12,7 @@ import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.util.Eje;
 import motor.util.observer.Observador;
-import vista.VistaImagen;
+import motor.vista.VistaImagen;
 
 public final class JugadorControlador implements ControladorEntidad, ReceptorEstadoAcciones {
     private final ModeloJugador modelo;
@@ -46,7 +46,7 @@ public final class JugadorControlador implements ControladorEntidad, ReceptorEst
 
         this.modelo.getNotificadorVida().suscribirObservador(this.observadorVida);
         this.modelo.getNotificadorExpiracion().suscribirObservador(this.observadorExpiracion);
-        this.gestorSheet.setAnimacion("idle", false);
+        this.gestorSheet.setAnimacion("idle");
         this.gestorSheet.suscribir(this.vista.getObservadorRectangulo());
         this.modelo.getNotificadorPosicion().suscribirObservador(this.vista.getObservadorPosicion());
         this.modelo.getNotificadorSonido().suscribirObservador(this.observadorSonido);
@@ -89,7 +89,7 @@ public final class JugadorControlador implements ControladorEntidad, ReceptorEst
     @Override public Observador<EstadoAcciones> getObservadorAcciones() { return observadorAcciones; }
 
     private void alExpirar(int e) {
-        if (gestorSheet.setAnimacion("expirar", false)) {
+        if (gestorSheet.setAnimacion("expirar")) {
             gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
                 f -> { vista.setVisbilidad(false); setActivo(false); }
             );

@@ -7,7 +7,7 @@ import motor.controlador.ControladorEntidad;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.util.observer.Observador;
-import vista.VistaImagen;
+import motor.vista.VistaImagen;
 
 public final class ExperienciaControlador implements ControladorEntidad {
     private final ModeloExperiencia modelo;
@@ -30,7 +30,7 @@ public final class ExperienciaControlador implements ControladorEntidad {
         this.observadorExpiracion = this::alExpirar;
         this.activo = true;
         this.modelo.getNotificadorExpiracion().suscribirObservador(observadorExpiracion);
-        this.gestorSheet.setAnimacion("idle", false);
+        this.gestorSheet.setAnimacion("idle");
         this.gestorSheet.suscribir(this.vista.getObservadorRectangulo());
         this.modelo.getNotificadorPosicion().suscribirObservador(this.vista.getObservadorPosicion());
         this.modelo.getNotificadorSonido().suscribirObservador(this.observadorSonido);
@@ -50,7 +50,7 @@ public final class ExperienciaControlador implements ControladorEntidad {
     }
 
     private void alExpirar(int e) {
-        if (gestorSheet.setAnimacion("expirar", false)) {
+        if (gestorSheet.setAnimacion("expirar")) {
             gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
                 f -> { vista.setVisbilidad(false); setActivo(false); }
             );

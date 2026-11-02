@@ -16,6 +16,7 @@ import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.HitboxRectangular;
 import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
+import motor.controlador.EntidadControlador;
 import motor.modelo.Posicionable;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.modelo.graficos.Sheet;
@@ -25,7 +26,7 @@ import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
-import vista.VistaImagen;
+import motor.vista.VistaImagen;
 
 public final class FabricaEntidadesPartidaPorDefecto implements FabricaEntidadesPartida {
     private static final String URL_BD_POR_DEFECTO = "jdbc:sqlite:src/recursos/datos.db";

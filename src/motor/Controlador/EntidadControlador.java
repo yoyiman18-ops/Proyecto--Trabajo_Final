@@ -1,12 +1,11 @@
-package controlador;
+package motor.controlador;
 
 import java.util.Objects;
 
-import motor.controlador.ControladorEntidad;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.graficos.GestorSheetAnimada;
 import motor.util.observer.Observador;
-import vista.VistaImagen;
+import motor.vista.VistaImagen;
 
 public class EntidadControlador implements ControladorEntidad {
     private final ModeloEntidad modelo;
@@ -15,6 +14,14 @@ public class EntidadControlador implements ControladorEntidad {
     private final Observador<Integer> observadorSonido;
     private final GestorSheetAnimada gestorSheet;
     private boolean activo;
+
+    public EntidadControlador(
+        ModeloEntidad modelo,
+        VistaImagen vista,
+        GestorSheetAnimada gestorSheet
+    ) {
+        this(modelo, vista, gestorSheet, id -> {});
+    }
 
     public EntidadControlador(
         ModeloEntidad modelo,
@@ -29,8 +36,9 @@ public class EntidadControlador implements ControladorEntidad {
         this.observadorSonido = Objects.requireNonNull(observadorSonido, "El observador de sonido no puede ser nulo");
         this.observadorExpiracion = this::alExpirar;
         this.modelo.getNotificadorExpiracion().suscribirObservador(observadorExpiracion);
-        this.gestorSheet.setAnimacion("idle", false);
+        this.gestorSheet.setAnimacion(modelo.getAnimacionDefault());
         this.gestorSheet.suscribir(this.vista.getObservadorRectangulo());
+        this.modelo.getNotificadorAnimacion().suscribirObservador(this.gestorSheet.getObservadorAnimacion());
         this.modelo.getNotificadorPosicion().suscribirObservador(this.vista.getObservadorPosicion());
         this.modelo.getNotificadorSonido().suscribirObservador(this.observadorSonido);
         this.vista.setPosicion(this.modelo.getPosicion());
@@ -49,13 +57,8 @@ public class EntidadControlador implements ControladorEntidad {
     }
 
     private void alExpirar(int e) {
-        if (gestorSheet.setAnimacion("expirar", false)) {
-            gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
-                f -> { vista.setVisbilidad(false); setActivo(false); }
-            );
-        } else {
-            vista.setVisbilidad(false);
-            setActivo(false);
-        }
+        gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
+            f -> { vista.setVisible(false); setActivo(false); }
+        );
     }
 }

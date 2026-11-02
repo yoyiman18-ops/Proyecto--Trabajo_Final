@@ -1,4 +1,4 @@
-package vista;
+package motor.vista;
 
 import javafx.geometry.Rectangle2D;
 import javafx.scene.image.Image;
