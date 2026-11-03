@@ -38,102 +38,18 @@ public final class MenuControlador {
 
     public MenuControlador(
         GestorRecursos gestorRecursos,
-        Runnable onJugar,
-        Runnable onSalir
-    ) {
-        this(gestorRecursos, (Observador<Integer>) null, onJugar, onSalir);
-    }
-
-    public MenuControlador(
-        GestorRecursos gestorRecursos,
         GestorAudio gestorAudio,
         Runnable onJugar,
         Runnable onSalir
     ) {
-        this(
-            gestorRecursos,
-            gestorAudio != null ? gestorAudio.getObservadorSonido() : null,
-            onJugar,
-            onSalir
-        );
-    }
-
-    public MenuControlador(
-        GestorRecursos gestorRecursos,
-        Observador<Integer> observadorSonido,
-        Runnable onJugar,
-        Runnable onSalir
-    ) {
-        this(
-            gestorRecursos,
-            cargarSheetHudDesdeBaseDeDatos(gestorRecursos, URL_BD_DEFAULT, ID_SHEET_HUD_DEFAULT),
-            observadorSonido,
-            onJugar,
-            onSalir
-        );
-    }
-
-    public MenuControlador(
-        GestorRecursos gestorRecursos,
-        Observador<Integer> observadorSonido,
-        List<OpcionMenu> opciones
-    ) {
-        this(
-            gestorRecursos,
-            cargarSheetHudDesdeBaseDeDatos(gestorRecursos, URL_BD_DEFAULT, ID_SHEET_HUD_DEFAULT),
-            observadorSonido,
-            opciones
-        );
-    }
-
-    public MenuControlador(
-        GestorRecursos gestorRecursos,
-        Sheet sheetHud,
-        Observador<Integer> observadorSonido,
-        List<OpcionMenu> opciones
-    ) {
-        this(
-            crearVistaMenu(gestorRecursos, sheetHud, RECURSO_IMAGEN_MENU_DEFAULT, opciones),
-            observadorSonido,
-            opciones
-        );
-    }
-
-    public MenuControlador(
-        GestorRecursos gestorRecursos,
-        Sheet sheetHud,
-        Observador<Integer> observadorSonido,
-        Runnable onJugar,
-        Runnable onSalir
-    ) {
+        Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
         this.notificadorSonido = new NotificadorFuerte<>();
-        if (observadorSonido != null) {
-            this.notificadorSonido.suscribirObservador(observadorSonido);
+        if (gestorAudio != null) {
+            this.notificadorSonido.suscribirObservador(gestorAudio.getObservadorSonido());
         }
-        this.opciones = crearOpcionesPorDefecto(this.notificadorSonido, onJugar, onSalir);
+        this.opciones = new ArrayList<>(crearOpcionesPorDefecto(this.notificadorSonido, onJugar, onSalir));
+        Sheet sheetHud = cargarSheetHudDesdeBaseDeDatos(gestorRecursos, URL_BD_DEFAULT, ID_SHEET_HUD_DEFAULT);
         this.vista = crearVistaMenu(gestorRecursos, sheetHud, RECURSO_IMAGEN_MENU_DEFAULT, this.opciones);
-    }
-
-    public MenuControlador(
-        VistaMenu vista,
-        Runnable onJugar,
-        Runnable onSalir
-    ) {
-        this(vista, (Observador<Integer>) null, onJugar, onSalir);
-    }
-
-    public MenuControlador(
-        VistaMenu vista,
-        Observador<Integer> observadorSonido,
-        Runnable onJugar,
-        Runnable onSalir
-    ) {
-        this.vista = Objects.requireNonNull(vista, "La vista del menú no puede ser nula");
-        this.notificadorSonido = new NotificadorFuerte<>();
-        if (observadorSonido != null) {
-            this.notificadorSonido.suscribirObservador(observadorSonido);
-        }
-        this.opciones = crearOpcionesPorDefecto(this.notificadorSonido, onJugar, onSalir);
     }
 
     public MenuControlador(
