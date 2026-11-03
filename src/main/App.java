@@ -87,7 +87,7 @@ public class App extends Application {
     private void mostrarMenu(Stage stage) {
         MenuControlador menuControlador = new MenuControlador(
             gestorRecursos,
-            gestorAudio.getObservadorSonido(),
+            gestorAudio,
             () -> iniciarPartida(stage),
             Platform::exit
         );
