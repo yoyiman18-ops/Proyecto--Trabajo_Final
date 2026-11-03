@@ -49,34 +49,6 @@ public final class FondoMazmorra extends Canvas implements VistaFondo {
         dibujar();
     }
 
-    public FondoMazmorra(
-        Pane areaJuego,
-        double tamanoTile,
-        double duracionMarcoFuenteSegundos,
-        Map<String, Image> imagenes
-    ) {
-        this(
-            areaJuego,
-            new ConfiguracionMazmorra(
-                tamanoTile,
-                ConfiguracionMazmorra.ALTO_PARED_SUPERIOR_DEFAULT,
-                ConfiguracionMazmorra.ALTO_PARED_INFERIOR_DEFAULT,
-                ConfiguracionMazmorra.ANCHO_PARED_LATERAL_DEFAULT,
-                duracionMarcoFuenteSegundos
-            ),
-            imagenes
-        );
-    }
-
-    public FondoMazmorra(
-        Pane areaJuego,
-        double tamanoTile,
-        long duracionMarcoFuenteNanosegundos,
-        Map<String, Image> imagenes
-    ) {
-        this(areaJuego, tamanoTile, duracionMarcoFuenteNanosegundos / 1_000_000_000.0, imagenes);
-    }
-
     @Override
     public Node getNodo() {
         return this;
