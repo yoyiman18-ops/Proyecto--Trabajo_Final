@@ -17,7 +17,7 @@ public class ExperienciaGemaFactory extends ExperienciaFactory {
         double cantidadExp
     ) {
         super(
-            new HitboxRectangularFactory(16, 16, TipoHitbox.FANTASMA, categoriasColision, capasColision),
+            new HitboxRectangularFactory(24, 24, 16, 16, TipoHitbox.FANTASMA, categoriasColision, capasColision, true),
             posicion,
             cantidadExp,
             new ArrayList<>(),

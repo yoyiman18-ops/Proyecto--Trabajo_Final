@@ -87,7 +87,7 @@ public class Experiencia extends Entidad {
         TipoInteraccion interaccion = TipoInteraccion.deInt(i.clase());
         if (interaccion == null) { return false; }
         return switch (interaccion) {
-            case GANAREXP, AÑADIR_EXP -> {
+            case AÑADIR_EXP -> {
                 recoger();
                 yield true;
             }

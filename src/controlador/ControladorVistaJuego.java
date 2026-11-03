@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.IntConsumer;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -194,6 +195,16 @@ public final class ControladorVistaJuego {
         Runnable onVolverAlMenu,
         Runnable onReintentar
     ) {
+        configurarControlesModales(motor, modeloPartida, onVolverAlMenu, onReintentar, null);
+    }
+
+    public void configurarControlesModales(
+        Motor motor,
+        ModeloPartida modeloPartida,
+        Runnable onVolverAlMenu,
+        Runnable onReintentar,
+        IntConsumer onSeleccionarMejora
+    ) {
         Objects.requireNonNull(motor, "El motor no puede ser nulo");
         Objects.requireNonNull(modeloPartida, "El modelo de partida no puede ser nulo");
         Objects.requireNonNull(onVolverAlMenu, "La acción de volver al menú no puede ser nula");
@@ -247,11 +258,15 @@ public final class ControladorVistaJuego {
         });
 
         vista.setOnSeleccionarMejora(indice -> {
-            cerrarEleccionMejora();
-            this.enPausa = false;
-            motor.setPausa(false);
-            modeloPartida.setEnPausa(false);
-            Platform.runLater(vista::solicitarFoco);
+            if (onSeleccionarMejora != null) {
+                onSeleccionarMejora.accept(indice);
+            } else {
+                cerrarEleccionMejora();
+                this.enPausa = false;
+                motor.setPausa(false);
+                modeloPartida.setEnPausa(false);
+                Platform.runLater(vista::solicitarFoco);
+            }
         });
     }
 

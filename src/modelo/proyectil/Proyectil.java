@@ -69,7 +69,7 @@ extends Entidad
         if (interaccion == null) { return false; }
         return switch (interaccion) {
             case DAÑAR -> recibirDaño(i.valor());
-            case SOLIDO -> recibirDaño(i.valor());
+            case SOLIDO -> recibirDaño(Math.max(1.0, i.valor()));
             default -> false;
         };
     }

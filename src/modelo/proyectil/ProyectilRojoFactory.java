@@ -18,7 +18,7 @@ public class ProyectilRojoFactory extends ProyectilFactory {
         double dañoAdicional
     ) {
         super(
-            new HitboxRectangularFactory(16, 16, TipoHitbox.SOLIDA, categoriasColision, capasColision),
+            new HitboxRectangularFactory(24, 24, 16, 16, TipoHitbox.SOLIDA, categoriasColision, capasColision, true),
             posicion,
             direccion,
             velocidad,

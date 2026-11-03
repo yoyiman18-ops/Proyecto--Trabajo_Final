@@ -142,8 +142,8 @@ public class Motor implements Ticking {
                 c.tick(dt);
                 if (!c.activo()) { colaLimpieza.add(c); }
                 else {colisionables.add(c.getEntidad()); }
-                this.sistemaColisiones.resolverColisiones(colisionables);
             }
+            this.sistemaColisiones.resolverColisiones(colisionables);
         }
         limpiarControladores();
   

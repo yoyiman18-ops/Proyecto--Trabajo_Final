@@ -305,8 +305,8 @@ implements ModeloEntidad {
             this.notificadorPosicion.suscribirObservador(hitbox);
             this.hitbox.cambio(this.posicion);
         }
-        this.interaccionesColision = Objects.requireNonNull(interaccionesColision);
-        this.estrategiasExpiracion = Objects.requireNonNull(estrategiasExpiracion);
+        this.interaccionesColision = new ArrayList<>(Objects.requireNonNull(interaccionesColision));
+        this.estrategiasExpiracion = new ArrayList<>(Objects.requireNonNull(estrategiasExpiracion));
         this.animacionDefault = animacionDefault;
         this.animacionExpirar = animacionExpirar;
         this.idSonidoExpiracion = idSonidoExpiracion;
@@ -384,7 +384,7 @@ implements ModeloEntidad {
     @Override public boolean activo() { return this.activa; }
     @Override public Hitbox getHitbox() { return this.hitbox; }
     @Override public int getIdGlobal() { return this.idGlobal; }
-    @Override public boolean colisionesActivas() { return this.hitbox.estaActiva(); }
+    @Override public boolean colisionesActivas() { return this.activa && this.hitbox.estaActiva(); }
 
     @Override public List<Interaccion> getInteracciones() { return this.interaccionesColision; }
 
@@ -408,6 +408,8 @@ implements ModeloEntidad {
     protected void expirar(int estado) {
         if (!activo()) { return; }
         setActivo(false);
+        this.hitbox.setActiva(false);
+        this.interaccionesColision.clear();
         emitirSonido(idSonidoExpiracion);
         if (estrategiasExpiracion != null) {
             for (EstrategiaExpiracion e : estrategiasExpiracion) { if ((estado = e.ejecutar(this)) >= 1) {continue; };}

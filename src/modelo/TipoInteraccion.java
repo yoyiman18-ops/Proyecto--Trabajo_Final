@@ -4,7 +4,7 @@ public enum TipoInteraccion {
     DAÑAR(1),
     SOLIDO(2),
     GANAREXP(3),
-    AÑADIR_EXP(3);
+    AÑADIR_EXP(4);
 
     private final int clase;
     private TipoInteraccion(int clase) { this.clase = clase; }

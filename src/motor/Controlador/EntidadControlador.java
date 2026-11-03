@@ -50,6 +50,11 @@ public class EntidadControlador implements ControladorEntidad {
     }
 
     private void alExpirar(int e) {
+        if (modelo.getAnimacionExpirar() == null) {
+            vista.setVisible(false);
+            setActivo(false);
+            return;
+        }
         gestorSheet.getNotificadorFinAnimacion().suscribirObservador(
             f -> { vista.setVisible(false); setActivo(false); }
         );

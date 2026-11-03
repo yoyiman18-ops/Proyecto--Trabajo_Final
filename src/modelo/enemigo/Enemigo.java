@@ -1,10 +1,13 @@
-package modelo;
+package modelo.enemigo;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import modelo.Personaje;
+import modelo.TipoInteraccion;
 import motor.colisiones.hitboxes.Hitbox;
+import motor.modelo.Direccion;
 import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
@@ -32,6 +35,8 @@ public class Enemigo extends Personaje {
     private double intervaloAtaque;
     private double tiempoHastaAtaque;
     private boolean contactoConObjetivo;
+    private Direccion direccion;
+    private String animacionActual;
 
     public Enemigo(
         int idGlobal,
@@ -98,10 +103,13 @@ public class Enemigo extends Personaje {
         this.intervaloAtaque = intervaloAtaque;
         this.tiempoHastaAtaque = 0.0;
         this.contactoConObjetivo = false;
+        this.direccion = Direccion.ABAJO;
+        this.animacionActual = animacionDefault;
 
         if (daño > 0) {
             añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(), daño));
         }
+        añadirInteraccionColision(new Interaccion(TipoInteraccion.SOLIDO.clase(), 0.0));
     }
 
     public Enemigo(
@@ -278,9 +286,39 @@ public class Enemigo extends Personaje {
             } else {
                 getVelocidad().setX(diferenciaX / distancia * velocidadMax);
                 getVelocidad().setY(diferenciaY / distancia * velocidadMax);
+                if (Math.abs(diferenciaX) >= Math.abs(diferenciaY)) {
+                    direccion = diferenciaX >= 0.0 ? Direccion.DERECHA : Direccion.IZQUIERDA;
+                } else {
+                    direccion = diferenciaY >= 0.0 ? Direccion.ABAJO : Direccion.ARRIBA;
+                }
+                if (puedeAtacar()) {
+                    String animacionMovimiento = obtenerAnimacionMovimiento(direccion);
+                    if (!animacionMovimiento.equals(animacionActual)) {
+                        animacionActual = animacionMovimiento;
+                        getNotificadorAnimacion().notificar(animacionActual);
+                    }
+                }
             }
         }
         super.tick(dt);
+    }
+
+    private String obtenerAnimacionMovimiento(Direccion dir) {
+        return switch (dir) {
+            case ARRIBA -> "caminar_arriba";
+            case ABAJO -> "caminar_abajo";
+            case IZQUIERDA -> "caminar_izquierda";
+            case DERECHA -> "caminar_derecha";
+        };
+    }
+
+    private String obtenerAnimacionAtaque(Direccion dir) {
+        return switch (dir) {
+            case ARRIBA -> "atacar_arriba";
+            case ABAJO -> "atacar_abajo";
+            case IZQUIERDA -> "atacar_izquierda";
+            case DERECHA -> "atacar_derecha";
+        };
     }
 
     public boolean puedeAtacar() {
@@ -293,6 +331,35 @@ public class Enemigo extends Personaje {
 
     public void setContactoConObjetivo(boolean contacto) {
         this.contactoConObjetivo = contacto;
+    }
+
+    @Override
+    public List<Interaccion> getInteracciones() {
+        if (!activo()) {
+            return List.of();
+        }
+        if (puedeAtacar() && daño > 0) {
+            return super.getInteracciones();
+        }
+        return List.of(new Interaccion(TipoInteraccion.SOLIDO.clase(), 0.0));
+    }
+
+    @Override
+    public boolean interactuar(Interaccion i) {
+        if (i == null) {
+            return false;
+        }
+        TipoInteraccion interaccion = TipoInteraccion.deInt(i.clase());
+        if (interaccion == TipoInteraccion.AÑADIR_EXP) {
+            setContactoConObjetivo(true);
+            if (puedeAtacar()) {
+                reiniciarTiempoAtaque();
+                animacionActual = obtenerAnimacionAtaque(direccion);
+                getNotificadorAnimacion().notificar(animacionActual);
+            }
+            return true;
+        }
+        return super.interactuar(i);
     }
 
     public double getDaño() {

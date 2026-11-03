@@ -96,8 +96,8 @@ public abstract class EntidadFactory {
     protected double getAceleracion() { return this.aceleracion; }
     protected double getFriccion() { return this.friccion; }
     protected double getVelocidadMax() { return this.velocidadMax; }
-    protected List<EstrategiaExpiracion> getEstrategiasExpiracion() { return this.estrategiasExpiracion; }
-    protected List<Interaccion> getInteraccionesColision() { return this.interaccionesColision; }
+    protected List<EstrategiaExpiracion> getEstrategiasExpiracion() { return new ArrayList<>(this.estrategiasExpiracion); }
+    protected List<Interaccion> getInteraccionesColision() { return new ArrayList<>(this.interaccionesColision); }
 
     public abstract ModeloEntidad get();
 }

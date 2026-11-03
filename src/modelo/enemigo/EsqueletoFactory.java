@@ -1,0 +1,120 @@
+package modelo.enemigo;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import modelo.EstrategiaExpiracionSpawnear;
+import modelo.experiencia.GemaExperienciaFactory;
+import motor.colisiones.hitboxes.CategoriaColision;
+import motor.colisiones.hitboxes.HitboxRectangularFactory;
+import motor.colisiones.hitboxes.MascaraColision;
+import motor.colisiones.hitboxes.TipoHitbox;
+import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.Interaccion;
+import motor.modelo.Posicionable;
+import motor.util.VecDouble2D;
+
+public class EsqueletoFactory extends EnemigoFactory {
+
+    public static final double ANCHO_HITBOX_ESQUELETO = 32.0;
+    public static final double ALTO_HITBOX_ESQUELETO = 32.0;
+
+    public EsqueletoFactory() {
+        this(new VecDouble2D(0.0, 0.0), null);
+    }
+
+    public EsqueletoFactory(
+        VecDouble2D posicion,
+        Posicionable objetivo
+    ) {
+        this(
+            posicion,
+            Esqueleto.VELOCIDAD_MAXIMA_DEFAULT,
+            Esqueleto.VIDA_MAXIMA_DEFAULT,
+            Esqueleto.DANIO_DEFAULT,
+            Esqueleto.EXPERIENCIA_DEFAULT,
+            objetivo
+        );
+    }
+
+    public EsqueletoFactory(
+        VecDouble2D posicion,
+        double velocidadMax,
+        double vidaMaxima,
+        double daño,
+        int experienciaRecompensa,
+        Posicionable objetivo
+    ) {
+        this(
+            MascaraColision.of(CategoriaColision.ENEMIGO),
+            MascaraColision.of(
+                CategoriaColision.JUGADOR,
+                CategoriaColision.ALIADO,
+                CategoriaColision.MURO
+            ),
+            posicion,
+            velocidadMax,
+            vidaMaxima,
+            daño,
+            experienciaRecompensa,
+            objetivo,
+            new ArrayList<>(),
+            new ArrayList<>()
+        );
+    }
+
+    public EsqueletoFactory(
+        MascaraColision categoriasColision,
+        MascaraColision capasColision,
+        VecDouble2D posicion,
+        double velocidadMax,
+        double vidaMaxima,
+        double daño,
+        int experienciaRecompensa,
+        Posicionable objetivo,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision
+    ) {
+        super(
+            new HitboxRectangularFactory(
+                ANCHO_HITBOX_ESQUELETO,
+                ALTO_HITBOX_ESQUELETO,
+                TipoHitbox.SOLIDA,
+                categoriasColision,
+                capasColision
+            ),
+            posicion,
+            velocidadMax,
+            vidaMaxima,
+            daño,
+            experienciaRecompensa,
+            objetivo,
+            Esqueleto.INTERVALO_ATAQUE_DEFAULT,
+            estrategiasExpiracion,
+            interaccionesColision
+        );
+    }
+
+    @Override
+    public Enemigo get() {
+        List<EstrategiaExpiracion> estrategias = new ArrayList<>();
+        if (getExperienciaRecompensa() > 0) {
+            estrategias.add(new EstrategiaExpiracionSpawnear(
+                List.of(new GemaExperienciaFactory(getPosicion(), getExperienciaRecompensa()).get())
+            ));
+        }
+        estrategias.addAll(getEstrategiasExpiracion());
+
+        return new Esqueleto(
+            getPosicion(),
+            getHitboxFactory().getHitbox(),
+            getVelocidadMax(),
+            getVidaMaxima(),
+            getDanio(),
+            getExperienciaRecompensa(),
+            getObjetivo(),
+            estrategias,
+            getInteraccionesColision()
+        );
+    }
+}

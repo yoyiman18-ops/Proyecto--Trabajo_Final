@@ -5,16 +5,24 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
+import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.Hitbox;
+import motor.colisiones.hitboxes.MascaraColision;
+import motor.entrada.Accion;
+import motor.entrada.EstadoAcciones;
+import motor.modelo.Controlable;
 import motor.modelo.Direccion;
 import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
+import modelo.proyectil.ProyectilFactory;
+import modelo.proyectil.ProyectilRojoFactory;
+import motor.util.Eje;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorFuerte;
 
-public class Jugador extends Personaje {
+public class Jugador extends Personaje implements Controlable {
 
     public static final int ID_GLOBAL_JUGADOR_DEFAULT = 1;
     public static final double VELOCIDAD_ATAQUE_DEFAULT = 1.0;
@@ -31,9 +39,13 @@ public class Jugador extends Personaje {
     public static final double VELOCIDAD_MAXIMA_DEFAULT = 200.0;
     public static final double VIDA_MAXIMA_DEFAULT = 100.0;
 
-    public static final double OFFSET_ORIGEN_DISPARO_X_DEFAULT = 17.0;
-    public static final double OFFSET_ORIGEN_DISPARO_Y_DEFAULT = 17.0;
+    public static final double OFFSET_ORIGEN_DISPARO_X_DEFAULT = -15.0;
+    public static final double OFFSET_ORIGEN_DISPARO_Y_DEFAULT = -16.0;
     public static final double DESVIACION_MULTIDISPARO_GRADOS_DEFAULT = 15.0;
+
+    public static final double VELOCIDAD_PROYECTIL_DEFAULT = 320.0;
+    public static final double TIEMPO_VIDA_ADICIONAL_PROYECTIL_DEFAULT = 2.0;
+    public static final int PENETRACION_ADICIONAL_PROYECTIL_DEFAULT = 0;
 
     public static final double DIRECCION_POSITIVA = 1.0;
     public static final double DIRECCION_NEGATIVA = -1.0;
@@ -52,7 +64,13 @@ public class Jugador extends Personaje {
     private double offsetDisparoY;
     private double desviacionMultidisparoGrados;
 
+    private ProyectilFactory proyectilFactory;
+    private Integer idSonidoDisparo;
+    private Integer idSonidoDisparoCritico;
+
     private Direccion direccion;
+    private Direccion ultimaDireccionAnimada = Direccion.ABAJO;
+    private EstadoAcciones estadoAccionesActual;
     private final VecDouble2D vectorDireccion;
     private final VecDouble2D acumuladorDireccionTick;
     private final Notificador<Jugador> notificadorVida;
@@ -156,6 +174,8 @@ public class Jugador extends Personaje {
         this.acumuladorDireccionTick = new VecDouble2D(0.0, 0.0);
         this.notificadorVida = notificadorVida != null ? notificadorVida : new NotificadorFuerte<>();
         this.idSonidoSubirNivel = idSonidoSubirNivel;
+        this.proyectilFactory = crearProyectilFactoryDefault();
+        añadirInteraccionColision(new Interaccion(TipoInteraccion.AÑADIR_EXP.clase(), 0.0));
     }
 
     public Jugador(
@@ -257,9 +277,25 @@ public class Jugador extends Personaje {
             b.idSonidoSubirNivel,
             b.notificadorVida
         );
+        this.proyectilFactory = b.proyectilFactory != null ? b.proyectilFactory : crearProyectilFactoryDefault();
+        this.idSonidoDisparo = b.idSonidoDisparo;
+        this.idSonidoDisparoCritico = b.idSonidoDisparoCritico;
         if (b.vida < b.vidaMax) {
             setVidaDirecta(b.vida);
         }
+    }
+
+    private static ProyectilFactory crearProyectilFactoryDefault() {
+        return new ProyectilRojoFactory(
+            MascaraColision.of(CategoriaColision.ALIADO),
+            MascaraColision.of(CategoriaColision.ENEMIGO, CategoriaColision.MURO),
+            new VecDouble2D(),
+            VecDouble2D.abajo(),
+            VELOCIDAD_PROYECTIL_DEFAULT,
+            TIEMPO_VIDA_ADICIONAL_PROYECTIL_DEFAULT,
+            PENETRACION_ADICIONAL_PROYECTIL_DEFAULT,
+            0.0
+        );
     }
 
     @Override
@@ -278,9 +314,41 @@ public class Jugador extends Personaje {
     }
 
     @Override
+    public void cambio(EstadoAcciones e) {
+        this.estadoAccionesActual = e;
+    }
+
+    @Override
     public void tick(double dt) {
         if (!activo()) {
             return;
+        }
+        if (estadoAccionesActual != null) {
+            boolean moverIzquierda = estadoAccionesActual.activa(Accion.MOVER_IZQUIERDA);
+            boolean moverDerecha = estadoAccionesActual.activa(Accion.MOVER_DERECHA);
+            if (moverIzquierda && !moverDerecha) {
+                acelerar(Direccion.IZQUIERDA, dt);
+            } else if (moverDerecha && !moverIzquierda) {
+                acelerar(Direccion.DERECHA, dt);
+            } else {
+                frenar(Eje.X, dt);
+            }
+
+            boolean moverArriba = estadoAccionesActual.activa(Accion.MOVER_ARRIBA);
+            boolean moverAbajo = estadoAccionesActual.activa(Accion.MOVER_ABAJO);
+            if (moverArriba && !moverAbajo) {
+                acelerar(Direccion.ARRIBA, dt);
+            } else if (moverAbajo && !moverArriba) {
+                acelerar(Direccion.ABAJO, dt);
+            } else {
+                frenar(Eje.Y, dt);
+            }
+
+            Direccion dir = getDireccion();
+            if (dir != null && dir != ultimaDireccionAnimada) {
+                ultimaDireccionAnimada = dir;
+                getNotificadorAnimacion().notificar(obtenerAnimacionMovimiento(dir));
+            }
         }
         super.tick(dt);
         acumuladorDireccionTick.setX(0.0);
@@ -288,6 +356,15 @@ public class Jugador extends Personaje {
         if (tiempoEnfriamientoAtaque > 0) {
             tiempoEnfriamientoAtaque = Math.max(0.0, tiempoEnfriamientoAtaque - dt);
         }
+    }
+
+    private String obtenerAnimacionMovimiento(Direccion dir) {
+        return switch (dir) {
+            case ARRIBA -> "caminar_arriba";
+            case ABAJO -> "caminar_abajo";
+            case IZQUIERDA -> "caminar_izquierda";
+            case DERECHA -> "caminar_derecha";
+        };
     }
 
     public boolean intentarAtacar() {
@@ -321,6 +398,54 @@ public class Jugador extends Personaje {
             disparos.add(new DatosDisparo(origen.clone(), dirExtra, danioFinal, esCritico));
         }
         return List.copyOf(disparos);
+    }
+
+    public boolean atacar() {
+        if (proyectilFactory == null) {
+            return false;
+        }
+        List<DatosDisparo> disparos = realizarAtaque();
+        if (disparos.isEmpty()) {
+            return false;
+        }
+        boolean algunCritico = false;
+        for (DatosDisparo disparo : disparos) {
+            algunCritico |= disparo.esCritico();
+            proyectilFactory.setPosicion(disparo.origen());
+            proyectilFactory.setDireccion(disparo.direccion());
+            proyectilFactory.setDañoAdicional(Math.max(0.0, disparo.danio() - 1.0));
+            getNotificadorInstanciacion().notificar(proyectilFactory.get());
+        }
+        if (algunCritico && idSonidoDisparoCritico != null) {
+            emitirSonido(idSonidoDisparoCritico);
+        } else if (idSonidoDisparo != null) {
+            emitirSonido(idSonidoDisparo);
+        }
+        return true;
+    }
+
+    public ProyectilFactory getProyectilFactory() {
+        return proyectilFactory;
+    }
+
+    public void setProyectilFactory(ProyectilFactory proyectilFactory) {
+        this.proyectilFactory = proyectilFactory;
+    }
+
+    public Integer getIdSonidoDisparo() {
+        return idSonidoDisparo;
+    }
+
+    public void setIdSonidoDisparo(Integer idSonidoDisparo) {
+        this.idSonidoDisparo = idSonidoDisparo;
+    }
+
+    public Integer getIdSonidoDisparoCritico() {
+        return idSonidoDisparoCritico;
+    }
+
+    public void setIdSonidoDisparoCritico(Integer idSonidoDisparoCritico) {
+        this.idSonidoDisparoCritico = idSonidoDisparoCritico;
     }
 
     public int ganarExperiencia(int cantidad) {
@@ -511,6 +636,9 @@ public class Jugador extends Personaje {
         private Integer idSonidoDaño;
         private Integer idSonidoMuerte;
         private Integer idSonidoSubirNivel;
+        private ProyectilFactory proyectilFactory;
+        private Integer idSonidoDisparo;
+        private Integer idSonidoDisparoCritico;
 
         public Builder(String nombre, Hitbox hitbox) {
             this.nombre = Objects.requireNonNull(nombre, "El nombre no puede ser nulo");
@@ -696,6 +824,21 @@ public class Jugador extends Personaje {
 
         public Builder idSonidoSubirNivel(Integer idSonidoSubirNivel) {
             this.idSonidoSubirNivel = idSonidoSubirNivel;
+            return this;
+        }
+
+        public Builder proyectilFactory(ProyectilFactory proyectilFactory) {
+            this.proyectilFactory = proyectilFactory;
+            return this;
+        }
+
+        public Builder idSonidoDisparo(Integer idSonidoDisparo) {
+            this.idSonidoDisparo = idSonidoDisparo;
+            return this;
+        }
+
+        public Builder idSonidoDisparoCritico(Integer idSonidoDisparoCritico) {
+            this.idSonidoDisparoCritico = idSonidoDisparoCritico;
             return this;
         }
 

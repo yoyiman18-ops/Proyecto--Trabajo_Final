@@ -43,25 +43,32 @@ package main;
 
 import java.net.URL;
 
+import controlador.ControladorPartida;
 import controlador.ControladorVistaJuego;
 import controlador.MenuControlador;
 import controlador.MusicaJuego;
 import controlador.SonidoJuego;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import modelo.Jugador;
 import modelo.ModeloPartida;
 import modelo.Partida;
 import motor.Motor;
+import motor.colisiones.hitboxes.CategoriaColision;
+import motor.colisiones.hitboxes.Hitbox;
+import motor.colisiones.hitboxes.HitboxRectangularFactory;
+import motor.colisiones.hitboxes.MascaraColision;
+import motor.colisiones.hitboxes.TipoHitbox;
 import motor.entrada.Accion;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
+import motor.modelo.graficos.Sheet;
 import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
-import vista.VistaFondo;
 import vista.VistaPartida;
 
 // nota: en esta clase se prueban de forma arbitraria las características añadidas.
@@ -107,57 +114,66 @@ public class App extends Application {
             32
         );
         VistaPartida vista = controladorVista.getVistaJuego();
-        VistaFondo fondo = controladorVista.getFondoMazmorra();
+        Scene escena = new Scene(vista.getRaiz(), 960, 720);
 
-        // 2. Crear Modelo de la partida
-        ModeloPartida modeloPartida = new Partida(
-            SonidoJuego.MOSTRAR_MEJORAS.getId(),
-            SonidoJuego.MEJORA_APLICADA.getId(),
-            SonidoJuego.VICTORIA.getId(),
-            SonidoJuego.DERROTA.getId()
-        );
-
-        // 3. Crear Motor genérico
+        // 2. Obtener Motor genérico y configurar mapeos de teclado
         Motor motor = Motor.getInstancia();
-
-        // Conectar el nodo de entidades del motor dentro del área de juego
-        Pane rootMotor = motor.getRoot();
-        rootMotor.setPickOnBounds(false);
-        vista.agregarNodoJuego(rootMotor);
-
-        // Conectar la animación del fondo al reloj del motor
-        motor.reloj().suscribirObservador(controladorVista.getObservadorActualizacion());
-
-        // Configurar los controles modales (Pausa, Reanudar, Volver al Menú, Reintentar, Mejoras)
-        controladorVista.configurarControlesModales(
-            motor,
-            modeloPartida,
-            () -> {
-                motor.reloj().desuscribirObservador(controladorVista.getObservadorActualizacion());
-                mostrarMenu(stage);
-            },
-            () -> {
-                motor.reloj().desuscribirObservador(controladorVista.getObservadorActualizacion());
-                iniciarPartida(stage);
-            }
-        );
-
-        // 4. Mapeos de entrada de teclado
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.A, TipoEntrada.MANTENER, Accion.MOVER_IZQUIERDA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.W, TipoEntrada.MANTENER, Accion.MOVER_ARRIBA));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.ATACAR));
 
-        Scene escena = new Scene(vista.getRaiz(), 960, 720);
-        controladorVista.configurarAtajoTecladoPausa(escena, motor, modeloPartida);
-        stage.setScene(escena);
-        motor.teclado().setEscenaRoot(escena);
-        Platform.runLater(vista::solicitarFoco);
-        MusicaJuego.PARTIDA.reproducirEn(gestorAudio);
+        // 3. Crear Jugador y Modelo de la partida
+        Sheet sheetJugador = motor.getSheetDAO().cargar(Jugador.ID_GLOBAL_JUGADOR_DEFAULT);
+        Rectangle2D rectanguloJugador = sheetJugador.getRecortes().getFirst().getRectangulo();
+        Hitbox hitboxJugador = new HitboxRectangularFactory(
+            rectanguloJugador.getWidth(),
+            rectanguloJugador.getHeight(),
+            TipoHitbox.SOLIDA,
+            MascaraColision.of(CategoriaColision.JUGADOR),
+            MascaraColision.of(
+                CategoriaColision.ENEMIGO,
+                CategoriaColision.MURO,
+                CategoriaColision.ITEM,
+                CategoriaColision.EXP
+            )
+        ).getHitbox();
 
-        // Iniciar el bucle de juego del motor
-        motor.iniciar();
+        Jugador jugador = new Jugador.Builder("jugador", hitboxJugador)
+            .posicion(
+                (escena.getWidth() - rectanguloJugador.getWidth()) / 2.0,
+                (escena.getHeight() - rectanguloJugador.getHeight()) / 2.0
+            )
+            .animacionDefault("caminar_abajo")
+            .idSonidoDaño(SonidoJuego.DAÑO_JUGADOR.getId())
+            .idSonidoMuerte(SonidoJuego.MUERTE_JUGADOR.getId())
+            .idSonidoSubirNivel(SonidoJuego.SUBIR_NIVEL.getId())
+            .idSonidoDisparo(SonidoJuego.DISPARO.getId())
+            .idSonidoDisparoCritico(SonidoJuego.DISPARO_CRITICO.getId())
+            .build();
+
+        ModeloPartida modeloPartida = new Partida(
+            jugador,
+            SonidoJuego.MOSTRAR_MEJORAS.getId(),
+            SonidoJuego.MEJORA_APLICADA.getId(),
+            SonidoJuego.VICTORIA.getId(),
+            SonidoJuego.DERROTA.getId()
+        );
+
+        // 4. Iniciar ControladorPartida
+        ControladorPartida controladorPartida = new ControladorPartida(
+            modeloPartida,
+            controladorVista,
+            motor
+        );
+        stage.setScene(escena);
+        MusicaJuego.PARTIDA.reproducirEn(gestorAudio);
+        controladorPartida.iniciar(
+            escena,
+            () -> mostrarMenu(stage),
+            () -> iniciarPartida(stage)
+        );
     }
 
     @Override
