@@ -3,27 +3,29 @@ package modelo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
 
+import modelo.enemigo.Enemigo;
+import modelo.enemigo.EsqueletoFactory;
+import modelo.enemigo.SpawnerEnemigos;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 import motor.util.observer.NotificadorFuerte;
 
 public final class Partida implements ModeloPartida {
-    private static final ItemMejoraAtributo.Atributo[] ATRIBUTOS_DISPONIBLES =
-        ItemMejoraAtributo.Atributo.values();
-    private static final int CANTIDAD_OPCIONES_MEJORA = 3;
-
     private final int cantidadOleadas;
     private final int maxEnemigosSimultaneos;
     private final double intervaloOleadas;
     private final Notificador<EstadoOleadas> notificadorOleadas;
     private final Notificador<Integer> notificadorSonido;
+    private final Notificador<Enemigo> notificadorEnemigoGenerado;
+    private final SpawnerEnemigos spawnerEnemigos;
     private final Integer idSonidoMostrarMejoras;
     private final Integer idSonidoMejoraAplicada;
     private final Integer idSonidoVictoria;
     private final Integer idSonidoDerrota;
+    private final List<Enemigo> enemigos;
 
+    private Jugador jugador;
     private int oleadaActual;
     private int enemigosActivos;
     private int enemigosRestantesOleada;
@@ -34,7 +36,6 @@ public final class Partida implements ModeloPartida {
     private boolean enPausa;
     private boolean eleccionMejoraActiva;
     private boolean partidaFinalizada;
-    private List<ItemMejoraAtributo> opcionesMejoraActuales;
 
     public Partida() {
         this(5, 6, 6.0, new NotificadorDebil<>());
@@ -52,11 +53,52 @@ public final class Partida implements ModeloPartida {
             6.0,
             new NotificadorDebil<>(),
             new NotificadorFuerte<>(),
+            null,
             idSonidoMostrarMejoras,
             idSonidoMejoraAplicada,
             idSonidoVictoria,
             idSonidoDerrota
         );
+    }
+
+    public Partida(
+        Jugador jugador,
+        Integer idSonidoMostrarMejoras,
+        Integer idSonidoMejoraAplicada,
+        Integer idSonidoVictoria,
+        Integer idSonidoDerrota
+    ) {
+        this(
+            jugador,
+            null,
+            idSonidoMostrarMejoras,
+            idSonidoMejoraAplicada,
+            idSonidoVictoria,
+            idSonidoDerrota
+        );
+    }
+
+    public Partida(
+        Jugador jugador,
+        SpawnerEnemigos spawnerEnemigos,
+        Integer idSonidoMostrarMejoras,
+        Integer idSonidoMejoraAplicada,
+        Integer idSonidoVictoria,
+        Integer idSonidoDerrota
+    ) {
+        this(
+            5,
+            6,
+            6.0,
+            new NotificadorDebil<>(),
+            new NotificadorFuerte<>(),
+            spawnerEnemigos,
+            idSonidoMostrarMejoras,
+            idSonidoMejoraAplicada,
+            idSonidoVictoria,
+            idSonidoDerrota
+        );
+        this.jugador = Objects.requireNonNull(jugador, "El jugador no puede ser nulo");
     }
 
     public Partida(
@@ -71,6 +113,7 @@ public final class Partida implements ModeloPartida {
             intervaloOleadas,
             notificadorOleadas,
             new NotificadorFuerte<>(),
+            null,
             null,
             null,
             null,
@@ -89,6 +132,32 @@ public final class Partida implements ModeloPartida {
         Integer idSonidoVictoria,
         Integer idSonidoDerrota
     ) {
+        this(
+            cantidadOleadas,
+            maxEnemigosSimultaneos,
+            intervaloOleadas,
+            notificadorOleadas,
+            notificadorSonido,
+            null,
+            idSonidoMostrarMejoras,
+            idSonidoMejoraAplicada,
+            idSonidoVictoria,
+            idSonidoDerrota
+        );
+    }
+
+    public Partida(
+        int cantidadOleadas,
+        int maxEnemigosSimultaneos,
+        double intervaloOleadas,
+        Notificador<EstadoOleadas> notificadorOleadas,
+        Notificador<Integer> notificadorSonido,
+        SpawnerEnemigos spawnerEnemigos,
+        Integer idSonidoMostrarMejoras,
+        Integer idSonidoMejoraAplicada,
+        Integer idSonidoVictoria,
+        Integer idSonidoDerrota
+    ) {
         if (cantidadOleadas <= 0 || maxEnemigosSimultaneos <= 0) {
             throw new IllegalArgumentException("La cantidad de oleadas y el máximo de enemigos deben ser positivos.");
         }
@@ -100,10 +169,14 @@ public final class Partida implements ModeloPartida {
         this.intervaloOleadas = intervaloOleadas;
         this.notificadorOleadas = Objects.requireNonNull(notificadorOleadas, "El notificador de oleadas no puede ser nulo");
         this.notificadorSonido = Objects.requireNonNull(notificadorSonido, "El notificador de sonido no puede ser nulo");
+        this.notificadorEnemigoGenerado = new NotificadorFuerte<>();
+        this.spawnerEnemigos = spawnerEnemigos != null ? spawnerEnemigos : new SpawnerEnemigos(new EsqueletoFactory());
+        this.spawnerEnemigos.getNotificadorEnemigoGenerado().suscribirObservador(this::alGenerarEnemigo);
         this.idSonidoMostrarMejoras = idSonidoMostrarMejoras;
         this.idSonidoMejoraAplicada = idSonidoMejoraAplicada;
         this.idSonidoVictoria = idSonidoVictoria;
         this.idSonidoDerrota = idSonidoDerrota;
+        this.enemigos = new ArrayList<>();
 
         this.oleadaActual = 0;
         this.enemigosActivos = 0;
@@ -115,7 +188,21 @@ public final class Partida implements ModeloPartida {
         this.enPausa = false;
         this.eleccionMejoraActiva = false;
         this.partidaFinalizada = false;
-        this.opcionesMejoraActuales = List.of();
+    }
+
+    @Override
+    public Jugador getJugador() {
+        return jugador;
+    }
+
+    @Override
+    public void setJugador(Jugador jugador) {
+        this.jugador = Objects.requireNonNull(jugador, "El jugador no puede ser nulo");
+    }
+
+    @Override
+    public List<Enemigo> getEnemigosActivos() {
+        return List.copyOf(enemigos);
     }
 
     @Override
@@ -126,6 +213,16 @@ public final class Partida implements ModeloPartida {
     @Override
     public Notificador<Integer> getNotificadorSonido() {
         return notificadorSonido;
+    }
+
+    @Override
+    public Notificador<Enemigo> getNotificadorEnemigoGenerado() {
+        return notificadorEnemigoGenerado;
+    }
+
+    @Override
+    public SpawnerEnemigos getSpawnerEnemigos() {
+        return spawnerEnemigos;
     }
 
     @Override
@@ -146,6 +243,24 @@ public final class Partida implements ModeloPartida {
     }
 
     @Override
+    public void iniciarEleccionMejora() {
+        if (!partidaFinalizada) {
+            this.eleccionMejoraActiva = true;
+            this.enPausa = true;
+            emitirSonido(idSonidoMostrarMejoras);
+        }
+    }
+
+    @Override
+    public void confirmarEleccionMejora() {
+        if (!partidaFinalizada && this.eleccionMejoraActiva) {
+            this.eleccionMejoraActiva = false;
+            this.enPausa = false;
+            emitirSonido(idSonidoMejoraAplicada);
+        }
+    }
+
+    @Override
     public boolean isPartidaFinalizada() {
         return partidaFinalizada;
     }
@@ -158,44 +273,7 @@ public final class Partida implements ModeloPartida {
         this.partidaFinalizada = true;
         this.enPausa = false;
         this.eleccionMejoraActiva = false;
-        this.opcionesMejoraActuales = List.of();
         emitirSonido(oleadasCompletadas ? idSonidoVictoria : idSonidoDerrota);
-    }
-
-    @Override
-    public List<ItemMejoraAtributo> iniciarEleccionMejora() {
-        this.eleccionMejoraActiva = true;
-        ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
-        ItemMejoraAtributo.Atributo[] pool = ATRIBUTOS_DISPONIBLES.clone();
-
-        int cantidadOpciones = Math.min(CANTIDAD_OPCIONES_MEJORA, pool.length);
-        List<ItemMejoraAtributo> generadas = new ArrayList<>(cantidadOpciones);
-        for (int i = 0; i < cantidadOpciones; i++) {
-            int indiceElegido = aleatorio.nextInt(i, pool.length);
-            ItemMejoraAtributo.Atributo atributo = pool[indiceElegido];
-            pool[indiceElegido] = pool[i];
-
-            ItemMejoraAtributo.Rareza rareza = ItemMejoraAtributo.Rareza.sortear(aleatorio.nextDouble());
-            generadas.add(ItemMejoraAtributo.crear(atributo, rareza));
-        }
-
-        this.opcionesMejoraActuales = List.copyOf(generadas);
-        emitirSonido(idSonidoMostrarMejoras);
-        return this.opcionesMejoraActuales;
-    }
-
-    @Override
-    public ItemMejoraAtributo consumirOpcionMejora(int indice) {
-        ItemMejoraAtributo seleccionada = null;
-        if (indice >= 0 && indice < opcionesMejoraActuales.size()) {
-            seleccionada = opcionesMejoraActuales.get(indice);
-        }
-        this.opcionesMejoraActuales = List.of();
-        this.eleccionMejoraActiva = false;
-        if (seleccionada != null) {
-            emitirSonido(idSonidoMejoraAplicada);
-        }
-        return seleccionada;
     }
 
     @Override
@@ -219,6 +297,17 @@ public final class Partida implements ModeloPartida {
     }
 
     @Override
+    public boolean registrarEnemigoGenerado(Enemigo enemigo) {
+        Objects.requireNonNull(enemigo, "El enemigo no puede ser nulo");
+        if (enemigosPorAparecer <= 0 || enemigosActivos >= maxEnemigosSimultaneos || enemigos.contains(enemigo)) {
+            return false;
+        }
+        enemigos.add(enemigo);
+        registrarEnemigoGenerado();
+        return true;
+    }
+
+    @Override
     public void registrarEnemigoDerrotado() {
         if (enemigosActivos > 0) {
             enemigosActivos--;
@@ -234,6 +323,15 @@ public final class Partida implements ModeloPartida {
     }
 
     @Override
+    public boolean registrarEnemigoDerrotado(Enemigo enemigo) {
+        if (enemigo == null || !enemigos.remove(enemigo)) {
+            return false;
+        }
+        registrarEnemigoDerrotado();
+        return true;
+    }
+
+    @Override
     public boolean actualizarOleadas(double dt) {
         if (oleadasCompletadas || partidaFinalizada) {
             return false;
@@ -242,6 +340,18 @@ public final class Partida implements ModeloPartida {
         if (oleadaActual == 0) {
             iniciarSiguienteOleada();
             return false;
+        }
+
+        if (enemigosPorAparecer > 0 && spawnerEnemigos != null) {
+            int cuposDisponibles = maxEnemigosSimultaneos - enemigosActivos;
+            if (cuposDisponibles > 0) {
+                spawnerEnemigos.actualizar(
+                    dt,
+                    Math.min(cuposDisponibles, enemigosPorAparecer),
+                    calcularVelocidadEnemigoOleadaActual(),
+                    jugador
+                );
+            }
         }
 
         if (enemigosRestantesOleada > 0) {
@@ -268,12 +378,24 @@ public final class Partida implements ModeloPartida {
         return false;
     }
 
+    private void alGenerarEnemigo(Enemigo enemigo) {
+        if (enemigo == null) {
+            return;
+        }
+        registrarEnemigoGenerado(enemigo);
+        enemigo.getNotificadorExpiracion().suscribirObservador(e -> registrarEnemigoDerrotado(enemigo));
+        notificadorEnemigoGenerado.notificar(enemigo);
+    }
+
     private void iniciarSiguienteOleada() {
         oleadaActual++;
         enemigosRestantesOleada = oleadaActual * maxEnemigosSimultaneos;
         enemigosPorAparecer = enemigosRestantesOleada;
         tiempoHastaOleada = 0;
         ultimoSegundoPublicado = -1;
+        if (spawnerEnemigos != null) {
+            spawnerEnemigos.reiniciar();
+        }
         publicarEstadoOleadas(0);
     }
 

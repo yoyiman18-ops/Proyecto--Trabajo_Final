@@ -13,6 +13,7 @@ import motor.persistencia.dao.DAOSoloLectura;
 import motor.persistencia.dao.sqlite.Conexion;
 import motor.persistencia.dao.sqlite.SheetDAOSQLite;
 import motor.recursos.Extension;
+import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorFuerte;
@@ -41,6 +42,20 @@ public final class MenuControlador {
         Runnable onSalir
     ) {
         this(gestorRecursos, (Observador<Integer>) null, onJugar, onSalir);
+    }
+
+    public MenuControlador(
+        GestorRecursos gestorRecursos,
+        GestorAudio gestorAudio,
+        Runnable onJugar,
+        Runnable onSalir
+    ) {
+        this(
+            gestorRecursos,
+            gestorAudio != null ? gestorAudio.getObservadorSonido() : null,
+            onJugar,
+            onSalir
+        );
     }
 
     public MenuControlador(
@@ -134,9 +149,9 @@ public final class MenuControlador {
         }
 
         // Sincronizar las opciones del controlador con la vista para garantizar que siempre se rendericen
-        if (!this.opciones.isEmpty()) {
+        if (!this.opciones.isEmpty() && this.vista.getOpciones().isEmpty()) {
             this.vista.setOpciones(this.opciones);
-        } else if (!this.vista.getOpciones().isEmpty()) {
+        } else if (this.opciones.isEmpty() && !this.vista.getOpciones().isEmpty()) {
             this.opciones.addAll(this.vista.getOpciones());
         }
     }

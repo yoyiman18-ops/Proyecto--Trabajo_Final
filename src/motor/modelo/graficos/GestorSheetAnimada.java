@@ -48,7 +48,7 @@ implements Ticking
             return true;
         }
         else {
-            if (fin()) { return false; }
+            if (fin()) { notificadorFinAnimacion.notificar(true); return false; }
             this.indiceActual = Math.min(indiceActual + numeroFrames, indiceFinal);
             notificar();
             if (fin()) { notificadorFinAnimacion.notificar(true); }

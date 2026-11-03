@@ -58,6 +58,7 @@ import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
 import motor.persistencia.dao.sqlite.Conexion;
 import motor.persistencia.dao.sqlite.SheetDAOSQLite;
+import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
 import motor.util.RelojDelta;
 import motor.util.observer.NotificadorFuerte;
@@ -67,6 +68,7 @@ public class Motor implements Ticking {
 
     private final SistemaColisiones sistemaColisiones;
     private final GestorRecursos gestorRecursos;
+    private final GestorAudio gestorAudio;
     private final GestorEntradaTeclado gestorEntradaTeclado;
     private final RelojDelta relojDelta;
     private final EnsambladorControladorEntidad ensambladorControladorEntidad;
@@ -84,6 +86,7 @@ public class Motor implements Ticking {
 
     public static Motor getInstancia() {
         if (Motor.instancia == null) {
+            GestorRecursos gestorRecursos = new GestorRecursos();
             Motor.instancia = new Motor(
                 new SistemaColisiones(
                     new FaseGeneralSpatialHashGrid(64),
@@ -92,7 +95,8 @@ public class Motor implements Ticking {
                         new EstrategiaResolucionColisionSimple()
                     )
                 ),
-                new GestorRecursos(),
+                gestorRecursos,
+                new GestorAudio(gestorRecursos),
                 new GestorEntradaTeclado(),
                 new Pane()
             );
@@ -103,11 +107,13 @@ public class Motor implements Ticking {
     public Motor(
         SistemaColisiones sistemaColisiones,
         GestorRecursos gestorRecursos,
+        GestorAudio gestorAudio,
         GestorEntradaTeclado gestorEntradaTeclado,
         Pane root
     ) {
         this.sistemaColisiones = Objects.requireNonNull(sistemaColisiones, "El sistema de colisiones no puede ser nulo");
         this.gestorRecursos = Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
+        this.gestorAudio = Objects.requireNonNull(gestorAudio, "El gestor de audio no puede ser nulo");
         this.gestorEntradaTeclado = Objects.requireNonNull(gestorEntradaTeclado, "El gestor de entrada de teclado no puede ser nulo");
         this.relojDelta = new RelojDelta(new NotificadorFuerte<>());
         this.root = Objects.requireNonNull(root, "El nodo raíz no puede ser nulo");
@@ -117,7 +123,7 @@ public class Motor implements Ticking {
         this.colaLimpieza = new ArrayDeque<>();
         this.conexion = Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db"); 
         this.sheetDAO = new SheetDAOSQLite(conexion.getConexion(), gestorRecursos);
-        this.ensambladorControladorEntidad = new EnsambladorControladorEntidad(sheetDAO);
+        this.ensambladorControladorEntidad = new EnsambladorControladorEntidad(sheetDAO, gestorAudio);
         this.pausa = false;
         
         // el observador más importante del sistema, propaga los ticks a todos los demás
@@ -136,14 +142,15 @@ public class Motor implements Ticking {
                 c.tick(dt);
                 if (!c.activo()) { colaLimpieza.add(c); }
                 else {colisionables.add(c.getEntidad()); }
-                this.sistemaColisiones.resolverColisiones(colisionables);
             }
+            this.sistemaColisiones.resolverColisiones(colisionables);
         }
         limpiarControladores();
   
     }
 
     public GestorRecursos recursos() { return this.gestorRecursos; }
+    public GestorAudio audio() { return this.gestorAudio; }
     public GestorEntradaTeclado teclado() { return this.gestorEntradaTeclado; }
     public RelojDelta reloj() { return this.relojDelta; }
     public SistemaColisiones colisiones() { return this.sistemaColisiones; }
@@ -154,6 +161,17 @@ public class Motor implements Ticking {
     public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }
     public void setPausa(boolean pausa) { this.pausa = pausa; }
+    public boolean isPausa() { return this.pausa; }
+
+    public void limpiar() {
+        this.controladores.clear();
+        this.colisionables.clear();
+        this.colaInstanciacion.clear();
+        this.colaLimpieza.clear();
+        if (this.root != null) {
+            this.root.getChildren().clear();
+        }
+    }
 
     public void ensamblarEntidad(ModeloEntidad e) { 
         encolarControlador(ensambladorControladorEntidad.crearControlador(e));
@@ -176,5 +194,3 @@ public class Motor implements Ticking {
     }
 
 }
-
-

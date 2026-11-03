@@ -23,7 +23,7 @@ public class FaseEspecificaSimple implements FaseEspecifica {
         for (ParColision par : pares) {
             Colisionable c1 = par.getPrimera();
             Colisionable c2 = par.getSegunda();
-            if (c1 != null && c2 != null && c1.getHitbox() != null && c2.getHitbox() != null) {
+            if (c1 != null && c2 != null && c1.colisionesActivas() && c2.colisionesActivas() && c1.getHitbox() != null && c2.getHitbox() != null) {
                 if (c1.getHitbox().intersecta(c2.getHitbox())) {
                     resolvedorInteraccion.resolverInteracciones(c1, c2);
                     estrategiaResolucion.resolverSeparacionFisica(c1, c2);

@@ -2,7 +2,10 @@ package controlador;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
@@ -26,6 +29,17 @@ public final class ControladorFondoMazmorra {
         "wall_fountain_mid_red_anim_f2", "wall_fountain_basin_red_anim_f0",
         "wall_fountain_basin_red_anim_f1", "wall_fountain_basin_red_anim_f2"
     };
+
+    public static CompletableFuture<Void> precargarTiles(GestorRecursos gestorRecursos) {
+        if (gestorRecursos == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+        List<String> tiles = new ArrayList<>(NOMBRES_TILES_DEFAULT.length);
+        for (String nombre : NOMBRES_TILES_DEFAULT) {
+            tiles.add(CARPETA_TILES_DEFAULT + nombre);
+        }
+        return gestorRecursos.precargarImagenes(tiles, Extension.Imagen.PNG);
+    }
 
     private final VistaFondo vista;
 
@@ -57,6 +71,8 @@ public final class ControladorFondoMazmorra {
     }
 
     public void actualizar(double dt) {
-        vista.actualizarAnimacion(dt);
+        if (vista != null && dt > 0 && Double.isFinite(dt)) {
+            vista.actualizarAnimacion(dt);
+        }
     }
 }

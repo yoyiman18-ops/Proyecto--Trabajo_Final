@@ -1,13 +1,14 @@
 package motor.recursos.cache;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import motor.recursos.Extension;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class CacheRecursos<V> {
-    protected final Map<String,V> cache;
+    protected final Map<String, V> cache;
     private final String carpeta;
     protected static final Logger logger = Logger.getLogger(CacheRecursos.class.getName());
 
@@ -15,18 +16,26 @@ public abstract class CacheRecursos<V> {
         this.cache = new ConcurrentHashMap<>();
         this.carpeta = carpeta;
     }
-    
-
 
     public abstract V getRecurso(String nombre, Extension.IExtension ext);
 
     public void loggearCarga(String nombre) {
-        logger.log(Level.INFO,"Se ha cargado en memoria: " + nombre);
+        logger.log(Level.INFO, "Se ha cargado en memoria: " + nombre);
     }
-    public void limpiar() { cache.clear(); }
+
+    public void limpiar() {
+        cache.clear();
+    }
+
+    public boolean contiene(String nombre, Extension.IExtension ext) {
+        return cache.containsKey(resolverPathRecurso(nombre, ext));
+    }
+
+    public int getCantidadCargados() {
+        return cache.size();
+    }
 
     protected String resolverPathRecurso(String nombre, Extension.IExtension ext) {
         return "/recursos/" + carpeta + "/" + nombre + ext.getExtension();
     }
-
 }

@@ -1,427 +1,354 @@
 package controlador;
 
+import java.awt.geom.Rectangle2D;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ThreadLocalRandom;
 
 import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
 import modelo.EstadoOleadas;
-import modelo.ItemMejoraAtributo;
-import modelo.ModeloEnemigo;
-import modelo.ModeloExperiencia;
-import modelo.ModeloJugador;
+import modelo.Jugador;
 import modelo.ModeloPartida;
-import modelo.Partida;
+import modelo.enemigo.Enemigo;
+import modelo.enemigo.EsqueletoFactory;
+import modelo.enemigo.SpawnerEnemigos;
 import motor.Motor;
-import motor.controlador.ControladorEntidad;
-import motor.controlador.EntidadControlador;
-import motor.modelo.Activable;
-import motor.recursos.GestorRecursos;
+import motor.entrada.Accion;
+import motor.entrada.EstadoAcciones;
+import motor.entrada.ReceptorEstadoAcciones;
+import motor.modelo.Ticking;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
 import vista.OpcionMejoraVisual;
 import vista.VistaFondo;
 import vista.VistaPartida;
 
-/**
- * Controlador principal de la partida.
- * Orquesta la interacción entre el Motor, los Modelos (ModeloPartida, ModeloJugador, ModeloEnemigo, Items)
- * y las Vistas (VistaPartida, VistaFondo) mediante Inversión de Dependencias.
- */
-public final class ControladorPartida {
-    private final Motor motor;
+public final class ControladorPartida implements ReceptorEstadoAcciones, Ticking {
+
+    private static final double BONUS_DANIO_ATAQUE = 5.0;
+    private static final double BONUS_VIDA_MAXIMA = 20.0;
+    private static final double BONUS_VELOCIDAD_ATAQUE_PORCENTUAL = 15.0;
+    private static final double BONUS_DEFENSA_PORCENTUAL = 10.0;
+
+    private static final List<OpcionMejoraVisual> OPCIONES_MEJORA = List.of(
+        new OpcionMejoraVisual("RARA", "Poder de Ataque", "+5 Daño", "Incrementa el daño base de tus proyectiles.", "danio"),
+        new OpcionMejoraVisual("RARA", "Vitalidad", "+20 Vida Máx.", "Aumenta tu vida máxima y restaura vitalidad.", "corazon"),
+        new OpcionMejoraVisual("ÉPICA", "Cadencia Arcana", "+15% Vel. Ataque", "Reduce el tiempo de enfriamiento entre disparos.", "tiempo"),
+        new OpcionMejoraVisual("ÉPICA", "Armadura Rúnica", "+10% Defensa", "Reduce el daño recibido de los enemigos.", "defensa")
+    );
+
     private final ModeloPartida modeloPartida;
-    private final VistaPartida vistaJuego;
-    private final VistaFondo fondoMazmorra;
-    private final FabricaEntidadesPartida fabricaEntidades;
-    private final Observador<Integer> observadorSonido;
-    private final Runnable onVolverAlMenu;
-    private final Runnable onReintentar;
-
-    private final List<ControladorEntidad> controladores;
-
-    private ModeloJugador personaje;
-    private JugadorControlador jugadorControlador;
-
-    private final Observador<Double> observadorReloj;
+    private final ControladorVistaJuego controladorVista;
+    private final Motor motor;
+    private final Observador<EstadoAcciones> observadorAcciones;
+    private final Observador<Double> observadorTick;
+    private final Observador<Jugador> observadorVidaJugador;
+    private final Observador<Integer> observadorExpiracionJugador;
     private final Observador<EstadoOleadas> observadorOleadas;
+    private final Observador<Enemigo> observadorEnemigoGenerado;
 
-    /* Constructores secundarios de conveniencia (conservados para pruebas o prototipos):
-    public ControladorPartida(
-        Motor motor,
-        VistaPartida vistaJuego,
-        VistaFondo fondoMazmorra,
-        GestorRecursos gestorRecursos,
-        Runnable onVolverAlMenu,
-        Runnable onReintentar
-    ) {
-        this(
-            motor,
-            new Partida(
-                SonidoJuego.MOSTRAR_MEJORAS.getId(),
-                SonidoJuego.MEJORA_APLICADA.getId(),
-                SonidoJuego.VICTORIA.getId(),
-                SonidoJuego.DERROTA.getId()
-            ),
-            vistaJuego,
-            fondoMazmorra,
-            gestorRecursos,
-            onVolverAlMenu,
-            onReintentar
-        );
-    }
+    private EstadoAcciones estadoAccionesActual;
+    private int ultimaExperienciaSincronizada;
+    private int ultimoNivelSincronizado;
+    private int ultimaExperienciaSiguienteSincronizada;
 
     public ControladorPartida(
-        Motor motor,
         ModeloPartida modeloPartida,
-        VistaPartida vistaJuego,
-        VistaFondo fondoMazmorra,
-        GestorRecursos gestorRecursos,
-        Runnable onVolverAlMenu,
-        Runnable onReintentar
+        ControladorVistaJuego controladorVista,
+        Motor motor
     ) {
-        this(
-            motor,
-            modeloPartida,
-            vistaJuego,
-            fondoMazmorra,
-            new FabricaEntidadesPartidaPorDefecto(
-                Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo"),
-                vista -> Platform.runLater(() -> vistaJuego.agregarNodoJuego(vista)),
-                id -> {}
-            ),
-            id -> {},
-            onVolverAlMenu,
-            onReintentar
-        );
-    }
-
-    public ControladorPartida(
-        Motor motor,
-        ModeloPartida modeloPartida,
-        VistaPartida vistaJuego,
-        VistaFondo fondoMazmorra,
-        FabricaEntidadesPartida fabricaEntidades,
-        Runnable onVolverAlMenu,
-        Runnable onReintentar
-    ) {
-        this(
-            motor,
-            modeloPartida,
-            vistaJuego,
-            fondoMazmorra,
-            fabricaEntidades,
-            id -> {},
-            onVolverAlMenu,
-            onReintentar
-        );
-    }
-    */
-
-    public ControladorPartida(
-        Motor motor,
-        ModeloPartida modeloPartida,
-        VistaPartida vistaJuego,
-        VistaFondo fondoMazmorra,
-        FabricaEntidadesPartida fabricaEntidades,
-        Observador<Integer> observadorSonido,
-        Runnable onVolverAlMenu,
-        Runnable onReintentar
-    ) {
-        this.motor = Objects.requireNonNull(motor, "El motor no puede ser nulo");
         this.modeloPartida = Objects.requireNonNull(modeloPartida, "El modelo de la partida no puede ser nulo");
-        this.vistaJuego = Objects.requireNonNull(vistaJuego, "La vista del juego no puede ser nula");
-        this.fondoMazmorra = Objects.requireNonNull(fondoMazmorra, "El fondo de mazmorra no puede ser nulo");
-        this.fabricaEntidades = Objects.requireNonNull(fabricaEntidades, "La fábrica de entidades no puede ser nula");
-        this.observadorSonido = Objects.requireNonNull(observadorSonido, "El observador de sonido no puede ser nulo");
-        this.onVolverAlMenu = Objects.requireNonNull(onVolverAlMenu, "El callback de volver al menú es obligatorio");
-        this.onReintentar = Objects.requireNonNull(onReintentar, "El callback de reintentar es obligatorio");
-
-        this.controladores = new CopyOnWriteArrayList<>();
-
-        this.observadorReloj = this::tick;
-        this.observadorOleadas = estado -> Platform.runLater(() -> {
-            this.vistaJuego.actualizarOleada(estado.oleada());
-            this.vistaJuego.actualizarEnemigos(estado.enemigos());
-            this.vistaJuego.actualizarTiempo(estado.segundosHastaOleada());
-        });
-
-        this.modeloPartida.getNotificadorOleadas().suscribirObservador(observadorOleadas);
-        this.modeloPartida.getNotificadorSonido().suscribirObservador(this.observadorSonido);
-
-        configurarVistas();
-        inicializarJugador();
-
-        this.motor.reloj().suscribirObservador(observadorReloj);
+        this.controladorVista = Objects.requireNonNull(controladorVista, "El controlador de vista no puede ser nulo");
+        this.motor = Objects.requireNonNull(motor, "El motor no puede ser nulo");
+        this.observadorAcciones = this::actualizarEstadoAcciones;
+        this.observadorTick = this::tick;
+        this.observadorVidaJugador = this::alModificarVidaJugador;
+        this.observadorExpiracionJugador = this::alExpirarJugador;
+        this.observadorOleadas = this::alActualizarOleadas;
+        this.observadorEnemigoGenerado = this::alGenerarEnemigo;
+        this.estadoAccionesActual = new EstadoAcciones(EnumSet.noneOf(Accion.class));
+        this.ultimaExperienciaSincronizada = -1;
+        this.ultimoNivelSincronizado = -1;
+        this.ultimaExperienciaSiguienteSincronizada = -1;
     }
 
-    private void configurarVistas() {
-        vistaJuego.setOnPausa(this::solicitarPausa);
-        vistaJuego.setOnReanudar(this::solicitarReanudacion);
-        vistaJuego.setOnVolverAlMenuDesdePausa(this::volverAlMenu);
-        vistaJuego.setOnSeleccionarMejora(this::elegirMejora);
-        vistaJuego.setOnReintentar(this::reintentarPartida);
-        vistaJuego.setOnVolverAlMenuDesdeFinPartida(this::volverAlMenu);
-    }
+    public void iniciar(
+        Scene escena,
+        Runnable onVolverAlMenu,
+        Runnable onReintentar
+    ) {
+        Objects.requireNonNull(escena, "La escena no puede ser nula");
+        Objects.requireNonNull(onVolverAlMenu, "La acción de volver al menú no puede ser nula");
+        Objects.requireNonNull(onReintentar, "La acción de reintentar no puede ser nula");
 
-    private void solicitarPausa() {
-        if (modeloPartida.isPartidaFinalizada() || modeloPartida.isEnPausa()) {
-            return;
+        SonidoJuego.precargarTodos(motor.audio());
+
+        VistaPartida vista = controladorVista.getVistaJuego();
+
+        Pane rootMotor = motor.getRoot();
+        rootMotor.setPickOnBounds(false);
+        vista.agregarNodoJuego(rootMotor);
+
+        motor.reloj().suscribirObservador(controladorVista.getObservadorActualizacion());
+        motor.reloj().suscribirObservador(observadorTick);
+        motor.teclado().suscribir(observadorAcciones);
+
+        modeloPartida.getNotificadorOleadas().suscribirObservador(observadorOleadas);
+        modeloPartida.getNotificadorSonido().suscribirObservador(motor.audio().getObservadorSonido());
+        modeloPartida.getNotificadorEnemigoGenerado().suscribirObservador(observadorEnemigoGenerado);
+
+        SpawnerEnemigos spawner = modeloPartida.getSpawnerEnemigos();
+        if (spawner != null) {
+            double anchoArea = vista.getAnchoAreaJuego();
+            double altoArea = vista.getAltoAreaJuego();
+            if (anchoArea > 0 && altoArea > 0) {
+                VistaFondo fondo = controladorVista.getFondoMazmorra();
+                double mH = fondo != null ? fondo.getMargenHorizontalJugable() : 0.0;
+                double mSup = fondo != null ? fondo.getMargenSuperiorJugable() : 0.0;
+                double mInf = fondo != null ? fondo.getMargenInferiorJugable() : 0.0;
+                spawner.configurarLimites(
+                    mH,
+                    Math.max(mH, anchoArea - mH - EsqueletoFactory.ANCHO_HITBOX_ESQUELETO),
+                    mSup,
+                    Math.max(mSup, altoArea - mInf - EsqueletoFactory.ALTO_HITBOX_ESQUELETO)
+                );
+            }
         }
-        modeloPartida.setEnPausa(true);
-        motor.detener();
-        vistaJuego.mostrarPausa();
-    }
 
-    private void solicitarReanudacion() {
-        if (!modeloPartida.isEnPausa()) {
-            return;
-        }
-        modeloPartida.setEnPausa(false);
-        vistaJuego.cerrarPausa();
-        if (!modeloPartida.isEleccionMejoraActiva() && !modeloPartida.isPartidaFinalizada()) {
-            motor.iniciar();
-        }
-    }
-
-    private void reintentarPartida() {
-        detener();
-        onReintentar.run();
-    }
-
-    private void volverAlMenu() {
-        detener();
-        onVolverAlMenu.run();
-    }
-
-    private void inicializarJugador() {
-        this.personaje = fabricaEntidades.crearModeloJugador();
-
-        this.jugadorControlador = fabricaEntidades.crearControladorJugador(
-            personaje,
-            p -> Platform.runLater(() -> {
-                vistaJuego.actualizarVida(p.getVida(), p.getVidaMax());
-                if (p.getVida() <= 0 && !modeloPartida.isPartidaFinalizada()) {
-                    finalizarPartida("FIN DE LA PARTIDA");
-                }
-            }),
-            this::dispararProyectil
+        controladorVista.configurarControlesModales(
+            motor,
+            modeloPartida,
+            () -> {
+                desuscribirObservadores();
+                onVolverAlMenu.run();
+            },
+            () -> {
+                desuscribirObservadores();
+                onReintentar.run();
+            },
+            this::aplicarMejoraSeleccionada
         );
 
-        controladores.add(jugadorControlador);
-        motor.teclado().suscribir(jugadorControlador.getObservadorAcciones());
-        motor.colisionables().add(personaje);
+        controladorVista.configurarAtajoTecladoPausa(escena, motor, modeloPartida);
+        motor.teclado().setEscenaRoot(escena);
 
-        actualizarProgresoJugador();
+        Jugador jugador = modeloPartida.getJugador();
+        if (jugador != null) {
+            motor.teclado().suscribir(jugador.getObservadorEstadoAcciones());
+            jugador.getNotificadorVida().suscribirObservador(observadorVidaJugador);
+            jugador.getNotificadorExpiracion().suscribirObservador(observadorExpiracionJugador);
+            sincronizarHudInicial(jugador);
+            motor.ensamblarEntidad(jugador);
+        }
+
+        Platform.runLater(vista::solicitarFoco);
+        motor.iniciar();
     }
 
-    private void actualizarProgresoJugador() {
-        Platform.runLater(() -> {
-            vistaJuego.actualizarVida(personaje.getVida(), personaje.getVidaMax());
-            vistaJuego.actualizarProgreso(
-                personaje.getNivel(),
-                personaje.getExperiencia(),
-                personaje.getExperienciaSiguiente()
-            );
-            vistaJuego.actualizarDanio((int) Math.round(personaje.getDanioAtaque()));
-        });
+    @Override
+    public Observador<EstadoAcciones> getObservadorAcciones() {
+        return observadorAcciones;
     }
 
-    public void tick(Double dt) {
-        if (modeloPartida.isPartidaFinalizada() || personaje.getVida() <= 0) {
+    @Override
+    public void tick(double dt) {
+        if (modeloPartida.isEnPausa() || modeloPartida.isPartidaFinalizada()) {
             return;
         }
-
-        fondoMazmorra.actualizarAnimacion(dt);
-
-        for (ControladorEntidad c : controladores) {
-            c.tick(dt);
+        Jugador jugador = modeloPartida.getJugador();
+        if (jugador == null || !jugador.activo()) {
+            return;
         }
+        modeloPartida.actualizarOleadas(dt);
+        procesarAtaqueJugador(jugador);
+        limitarPosicionJugador(jugador);
+        sincronizarProgresoJugador(jugador);
+    }
 
-        motor.colisionables().clear();
-        for (ControladorEntidad c : controladores) {
-            if (c.activo() && c.getEntidad().activo()) {
-                motor.colisionables().add(c.getEntidad());
+    private void alGenerarEnemigo(Enemigo enemigo) {
+        if (enemigo != null) {
+            motor.ensamblarEntidad(enemigo);
+        }
+    }
+
+    private void actualizarEstadoAcciones(EstadoAcciones estado) {
+        if (estado != null) {
+            this.estadoAccionesActual = estado;
+        }
+    }
+
+    private void procesarAtaqueJugador(Jugador jugador) {
+        if (estadoAccionesActual.activa(Accion.ATACAR)) {
+            jugador.atacar();
+        }
+    }
+
+    private void limitarPosicionJugador(Jugador jugador) {
+        VistaPartida vista = controladorVista.getVistaJuego();
+        double anchoArea = vista.getAnchoAreaJuego();
+        double altoArea = vista.getAltoAreaJuego();
+        if (anchoArea <= 0 || altoArea <= 0) {
+            return;
+        }
+        VistaFondo fondo = controladorVista.getFondoMazmorra();
+        double margenHorizontal = fondo != null ? fondo.getMargenHorizontalJugable() : 0.0;
+        double margenSuperior = fondo != null ? fondo.getMargenSuperiorJugable() : 0.0;
+        double margenInferior = fondo != null ? fondo.getMargenInferiorJugable() : 0.0;
+
+        Rectangle2D bounds = jugador.getHitbox().getBounds();
+        double minX = margenHorizontal;
+        double maxX = Math.max(minX, anchoArea - margenHorizontal - bounds.getWidth());
+        double minY = margenSuperior;
+        double maxY = Math.max(minY, altoArea - margenInferior - bounds.getHeight());
+
+        VecDouble2D posicion = jugador.getPosicion();
+        double x = Math.clamp(posicion.getX(), minX, maxX);
+        double y = Math.clamp(posicion.getY(), minY, maxY);
+        if (x != posicion.getX() || y != posicion.getY()) {
+            if (x != posicion.getX()) {
+                jugador.getVelocidad().setX(0.0);
             }
-        }
-        motor.colisiones().resolverColisiones(motor.colisionables());
-
-        limpiarEntidadesInactivas();
-
-        if (modeloPartida.actualizarOleadas(dt)) {
-            finalizarPartida("¡VICTORIA! OLEADAS COMPLETADAS");
-            return;
-        }
-        generarEnemigosPendientes();
-        verificarSubidaNivel();
-    }
-
-    private void generarEnemigosPendientes() {
-        int cantidadAGenerar = modeloPartida.calcularEnemigosAGenerar();
-        if (cantidadAGenerar <= 0) {
-            return;
-        }
-
-        double ancho = Math.max(vistaJuego.getAnchoAreaJuego(), 960);
-        double alto = Math.max(vistaJuego.getAltoAreaJuego(), 720);
-        ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
-
-        for (int i = 0; i < cantidadAGenerar; i++) {
-            double x;
-            double y;
-            if (aleatorio.nextBoolean()) {
-                x = ancho - 55;
-                y = aleatorio.nextDouble(80, Math.max(81, alto - 40));
-            } else {
-                x = aleatorio.nextDouble(100, Math.max(101, ancho - 40));
-                y = alto - 55;
+            if (y != posicion.getY()) {
+                jugador.getVelocidad().setY(0.0);
             }
-
-            double velocidad = modeloPartida.calcularVelocidadEnemigoOleadaActual();
-            EnemigoControlador controlador = fabricaEntidades.crearEnemigo(x, y, velocidad, personaje);
-            ModeloEnemigo modeloEnemigo = (ModeloEnemigo) controlador.getEntidad();
-
-            modeloEnemigo.getNotificadorExpiracion().suscribirObservador(e -> {
-                double expX = modeloEnemigo.getPosicion().getX() + 16;
-                double expY = modeloEnemigo.getPosicion().getY() + 16;
-                crearGemaExperiencia(expX, expY, modeloEnemigo.getExperienciaRecompensa());
-                modeloPartida.registrarEnemigoDerrotado();
-                generarEnemigosPendientes();
-            });
-
-            controladores.add(controlador);
-            motor.colisionables().add(modeloEnemigo);
-            modeloPartida.registrarEnemigoGenerado();
+            jugador.setPosicion(new VecDouble2D(x, y));
         }
     }
 
-    private void dispararProyectil() {
-        if (modeloPartida.isPartidaFinalizada() || !personaje.intentarAtacar()) {
-            return;
-        }
-
-        ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
-        VecDouble2D direccionBase = personaje.getVectorDireccion();
-        boolean esMultidisparo = aleatorio.nextDouble(100) < personaje.getProbabilidadMultidisparo();
-        double[] angulos = esMultidisparo ? new double[] { -18.0, 0.0, 18.0 } : new double[] { 0.0 };
-
-        for (double angulo : angulos) {
-            VecDouble2D direccionDisparo = rotarVector(direccionBase, angulo);
-            boolean esCritico = aleatorio.nextDouble(100) < personaje.getProbabilidadCritico();
-            double danioFinal = esCritico
-                ? personaje.getDanioAtaque() * 2.0
-                : personaje.getDanioAtaque();
-
-            double origenX = personaje.getPosicion().getX() + 17 + direccionDisparo.getX() * 16;
-            double origenY = personaje.getPosicion().getY() + 17 + direccionDisparo.getY() * 16;
-
-            EntidadControlador proyectil = fabricaEntidades.crearProyectil(
-                origenX,
-                origenY,
-                direccionDisparo,
-                danioFinal,
-                esCritico
-            );
-
-            controladores.add(proyectil);
-            motor.colisionables().add(proyectil.getEntidad());
-        }
+    private void sincronizarHudInicial(Jugador jugador) {
+        VistaPartida vista = controladorVista.getVistaJuego();
+        vista.setPausaHabilitada(true);
+        vista.actualizarVida(jugador.getVida(), jugador.getVidaMax());
+        vista.actualizarDanio((int) Math.round(jugador.getDanioAtaque()));
+        vista.actualizarOleada(0);
+        vista.actualizarEnemigos(0);
+        vista.actualizarTiempo(0);
+        sincronizarProgresoJugador(jugador);
     }
 
-    private VecDouble2D rotarVector(VecDouble2D vector, double grados) {
-        if (grados == 0) {
-            return vector.clone();
+    private void sincronizarProgresoJugador(Jugador jugador) {
+        int nivel = jugador.getNivel();
+        int experiencia = jugador.getExperiencia();
+        int experienciaSiguiente = jugador.getExperienciaSiguiente();
+        if (nivel != ultimoNivelSincronizado
+            || experiencia != ultimaExperienciaSincronizada
+            || experienciaSiguiente != ultimaExperienciaSiguienteSincronizada) {
+            ultimoNivelSincronizado = nivel;
+            ultimaExperienciaSincronizada = experiencia;
+            ultimaExperienciaSiguienteSincronizada = experienciaSiguiente;
+            controladorVista.getVistaJuego().actualizarProgreso(nivel, experiencia, experienciaSiguiente);
         }
-        double radianes = Math.toRadians(grados);
-        double cos = Math.cos(radianes);
-        double sin = Math.sin(radianes);
-        double x = vector.getX() * cos - vector.getY() * sin;
-        double y = vector.getX() * sin + vector.getY() * cos;
-        return new VecDouble2D(x, y);
-    }
-
-    private void limpiarEntidadesInactivas() {
-        motor.colisionables().removeIf(c -> c instanceof Activable a && !a.activo());
-        controladores.removeIf(c -> !c.activo());
-    }
-
-    private void crearGemaExperiencia(double x, double y, int cantidad) {
-        ExperienciaControlador expControlador = fabricaEntidades.crearExperiencia(personaje, x, y, cantidad);
-        ModeloExperiencia modeloExp = (ModeloExperiencia) expControlador.getEntidad();
-
-        modeloExp.getNotificadorExpiracion().suscribirObservador(e -> {
-            actualizarProgresoJugador();
-            verificarSubidaNivel();
-        });
-
-        controladores.add(expControlador);
-        motor.colisionables().add(modeloExp);
-    }
-
-    private void verificarSubidaNivel() {
-        if (modeloPartida.isPartidaFinalizada()
-            || modeloPartida.isEleccionMejoraActiva()
-            || !personaje.consumirNivelPendiente()) {
-            return;
-        }
-
-        motor.detener();
-
-        List<ItemMejoraAtributo> opciones = modeloPartida.iniciarEleccionMejora();
-        List<OpcionMejoraVisual> opcionesVisuales = ControladorVistaJuego.mapearOpcionesMejora(opciones);
-
-        int nivelActual = personaje.getNivel();
-        Platform.runLater(() -> {
-            if (!modeloPartida.isPartidaFinalizada()) {
-                vistaJuego.mostrarEleccionMejora(nivelActual, opcionesVisuales);
-            }
-        });
-    }
-
-    private void elegirMejora(int seleccionIndice) {
-        if (modeloPartida.isPartidaFinalizada() || !modeloPartida.isEleccionMejoraActiva()) {
-            return;
-        }
-        vistaJuego.cerrarEleccionMejora();
-        ItemMejoraAtributo elegida = modeloPartida.consumirOpcionMejora(seleccionIndice);
-        if (elegida != null) {
-            elegida.aplicar(personaje);
-        }
-        actualizarProgresoJugador();
-        verificarSubidaNivel();
-        if (!modeloPartida.isEleccionMejoraActiva()
-            && !modeloPartida.isEnPausa()
+        if (jugador.getNivelesPendientes() > 0
+            && !modeloPartida.isEleccionMejoraActiva()
             && !modeloPartida.isPartidaFinalizada()) {
-            motor.iniciar();
+            abrirModalMejora(jugador);
         }
     }
 
-    private void finalizarPartida(String mensaje) {
+    private void abrirModalMejora(Jugador jugador) {
+        modeloPartida.iniciarEleccionMejora();
+        controladorVista.setEnPausa(true);
+        motor.setPausa(true);
+        controladorVista.mostrarEleccionMejora(jugador.getNivel(), OPCIONES_MEJORA);
+    }
+
+    private void aplicarMejoraSeleccionada(int indice) {
+        Jugador jugador = modeloPartida.getJugador();
+        if (jugador == null || modeloPartida.isPartidaFinalizada()) {
+            return;
+        }
+        switch (indice) {
+            case 0 -> jugador.aumentarDanioAtaque(BONUS_DANIO_ATAQUE);
+            case 1 -> jugador.aumentarVidaMaxima(BONUS_VIDA_MAXIMA);
+            case 2 -> jugador.aumentarVelocidadAtaque(BONUS_VELOCIDAD_ATAQUE_PORCENTUAL);
+            case 3 -> jugador.aumentarDefensa(BONUS_DEFENSA_PORCENTUAL);
+            default -> {
+                return;
+            }
+        }
+        jugador.consumirNivelPendiente();
+        modeloPartida.confirmarEleccionMejora();
+
+        VistaPartida vista = controladorVista.getVistaJuego();
+        vista.actualizarVida(jugador.getVida(), jugador.getVidaMax());
+        vista.actualizarDanio((int) Math.round(jugador.getDanioAtaque()));
+        sincronizarProgresoJugador(jugador);
+
+        if (jugador.getNivelesPendientes() > 0 && !modeloPartida.isPartidaFinalizada()) {
+            abrirModalMejora(jugador);
+        } else {
+            controladorVista.cerrarEleccionMejora();
+            controladorVista.setEnPausa(false);
+            motor.setPausa(false);
+            Platform.runLater(vista::solicitarFoco);
+        }
+    }
+
+    private void alModificarVidaJugador(Jugador jugador) {
+        if (jugador != null) {
+            controladorVista.getVistaJuego().actualizarVida(jugador.getVida(), jugador.getVidaMax());
+        }
+    }
+
+    private void alExpirarJugador(Integer estado) {
         if (modeloPartida.isPartidaFinalizada()) {
             return;
         }
         modeloPartida.finalizarPartida();
-        detener();
-        Platform.runLater(() -> {
-            vistaJuego.cerrarPausa();
-            vistaJuego.cerrarEleccionMejora();
-            vistaJuego.setPausaHabilitada(false);
-            vistaJuego.mostrarFinPartida(mensaje);
-        });
+        controladorVista.cerrarPausa();
+        controladorVista.cerrarEleccionMejora();
+        controladorVista.setEnPausa(true);
+        motor.setPausa(true);
+        VistaPartida vista = controladorVista.getVistaJuego();
+        vista.setPausaHabilitada(false);
+        controladorVista.mostrarFinPartida("DERROTA");
     }
 
-    public void iniciar() {
-        motor.iniciar();
-    }
-
-    public void detener() {
-        if (jugadorControlador != null) {
-            motor.teclado().desuscribir(jugadorControlador.getObservadorAcciones());
+    private void alActualizarOleadas(EstadoOleadas estado) {
+        if (estado == null) {
+            return;
         }
+        VistaPartida vista = controladorVista.getVistaJuego();
+        vista.actualizarOleada(estado.oleada());
+        vista.actualizarEnemigos(estado.enemigos());
+        vista.actualizarTiempo(estado.segundosHastaOleada());
+        if (estado.completadas() && !modeloPartida.isPartidaFinalizada()) {
+            modeloPartida.finalizarPartida();
+            controladorVista.cerrarPausa();
+            controladorVista.cerrarEleccionMejora();
+            controladorVista.setEnPausa(true);
+            motor.setPausa(true);
+            vista.setPausaHabilitada(false);
+            controladorVista.mostrarFinPartida("¡VICTORIA!");
+        }
+    }
+
+    private void desuscribirObservadores() {
+        motor.reloj().desuscribirObservador(controladorVista.getObservadorActualizacion());
+        motor.reloj().desuscribirObservador(observadorTick);
+        motor.teclado().desuscribir(observadorAcciones);
         modeloPartida.getNotificadorOleadas().desuscribirObservador(observadorOleadas);
-        modeloPartida.getNotificadorSonido().desuscribirObservador(observadorSonido);
-        motor.reloj().desuscribirObservador(observadorReloj);
-        motor.detener();
+        modeloPartida.getNotificadorSonido().desuscribirObservador(motor.audio().getObservadorSonido());
+        modeloPartida.getNotificadorEnemigoGenerado().desuscribirObservador(observadorEnemigoGenerado);
+        Jugador jugador = modeloPartida.getJugador();
+        if (jugador != null) {
+            motor.teclado().desuscribir(jugador.getObservadorEstadoAcciones());
+            jugador.getNotificadorVida().desuscribirObservador(observadorVidaJugador);
+            jugador.getNotificadorExpiracion().desuscribirObservador(observadorExpiracionJugador);
+        }
+    }
+
+    public ModeloPartida getModeloPartida() {
+        return modeloPartida;
+    }
+
+    public ControladorVistaJuego getControladorVista() {
+        return controladorVista;
+    }
+
+    public Motor getMotor() {
+        return motor;
     }
 }

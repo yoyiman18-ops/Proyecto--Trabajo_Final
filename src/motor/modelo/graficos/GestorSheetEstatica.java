@@ -7,6 +7,10 @@ public class GestorSheetEstatica extends GestorSheet {
 
     public GestorSheetEstatica(Sheet spritesheet) { super(spritesheet); }
 
+    public boolean setRecorte(String nombre) {
+        return setAnimacion(nombre);
+    }
+
     @Override public boolean setAnimacion(String nombre) { 
         Recorte r = getSheet().getRecorte(nombre); 
         if (r == null) { return false;} 

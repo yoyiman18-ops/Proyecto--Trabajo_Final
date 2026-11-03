@@ -64,7 +64,6 @@ public class VistaJuego extends StackPane implements VistaPartida {
 
     public VistaJuego(VistaHud hud, String hojaEstilosUrl) {
         this.hud = Objects.requireNonNull(hud, "El HUD no puede ser nulo");
-        Objects.requireNonNull(hojaEstilosUrl, "La URL de la hoja de estilos no puede ser nula");
 
         this.areaJuego = new Pane();
         this.botonPausarMejora = this.hud.crearBotonPlacaRpg(
@@ -125,7 +124,9 @@ public class VistaJuego extends StackPane implements VistaPartida {
 
         getChildren().addAll(areaJuego, this.hud, panelEleccionMejora, panelPausa, panelFinPartida);
         getStyleClass().add("game-root");
-        getStylesheets().add(hojaEstilosUrl);
+        if (hojaEstilosUrl != null) {
+            getStylesheets().add(hojaEstilosUrl);
+        }
     }
 
     public VistaHud getHud() {

@@ -249,7 +249,7 @@ public final class VistaMenu extends StackPane {
         StackPane capaContenido = new StackPane(contenido);
         capaContenido.setPadding(new Insets(paddingV, paddingH, paddingV, paddingH));
 
-        BorderPane marcoOverlay = crearMarcoOverlay();
+        BorderPane marcoOverlay = crearMarcoOverlay(capaContenido);
 
         StackPane panelMarco = new StackPane(fondo, capaContenido, marcoOverlay);
         panelMarco.setEffect(sombraMarco);
@@ -257,9 +257,15 @@ public final class VistaMenu extends StackPane {
         return panelMarco;
     }
 
-    private BorderPane crearMarcoOverlay() {
+    private BorderPane crearMarcoOverlay(Region capaContenido) {
         BorderPane marco = new BorderPane();
         marco.setMouseTransparent(true);
+        marco.setManaged(false);
+
+        marco.prefWidthProperty().bind(capaContenido.widthProperty());
+        marco.prefHeightProperty().bind(capaContenido.heightProperty());
+        capaContenido.widthProperty().addListener((obs, o, n) -> marco.resize(n.doubleValue(), marco.getHeight()));
+        capaContenido.heightProperty().addListener((obs, o, n) -> marco.resize(marco.getWidth(), n.doubleValue()));
 
         Recorte rEsq = sheetGui.getRecorte(CORTE_ESQUINA_SUP_IZQ);
         double anchoEsquina = rEsq != null ? rEsq.getAncho() : 22;
@@ -284,7 +290,7 @@ public final class VistaMenu extends StackPane {
         if (esqSupIzq != null) filaSuperior.getChildren().add(esqSupIzq);
         if (bordeArriba != null) {
             HBox.setHgrow(bordeArriba, Priority.ALWAYS);
-            bordeArriba.fitWidthProperty().bind(Bindings.max(0, filaSuperior.widthProperty().subtract(anchoEsquina * 2)));
+            bordeArriba.fitWidthProperty().bind(Bindings.max(0, capaContenido.widthProperty().subtract(anchoEsquina * 2)));
             filaSuperior.getChildren().add(bordeArriba);
         }
         if (esqSupDer != null) filaSuperior.getChildren().add(esqSupDer);
@@ -302,7 +308,7 @@ public final class VistaMenu extends StackPane {
         if (esqInfIzq != null) filaInferior.getChildren().add(esqInfIzq);
         if (bordeAbajo != null) {
             HBox.setHgrow(bordeAbajo, Priority.ALWAYS);
-            bordeAbajo.fitWidthProperty().bind(Bindings.max(0, filaInferior.widthProperty().subtract(anchoEsquina * 2)));
+            bordeAbajo.fitWidthProperty().bind(Bindings.max(0, capaContenido.widthProperty().subtract(anchoEsquina * 2)));
             filaInferior.getChildren().add(bordeAbajo);
         }
         if (esqInfDer != null) filaInferior.getChildren().add(esqInfDer);
@@ -310,14 +316,14 @@ public final class VistaMenu extends StackPane {
         VistaImagen bordeIzq = crearRecorteVistaImagen(CORTE_BORDE_IZQ, grosorBordeV, 0);
         if (bordeIzq != null) {
             BorderPane.setAlignment(bordeIzq, Pos.CENTER_LEFT);
-            bordeIzq.fitHeightProperty().bind(Bindings.max(0, marco.heightProperty().subtract(altoEsquina * 2)));
+            bordeIzq.fitHeightProperty().bind(Bindings.max(0, capaContenido.heightProperty().subtract(altoEsquina * 2)));
             marco.setLeft(bordeIzq);
         }
 
         VistaImagen bordeDer = crearRecorteVistaImagen(CORTE_BORDE_DER, grosorBordeV, 0);
         if (bordeDer != null) {
             BorderPane.setAlignment(bordeDer, Pos.CENTER_RIGHT);
-            bordeDer.fitHeightProperty().bind(Bindings.max(0, marco.heightProperty().subtract(altoEsquina * 2)));
+            bordeDer.fitHeightProperty().bind(Bindings.max(0, capaContenido.heightProperty().subtract(altoEsquina * 2)));
             marco.setRight(bordeDer);
         }
 
@@ -331,7 +337,7 @@ public final class VistaMenu extends StackPane {
             return null;
         }
         GestorSheetEstatica gestor = new GestorSheetEstatica(sheetGui);
-        if (!gestor.setRecorte(nombreRecorte)) {
+        if (!gestor.setAnimacion(nombreRecorte)) {
             return null;
         }
         gestoresSheet.add(gestor);
