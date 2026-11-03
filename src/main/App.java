@@ -44,6 +44,7 @@ package main;
 import java.net.URL;
 
 import controlador.ControladorPartida;
+import controlador.ControladorFondoMazmorra;
 import controlador.ControladorVistaJuego;
 import controlador.MenuControlador;
 import controlador.MusicaJuego;
@@ -81,6 +82,8 @@ public class App extends Application {
         this.gestorRecursos = new GestorRecursos();
         this.gestorAudio = new GestorAudio(this.gestorRecursos);
         SonidoJuego.precargarTodos(this.gestorAudio);
+        ControladorVistaJuego.precargarRecursosHud(this.gestorRecursos);
+        ControladorFondoMazmorra.precargarTiles(this.gestorRecursos);
     }
 
     @Override
@@ -91,7 +94,7 @@ public class App extends Application {
     private void mostrarMenu(Stage stage) {
         MenuControlador menuControlador = new MenuControlador(
             gestorRecursos,
-            gestorAudio.getObservadorSonido(),
+            gestorAudio,
             () -> iniciarPartida(stage),
             Platform::exit
         );
@@ -180,6 +183,7 @@ public class App extends Application {
     public void stop() throws Exception {
         Motor.getInstancia().detener();
         gestorAudio.cerrar();
+        gestorRecursos.cerrar();
     }
 
     /*
