@@ -45,164 +45,13 @@ implements ModeloEntidad {
         VecDouble2D velocidad,
         double aceleracion,
         double friccion,
-        double velocidadMax
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            velocidad,
-            aceleracion,
-            friccion,
-            velocidadMax,
-            null,
-            (Integer) null
-        );
-    }
-
-    public Entidad(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        VecDouble2D velocidad,
-        double aceleracion,
-        double friccion,
-        double velocidadMax,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        Integer idSonidoExpiracion
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            velocidad,
-            aceleracion,
-            friccion,
-            velocidadMax,
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            estrategiasExpiracion,
-            idSonidoExpiracion
-        );
-    }
-
-    public Entidad(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        VecDouble2D velocidad,
-        double aceleracion,
-        double friccion,
-        double velocidadMax,
-        Notificador<VecDouble2D> notificadorPosicion,
-        Notificador<ModeloEntidad> notificadorInstanciacion,
-        Notificador<Integer> notificadorExpiracion,
-        Notificador<Integer> notificadorSonido,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        Integer idSonidoExpiracion
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            velocidad,
-            aceleracion,
-            friccion,
-            velocidadMax,
-            notificadorPosicion,
-            notificadorInstanciacion,
-            notificadorExpiracion,
-            notificadorSonido,
-            new NotificadorFuerte<>(),
-            estrategiasExpiracion != null ? estrategiasExpiracion : new ArrayList<>(),
-            new ArrayList<>(),
-            "idle",
-            "expirar",
-            idSonidoExpiracion
-        );
-    }
-
-    public Entidad(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        VecDouble2D velocidad,
-        double aceleracion,
-        double friccion,
-        double velocidadMax,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision,
-        String animacionDefault
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            velocidad,
-            aceleracion,
-            friccion,
-            velocidadMax,
-            estrategiasExpiracion,
-            interaccionesColision,
-            animacionDefault,
-            "expirar"
-        );
-    }
-
-    public Entidad(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        VecDouble2D velocidad,
-        double aceleracion,
-        double friccion,
-        double velocidadMax,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision,
-        String animacionDefault,
-        String animacionExpirar
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            velocidad,
-            aceleracion,
-            friccion,
-            velocidadMax,
-            null,
-            estrategiasExpiracion,
-            interaccionesColision,
-            animacionDefault,
-            animacionExpirar
-        );
-    }
-
-    public Entidad(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        VecDouble2D velocidad,
-        double aceleracion,
-        double friccion,
         double velocidadMax,
         EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision,
         String animacionDefault,
-        String animacionExpirar
+        String animacionExpirar,
+        Integer idSonidoExpiracion
     ) {
         this(
             idGlobal,
@@ -222,126 +71,8 @@ implements ModeloEntidad {
             estrategiasExpiracion,
             interaccionesColision,
             animacionDefault,
-            animacionExpirar
-        );
-    }
-
-    public Entidad(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        VecDouble2D velocidad,
-        double aceleracion,
-        double friccion,
-        double velocidadMax,
-        Notificador<VecDouble2D> notificadorPosicion,
-        Notificador<ModeloEntidad> notificadorInstanciacion,
-        Notificador<Integer> notificadorExpiracion,
-        Notificador<String> notificadorAnimacion,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision,
-        String animacionDefault
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            velocidad,
-            aceleracion,
-            friccion,
-            velocidadMax,
-            notificadorPosicion,
-            notificadorInstanciacion,
-            notificadorExpiracion,
-            notificadorAnimacion,
-            estrategiasExpiracion,
-            interaccionesColision,
-            animacionDefault,
-            "expirar"
-        );
-    }
-
-    public Entidad(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        VecDouble2D velocidad,
-        double aceleracion,
-        double friccion,
-        double velocidadMax,
-        Notificador<VecDouble2D> notificadorPosicion,
-        Notificador<ModeloEntidad> notificadorInstanciacion,
-        Notificador<Integer> notificadorExpiracion,
-        Notificador<String> notificadorAnimacion,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision,
-        String animacionDefault,
-        String animacionExpirar
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            velocidad,
-            aceleracion,
-            friccion,
-            velocidadMax,
-            notificadorPosicion,
-            notificadorInstanciacion,
-            notificadorExpiracion,
-            notificadorAnimacion,
-            new NotificadorFuerte<>(),
-            null,
-            estrategiasExpiracion,
-            interaccionesColision,
-            animacionDefault,
-            animacionExpirar
-        );
-    }
-
-    public Entidad(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        VecDouble2D velocidad,
-        double aceleracion,
-        double friccion,
-        double velocidadMax,
-        Notificador<VecDouble2D> notificadorPosicion,
-        Notificador<ModeloEntidad> notificadorInstanciacion,
-        Notificador<Integer> notificadorExpiracion,
-        Notificador<String> notificadorAnimacion,
-        Notificador<Integer> notificadorSonido,
-        EstrategiaMovimiento estrategiaMovimiento,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision,
-        String animacionDefault,
-        String animacionExpirar
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            velocidad,
-            aceleracion,
-            friccion,
-            velocidadMax,
-            notificadorPosicion,
-            notificadorInstanciacion,
-            notificadorExpiracion,
-            new NotificadorFuerte<>(),
-            notificadorAnimacion,
-            estrategiasExpiracion,
-            interaccionesColision,
-            animacionDefault,
             animacionExpirar,
-            null
+            idSonidoExpiracion
         );
     }
 
@@ -359,6 +90,7 @@ implements ModeloEntidad {
         Notificador<Integer> notificadorExpiracion,
         Notificador<Integer> notificadorSonido,
         Notificador<String> notificadorAnimacion,
+        EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision,
         String animacionDefault,
@@ -380,7 +112,6 @@ implements ModeloEntidad {
         this.notificadorExpiracion = Objects.requireNonNull(notificadorExpiracion, "El notificadorExpiracion no puede ser nulo");
         this.notificadorSonido = Objects.requireNonNull(notificadorSonido, "El notificadorSonido no puede ser nulo");
         this.notificadorAnimacion = Objects.requireNonNull(notificadorAnimacion, "El notificadorAnimacion no puede ser nulo");
-        this.notificadorSonido = Objects.requireNonNull(notificadorSonido, "El notificadorSonido no puede ser nulo");
         if (this.hitbox != null && this.posicion != null) {
             this.notificadorPosicion.suscribirObservador(hitbox);
             this.hitbox.cambio(this.posicion);

@@ -5,21 +5,24 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
+import modelo.proyectil.ProyectilFactory;
+import modelo.proyectil.ProyectilRojoFactory;
 import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.colisiones.hitboxes.MascaraColision;
-import motor.entrada.Accion;
 import motor.entrada.EstadoAcciones;
+import motor.entrada.ReceptorEstadoAcciones;
 import motor.modelo.Controlable;
 import motor.modelo.Direccion;
 import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.EstrategiaMovimiento;
+import motor.modelo.EstrategiaMovimientoAcciones;
+import motor.modelo.EstrategiaMovimientoLineal;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
-import modelo.proyectil.ProyectilFactory;
-import modelo.proyectil.ProyectilRojoFactory;
-import motor.util.Eje;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorDebil;
 import motor.util.observer.NotificadorFuerte;
 
 public class Jugador extends Personaje implements Controlable {
@@ -72,7 +75,6 @@ public class Jugador extends Personaje implements Controlable {
     private Direccion ultimaDireccionAnimada = Direccion.ABAJO;
     private EstadoAcciones estadoAccionesActual;
     private final VecDouble2D vectorDireccion;
-    private final VecDouble2D acumuladorDireccionTick;
     private final Notificador<Jugador> notificadorVida;
     private final Integer idSonidoSubirNivel;
 
@@ -90,6 +92,9 @@ public class Jugador extends Personaje implements Controlable {
         Notificador<Integer> notificadorExpiracion,
         Notificador<Integer> notificadorSonido,
         Notificador<String> notificadorAnimacion,
+        Notificador<Double> notificadorDaño,
+        Notificador<Jugador> notificadorVida,
+        EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision,
         String animacionDefault,
@@ -108,8 +113,7 @@ public class Jugador extends Personaje implements Controlable {
         double offsetDisparoX,
         double offsetDisparoY,
         double desviacionMultidisparoGrados,
-        Integer idSonidoSubirNivel,
-        Notificador<Jugador> notificadorVida
+        Integer idSonidoSubirNivel
     ) {
         super(
             idGlobal,
@@ -125,6 +129,8 @@ public class Jugador extends Personaje implements Controlable {
             notificadorExpiracion,
             notificadorSonido,
             notificadorAnimacion,
+            notificadorDaño,
+            estrategiaMovimiento,
             estrategiasExpiracion,
             interaccionesColision,
             animacionDefault,
@@ -171,8 +177,7 @@ public class Jugador extends Personaje implements Controlable {
 
         this.direccion = Direccion.ABAJO;
         this.vectorDireccion = new VecDouble2D(0.0, DIRECCION_POSITIVA);
-        this.acumuladorDireccionTick = new VecDouble2D(0.0, 0.0);
-        this.notificadorVida = notificadorVida != null ? notificadorVida : new NotificadorFuerte<>();
+        this.notificadorVida = Objects.requireNonNull(notificadorVida, "El notificadorVida no puede ser nulo");
         this.idSonidoSubirNivel = idSonidoSubirNivel;
         this.proyectilFactory = crearProyectilFactoryDefault();
         añadirInteraccionColision(new Interaccion(TipoInteraccion.AÑADIR_EXP.clase(), 0.0));
@@ -187,6 +192,7 @@ public class Jugador extends Personaje implements Controlable {
         double aceleracion,
         double friccion,
         double velocidadMax,
+        EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision,
         String animacionDefault,
@@ -201,8 +207,11 @@ public class Jugador extends Personaje implements Controlable {
         double velocidadAtaque,
         double probabilidadCritico,
         double probabilidadMultidisparo,
-        Integer idSonidoSubirNivel,
-        Notificador<Jugador> notificadorVida
+        double multiplicadorCritico,
+        double offsetDisparoX,
+        double offsetDisparoY,
+        double desviacionMultidisparoGrados,
+        Integer idSonidoSubirNivel
     ) {
         this(
             idGlobal,
@@ -213,11 +222,14 @@ public class Jugador extends Personaje implements Controlable {
             aceleracion,
             friccion,
             velocidadMax,
+            new NotificadorDebil<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            estrategiaMovimiento,
             estrategiasExpiracion,
             interaccionesColision,
             animacionDefault,
@@ -232,12 +244,11 @@ public class Jugador extends Personaje implements Controlable {
             velocidadAtaque,
             probabilidadCritico,
             probabilidadMultidisparo,
-            MULTIPLICADOR_CRITICO_DEFAULT,
-            OFFSET_ORIGEN_DISPARO_X_DEFAULT,
-            OFFSET_ORIGEN_DISPARO_Y_DEFAULT,
-            DESVIACION_MULTIDISPARO_GRADOS_DEFAULT,
-            idSonidoSubirNivel,
-            notificadorVida
+            multiplicadorCritico,
+            offsetDisparoX,
+            offsetDisparoY,
+            desviacionMultidisparoGrados,
+            idSonidoSubirNivel
         );
     }
 
@@ -251,11 +262,14 @@ public class Jugador extends Personaje implements Controlable {
             b.aceleracion,
             b.friccion,
             b.velocidadMax,
-            b.notificadorPosicion != null ? b.notificadorPosicion : new NotificadorFuerte<>(),
+            b.notificadorPosicion != null ? b.notificadorPosicion : new NotificadorDebil<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            b.notificadorVida != null ? b.notificadorVida : new NotificadorFuerte<>(),
+            b.estrategiaMovimiento,
             b.estrategiasExpiracion,
             b.interaccionesColision,
             b.animacionDefault,
@@ -274,8 +288,7 @@ public class Jugador extends Personaje implements Controlable {
             b.offsetDisparoX,
             b.offsetDisparoY,
             b.desviacionMultidisparoGrados,
-            b.idSonidoSubirNivel,
-            b.notificadorVida
+            b.idSonidoSubirNivel
         );
         this.proyectilFactory = b.proyectilFactory != null ? b.proyectilFactory : crearProyectilFactoryDefault();
         this.idSonidoDisparo = b.idSonidoDisparo;
@@ -290,8 +303,10 @@ public class Jugador extends Personaje implements Controlable {
             MascaraColision.of(CategoriaColision.ALIADO),
             MascaraColision.of(CategoriaColision.ENEMIGO, CategoriaColision.MURO),
             new VecDouble2D(),
-            VecDouble2D.abajo(),
+            1000.0,
+            0.0,
             VELOCIDAD_PROYECTIL_DEFAULT,
+            new EstrategiaMovimientoLineal(VecDouble2D.abajo()),
             TIEMPO_VIDA_ADICIONAL_PROYECTIL_DEFAULT,
             PENETRACION_ADICIONAL_PROYECTIL_DEFAULT,
             0.0
@@ -299,23 +314,11 @@ public class Jugador extends Personaje implements Controlable {
     }
 
     @Override
-    public void acelerar(Direccion direccion, double dt) {
-        this.direccion = Objects.requireNonNull(direccion, "La dirección no puede ser nula");
-        switch (direccion) {
-            case ARRIBA -> acumuladorDireccionTick.setY(DIRECCION_NEGATIVA);
-            case ABAJO -> acumuladorDireccionTick.setY(DIRECCION_POSITIVA);
-            case IZQUIERDA -> acumuladorDireccionTick.setX(DIRECCION_NEGATIVA);
-            case DERECHA -> acumuladorDireccionTick.setX(DIRECCION_POSITIVA);
-        }
-        VecDouble2D normalizada = acumuladorDireccionTick.clone().normalizado();
-        vectorDireccion.setX(normalizada.getX());
-        vectorDireccion.setY(normalizada.getY());
-        super.acelerar(direccion, dt);
-    }
-
-    @Override
     public void cambio(EstadoAcciones e) {
         this.estadoAccionesActual = e;
+        if (getEstrategiaMovimiento() instanceof ReceptorEstadoAcciones receptor) {
+            receptor.getObservadorAcciones().cambio(e);
+        }
     }
 
     @Override
@@ -323,36 +326,22 @@ public class Jugador extends Personaje implements Controlable {
         if (!activo()) {
             return;
         }
-        if (estadoAccionesActual != null) {
-            boolean moverIzquierda = estadoAccionesActual.activa(Accion.MOVER_IZQUIERDA);
-            boolean moverDerecha = estadoAccionesActual.activa(Accion.MOVER_DERECHA);
-            if (moverIzquierda && !moverDerecha) {
-                acelerar(Direccion.IZQUIERDA, dt);
-            } else if (moverDerecha && !moverIzquierda) {
-                acelerar(Direccion.DERECHA, dt);
+        super.tick(dt);
+        VecDouble2D vel = getVelocidad();
+        if (vel.getX() != 0.0 || vel.getY() != 0.0) {
+            VecDouble2D normalizada = vel.clone().normalizado();
+            vectorDireccion.setX(normalizada.getX());
+            vectorDireccion.setY(normalizada.getY());
+            if (Math.abs(vel.getX()) >= Math.abs(vel.getY())) {
+                direccion = vel.getX() >= 0.0 ? Direccion.DERECHA : Direccion.IZQUIERDA;
             } else {
-                frenar(Eje.X, dt);
+                direccion = vel.getY() >= 0.0 ? Direccion.ABAJO : Direccion.ARRIBA;
             }
-
-            boolean moverArriba = estadoAccionesActual.activa(Accion.MOVER_ARRIBA);
-            boolean moverAbajo = estadoAccionesActual.activa(Accion.MOVER_ABAJO);
-            if (moverArriba && !moverAbajo) {
-                acelerar(Direccion.ARRIBA, dt);
-            } else if (moverAbajo && !moverArriba) {
-                acelerar(Direccion.ABAJO, dt);
-            } else {
-                frenar(Eje.Y, dt);
-            }
-
-            Direccion dir = getDireccion();
-            if (dir != null && dir != ultimaDireccionAnimada) {
-                ultimaDireccionAnimada = dir;
-                getNotificadorAnimacion().notificar(obtenerAnimacionMovimiento(dir));
+            if (direccion != ultimaDireccionAnimada) {
+                ultimaDireccionAnimada = direccion;
+                getNotificadorAnimacion().notificar(obtenerAnimacionMovimiento(direccion));
             }
         }
-        super.tick(dt);
-        acumuladorDireccionTick.setX(0.0);
-        acumuladorDireccionTick.setY(0.0);
         if (tiempoEnfriamientoAtaque > 0) {
             tiempoEnfriamientoAtaque = Math.max(0.0, tiempoEnfriamientoAtaque - dt);
         }
@@ -412,7 +401,7 @@ public class Jugador extends Personaje implements Controlable {
         for (DatosDisparo disparo : disparos) {
             algunCritico |= disparo.esCritico();
             proyectilFactory.setPosicion(disparo.origen());
-            proyectilFactory.setDireccion(disparo.direccion());
+            proyectilFactory.setEstrategiaMovimiento(new EstrategiaMovimientoLineal(disparo.direccion()));
             proyectilFactory.setDañoAdicional(Math.max(0.0, disparo.danio() - 1.0));
             getNotificadorInstanciacion().notificar(proyectilFactory.get());
         }
@@ -531,6 +520,10 @@ public class Jugador extends Personaje implements Controlable {
             ganarExperiencia((int) i.valor());
             return true;
         }
+        if (interaccion == TipoInteraccion.ATAQUE_ENEMIGO) {
+            recibirDaño(i.valor());
+            return true;
+        }
         return super.interactuar(i);
     }
 
@@ -627,6 +620,7 @@ public class Jugador extends Personaje implements Controlable {
         private double desviacionMultidisparoGrados = DESVIACION_MULTIDISPARO_GRADOS_DEFAULT;
         private int nivelInicial = NIVEL_INICIAL_DEFAULT;
         private int experienciaSiguienteInicial = EXP_INICIAL_DEFAULT;
+        private EstrategiaMovimiento estrategiaMovimiento = new EstrategiaMovimientoAcciones();
         private List<EstrategiaExpiracion> estrategiasExpiracion = new ArrayList<>();
         private List<Interaccion> interaccionesColision = new ArrayList<>();
         private String animacionDefault = ANIMACION_IDLE_DEFAULT;
@@ -688,6 +682,11 @@ public class Jugador extends Personaje implements Controlable {
                 throw new IllegalArgumentException("La velocidad máxima debe ser finita y no negativa.");
             }
             this.velocidadMax = velocidadMax;
+            return this;
+        }
+
+        public Builder estrategiaMovimiento(EstrategiaMovimiento estrategiaMovimiento) {
+            this.estrategiaMovimiento = estrategiaMovimiento;
             return this;
         }
 

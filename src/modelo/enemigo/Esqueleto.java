@@ -6,9 +6,14 @@ import java.util.List;
 import controlador.SonidoJuego;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.EstrategiaMovimiento;
 import motor.modelo.Interaccion;
+import motor.modelo.ModeloEntidad;
 import motor.modelo.Posicionable;
 import motor.util.VecDouble2D;
+import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorDebil;
+import motor.util.observer.NotificadorFuerte;
 
 public class Esqueleto extends Enemigo {
 
@@ -30,6 +35,45 @@ public class Esqueleto extends Enemigo {
         double daño,
         int experienciaRecompensa,
         Posicionable objetivo,
+        EstrategiaMovimiento estrategiaMovimiento,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision
+    ) {
+        this(
+            posicion,
+            hitbox,
+            velocidadMax,
+            new NotificadorDebil<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            vidaMaxima,
+            daño,
+            experienciaRecompensa,
+            objetivo,
+            estrategiaMovimiento,
+            estrategiasExpiracion,
+            interaccionesColision
+        );
+    }
+
+    public Esqueleto(
+        VecDouble2D posicion,
+        Hitbox hitbox,
+        double velocidadMax,
+        Notificador<VecDouble2D> notificadorPosicion,
+        Notificador<ModeloEntidad> notificadorInstanciacion,
+        Notificador<Integer> notificadorExpiracion,
+        Notificador<Integer> notificadorSonido,
+        Notificador<String> notificadorAnimacion,
+        Notificador<Double> notificadorDaño,
+        double vidaMaxima,
+        double daño,
+        int experienciaRecompensa,
+        Posicionable objetivo,
+        EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision
     ) {
@@ -39,9 +83,16 @@ public class Esqueleto extends Enemigo {
             hitbox,
             posicion,
             new VecDouble2D(0.0, 0.0),
-            0.0,
-            0.0,
+            ACELERACION_DEFAULT,
+            FRICCION_DEFAULT,
             velocidadMax,
+            notificadorPosicion,
+            notificadorInstanciacion,
+            notificadorExpiracion,
+            notificadorSonido,
+            notificadorAnimacion,
+            notificadorDaño,
+            estrategiaMovimiento,
             estrategiasExpiracion != null ? estrategiasExpiracion : new ArrayList<>(),
             interaccionesColision != null ? interaccionesColision : new ArrayList<>(),
             ANIMACION_CAMINAR_ABAJO,

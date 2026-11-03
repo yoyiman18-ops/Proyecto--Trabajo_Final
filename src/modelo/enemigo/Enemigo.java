@@ -9,11 +9,14 @@ import modelo.TipoInteraccion;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Direccion;
 import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.EstrategiaMovimiento;
+import motor.modelo.EstrategiaMovimientoPersecucion;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
 import motor.modelo.Posicionable;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorDebil;
 import motor.util.observer.NotificadorFuerte;
 
 public class Enemigo extends Personaje {
@@ -26,8 +29,8 @@ public class Enemigo extends Personaje {
     public static final double VELOCIDAD_MAXIMA_DEFAULT = 75.0;
     public static final double VIDA_MAXIMA_DEFAULT = 50.0;
     public static final double DEFENSA_MAXIMA_DEFAULT = 0.0;
-    public static final double ACELERACION_DEFAULT = 0.0;
-    public static final double FRICCION_DEFAULT = 0.0;
+    public static final double ACELERACION_DEFAULT = 600.0;
+    public static final double FRICCION_DEFAULT = 600.0;
 
     private double daño;
     private int experienciaRecompensa;
@@ -52,6 +55,8 @@ public class Enemigo extends Personaje {
         Notificador<Integer> notificadorExpiracion,
         Notificador<Integer> notificadorSonido,
         Notificador<String> notificadorAnimacion,
+        Notificador<Double> notificadorDaño,
+        EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision,
         String animacionDefault,
@@ -79,6 +84,8 @@ public class Enemigo extends Personaje {
             notificadorExpiracion,
             notificadorSonido,
             notificadorAnimacion,
+            notificadorDaño,
+            estrategiaMovimiento,
             estrategiasExpiracion,
             interaccionesColision,
             animacionDefault,
@@ -107,7 +114,7 @@ public class Enemigo extends Personaje {
         this.animacionActual = animacionDefault;
 
         if (daño > 0) {
-            añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(), daño));
+            añadirInteraccionColision(new Interaccion(TipoInteraccion.ATAQUE_ENEMIGO.clase(), daño));
         }
         añadirInteraccionColision(new Interaccion(TipoInteraccion.SOLIDO.clase(), 0.0));
     }
@@ -121,6 +128,7 @@ public class Enemigo extends Personaje {
         double aceleracion,
         double friccion,
         double velocidadMax,
+        EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision,
         String animacionDefault,
@@ -143,11 +151,13 @@ public class Enemigo extends Personaje {
             aceleracion,
             friccion,
             velocidadMax,
+            new NotificadorDebil<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
+            estrategiaMovimiento,
             estrategiasExpiracion,
             interaccionesColision,
             animacionDefault,
@@ -163,71 +173,6 @@ public class Enemigo extends Personaje {
         );
     }
 
-    public Enemigo(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        double velocidadMaxima,
-        double vidaMaxima,
-        double daño,
-        int experienciaRecompensa,
-        Posicionable objetivo,
-        double intervaloAtaque,
-        Integer idSonidoDaño,
-        Integer idSonidoExpiracion
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            new VecDouble2D(0.0, 0.0),
-            ACELERACION_DEFAULT,
-            FRICCION_DEFAULT,
-            velocidadMaxima,
-            new ArrayList<>(),
-            new ArrayList<>(),
-            ANIMACION_IDLE_DEFAULT,
-            ANIMACION_EXPIRAR_DEFAULT,
-            idSonidoExpiracion,
-            vidaMaxima,
-            DEFENSA_MAXIMA_DEFAULT,
-            idSonidoDaño,
-            daño,
-            experienciaRecompensa,
-            objetivo,
-            intervaloAtaque
-        );
-    }
-
-    public Enemigo(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        double velocidadMaxima,
-        double vidaMaxima,
-        double daño,
-        int experienciaRecompensa,
-        Posicionable objetivo
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            velocidadMaxima,
-            vidaMaxima,
-            daño,
-            experienciaRecompensa,
-            objetivo,
-            INTERVALO_ATAQUE_DEFAULT,
-            null,
-            null
-        );
-    }
-
     private Enemigo(Builder b) {
         this(
             b.idGlobal,
@@ -238,11 +183,13 @@ public class Enemigo extends Personaje {
             b.aceleracion,
             b.friccion,
             b.velocidadMax,
-            b.notificadorPosicion != null ? b.notificadorPosicion : new NotificadorFuerte<>(),
+            b.notificadorPosicion != null ? b.notificadorPosicion : new NotificadorDebil<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            b.estrategiaMovimiento != null ? b.estrategiaMovimiento : new EstrategiaMovimientoPersecucion(b.objetivo),
             b.estrategiasExpiracion,
             b.interaccionesColision,
             b.animacionDefault,
@@ -272,35 +219,23 @@ public class Enemigo extends Personaje {
             return;
         }
 
-        if (objetivo != null && objetivo.getPosicion() != null) {
-            VecDouble2D posicion = getPosicion();
-            VecDouble2D posicionObjetivo = objetivo.getPosicion();
-            double diferenciaX = posicionObjetivo.getX() - posicion.getX();
-            double diferenciaY = posicionObjetivo.getY() - posicion.getY();
-            double distancia = Math.hypot(diferenciaX, diferenciaY);
+        super.tick(dt);
 
-            double velocidadMax = getVelocidadMax();
-            if (distancia == 0.0) {
-                getVelocidad().setX(0.0);
-                getVelocidad().setY(0.0);
+        VecDouble2D vel = getVelocidad();
+        if (vel.getX() != 0.0 || vel.getY() != 0.0) {
+            if (Math.abs(vel.getX()) >= Math.abs(vel.getY())) {
+                direccion = vel.getX() >= 0.0 ? Direccion.DERECHA : Direccion.IZQUIERDA;
             } else {
-                getVelocidad().setX(diferenciaX / distancia * velocidadMax);
-                getVelocidad().setY(diferenciaY / distancia * velocidadMax);
-                if (Math.abs(diferenciaX) >= Math.abs(diferenciaY)) {
-                    direccion = diferenciaX >= 0.0 ? Direccion.DERECHA : Direccion.IZQUIERDA;
-                } else {
-                    direccion = diferenciaY >= 0.0 ? Direccion.ABAJO : Direccion.ARRIBA;
-                }
-                if (puedeAtacar()) {
-                    String animacionMovimiento = obtenerAnimacionMovimiento(direccion);
-                    if (!animacionMovimiento.equals(animacionActual)) {
-                        animacionActual = animacionMovimiento;
-                        getNotificadorAnimacion().notificar(animacionActual);
-                    }
+                direccion = vel.getY() >= 0.0 ? Direccion.ABAJO : Direccion.ARRIBA;
+            }
+            if (puedeAtacar()) {
+                String animacionMovimiento = obtenerAnimacionMovimiento(direccion);
+                if (!animacionMovimiento.equals(animacionActual)) {
+                    animacionActual = animacionMovimiento;
+                    getNotificadorAnimacion().notificar(animacionActual);
                 }
             }
         }
-        super.tick(dt);
     }
 
     private String obtenerAnimacionMovimiento(Direccion dir) {
@@ -376,6 +311,9 @@ public class Enemigo extends Personaje {
 
     public void setObjetivo(Posicionable objetivo) {
         this.objetivo = objetivo;
+        if (getEstrategiaMovimiento() instanceof EstrategiaMovimientoPersecucion persecucion) {
+            persecucion.setObjetivo(objetivo);
+        }
     }
 
     public double getIntervaloAtaque() {
@@ -401,6 +339,7 @@ public class Enemigo extends Personaje {
         private int experienciaRecompensa = EXP_RECOMPENSA_DEFAULT;
         private double intervaloAtaque = INTERVALO_ATAQUE_DEFAULT;
         private Posicionable objetivo;
+        private EstrategiaMovimiento estrategiaMovimiento;
         private List<EstrategiaExpiracion> estrategiasExpiracion = new ArrayList<>();
         private List<Interaccion> interaccionesColision = new ArrayList<>();
         private String animacionDefault = ANIMACION_IDLE_DEFAULT;
@@ -502,6 +441,11 @@ public class Enemigo extends Personaje {
 
         public Builder objetivo(Posicionable objetivo) {
             this.objetivo = objetivo;
+            return this;
+        }
+
+        public Builder estrategiaMovimiento(EstrategiaMovimiento estrategiaMovimiento) {
+            this.estrategiaMovimiento = estrategiaMovimiento;
             return this;
         }
 

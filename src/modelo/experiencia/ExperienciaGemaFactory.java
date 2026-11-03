@@ -43,6 +43,7 @@ public class ExperienciaGemaFactory extends ExperienciaFactory {
             getPosicion(),
             getHitboxFactory().getHitbox(),
             getCantidadExp(),
+            null,
             getEstrategiasExpiracion(),
             getInteraccionesColision()
         );

@@ -2,14 +2,17 @@ package modelo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Entidad;
 import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.EstrategiaMovimiento;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorDebil;
 import motor.util.observer.NotificadorFuerte;
 
 public abstract class Personaje extends Entidad {
@@ -41,6 +44,8 @@ public abstract class Personaje extends Entidad {
         Notificador<Integer> notificadorExpiracion,
         Notificador<Integer> notificadorSonido,
         Notificador<String> notificadorAnimacion,
+        Notificador<Double> notificadorDaño,
+        EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision,
         String animacionDefault,
@@ -64,6 +69,7 @@ public abstract class Personaje extends Entidad {
             notificadorExpiracion,
             notificadorSonido,
             notificadorAnimacion,
+            estrategiaMovimiento,
             estrategiasExpiracion,
             interaccionesColision,
             animacionDefault,
@@ -80,7 +86,7 @@ public abstract class Personaje extends Entidad {
         this.vida = vidaMaxima;
         this.defensaMaximaPorcentual = defensaMaximaPorcentual;
         this.defensaPorcentual = DEFENSA_INICIAL_DEFAULT;
-        this.notificadorDaño = new NotificadorFuerte<>();
+        this.notificadorDaño = Objects.requireNonNull(notificadorDaño, "El notificadorDaño no puede ser nulo");
         this.idSonidoDaño = idSonidoDaño;
     }
 
@@ -93,6 +99,7 @@ public abstract class Personaje extends Entidad {
         double aceleracion,
         double friccion,
         double velocidadMax,
+        EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision,
         String animacionDefault,
@@ -111,11 +118,13 @@ public abstract class Personaje extends Entidad {
             aceleracion,
             friccion,
             velocidadMax,
+            new NotificadorDebil<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
             new NotificadorFuerte<>(),
+            estrategiaMovimiento,
             estrategiasExpiracion != null ? estrategiasExpiracion : new ArrayList<>(),
             interaccionesColision != null ? interaccionesColision : new ArrayList<>(),
             animacionDefault,
@@ -124,63 +133,6 @@ public abstract class Personaje extends Entidad {
             vidaMaxima,
             defensaMaximaPorcentual,
             idSonidoDaño
-        );
-    }
-
-    public Personaje(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        double velocidadMax,
-        double vidaMaxima,
-        double defensaMaximaPorcentual,
-        Integer idSonidoDaño,
-        Integer idSonidoExpiracion
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            new VecDouble2D(),
-            0.0,
-            0.0,
-            velocidadMax,
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new ArrayList<>(),
-            new ArrayList<>(),
-            ANIMACION_IDLE_DEFAULT,
-            ANIMACION_EXPIRAR_DEFAULT,
-            idSonidoExpiracion,
-            vidaMaxima,
-            defensaMaximaPorcentual,
-            idSonidoDaño
-        );
-    }
-
-    public Personaje(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        double velocidadMax,
-        double vidaMaxima
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            velocidadMax,
-            vidaMaxima,
-            DEFENSA_MAXIMA_DEFAULT,
-            null,
-            null
         );
     }
 

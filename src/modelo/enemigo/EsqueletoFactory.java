@@ -10,25 +10,30 @@ import motor.colisiones.hitboxes.HitboxRectangularFactory;
 import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
 import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.EstrategiaMovimientoPersecucion;
 import motor.modelo.Interaccion;
 import motor.modelo.Posicionable;
 import motor.util.VecDouble2D;
 
 public class EsqueletoFactory extends EnemigoFactory {
 
-    public static final double ANCHO_HITBOX_ESQUELETO = 32.0;
-    public static final double ALTO_HITBOX_ESQUELETO = 32.0;
+    public static final double ANCHO_HITBOX_ESQUELETO = 28.0;
+    public static final double ALTO_HITBOX_ESQUELETO = 36.0;
 
     public EsqueletoFactory() {
-        this(new VecDouble2D(0.0, 0.0), null);
+        this(
+            new VecDouble2D(0.0, 0.0),
+            Esqueleto.VELOCIDAD_MAXIMA_DEFAULT,
+            Esqueleto.VIDA_MAXIMA_DEFAULT,
+            Esqueleto.DANIO_DEFAULT,
+            Esqueleto.EXPERIENCIA_DEFAULT,
+            null
+        );
     }
 
-    public EsqueletoFactory(
-        VecDouble2D posicion,
-        Posicionable objetivo
-    ) {
+    public EsqueletoFactory(Posicionable objetivo) {
         this(
-            posicion,
+            new VecDouble2D(0.0, 0.0),
             Esqueleto.VELOCIDAD_MAXIMA_DEFAULT,
             Esqueleto.VIDA_MAXIMA_DEFAULT,
             Esqueleto.DANIO_DEFAULT,
@@ -50,6 +55,7 @@ public class EsqueletoFactory extends EnemigoFactory {
             MascaraColision.of(
                 CategoriaColision.JUGADOR,
                 CategoriaColision.ALIADO,
+                CategoriaColision.ENEMIGO,
                 CategoriaColision.MURO
             ),
             posicion,
@@ -113,6 +119,7 @@ public class EsqueletoFactory extends EnemigoFactory {
             getDanio(),
             getExperienciaRecompensa(),
             getObjetivo(),
+            new EstrategiaMovimientoPersecucion(getObjetivo()),
             estrategias,
             getInteraccionesColision()
         );

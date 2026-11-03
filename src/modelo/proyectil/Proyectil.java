@@ -1,6 +1,5 @@
 package modelo.proyectil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import modelo.TipoInteraccion;
@@ -9,7 +8,11 @@ import motor.modelo.Entidad;
 import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.EstrategiaMovimiento;
 import motor.modelo.Interaccion;
+import motor.modelo.ModeloEntidad;
 import motor.util.VecDouble2D;
+import motor.util.observer.Notificador;
+import motor.util.observer.NotificadorDebil;
+import motor.util.observer.NotificadorFuerte;
 
 public class Proyectil extends Entidad {
     private double tiempoVida;
@@ -32,29 +35,28 @@ public class Proyectil extends Entidad {
         String animacionDefault,
         String animacionExpirar
     ) {
-        super(
+        this(
             idGlobal,
             nombre,
             hitbox,
             posicion,
-            new VecDouble2D(0, 0),
             aceleracion,
             friccion,
             velocidadMax,
+            new NotificadorDebil<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
             estrategiaMovimiento,
             estrategiasExpiracion,
             interaccionesColision,
+            tiempoVida,
+            penetracion,
+            daño,
             animacionDefault,
             animacionExpirar
         );
-        if (!Double.isFinite(tiempoVida) || tiempoVida <= 0) {
-            throw new IllegalArgumentException("El tiempo de vida debe ser positivo y finito.");
-        }
-        if (daño > 0) {
-            añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(), daño));
-        }
-        this.tiempoVida = tiempoVida;
-        this.penetracion = Math.max(-1, penetracion);
     }
 
     public Proyectil(
@@ -65,28 +67,49 @@ public class Proyectil extends Entidad {
         double aceleracion,
         double friccion,
         double velocidadMax,
+        Notificador<VecDouble2D> notificadorPosicion,
+        Notificador<ModeloEntidad> notificadorInstanciacion,
+        Notificador<Integer> notificadorExpiracion,
+        Notificador<Integer> notificadorSonido,
+        Notificador<String> notificadorAnimacion,
         EstrategiaMovimiento estrategiaMovimiento,
+        List<EstrategiaExpiracion> estrategiasExpiracion,
+        List<Interaccion> interaccionesColision,
         double tiempoVida,
         int penetracion,
-        double daño
+        double daño,
+        String animacionDefault,
+        String animacionExpirar
     ) {
-        this(
+        super(
             idGlobal,
             nombre,
             hitbox,
             posicion,
+            new VecDouble2D(0, 0),
             aceleracion,
             friccion,
             velocidadMax,
+            notificadorPosicion,
+            notificadorInstanciacion,
+            notificadorExpiracion,
+            notificadorSonido,
+            notificadorAnimacion,
             estrategiaMovimiento,
-            new ArrayList<>(),
-            new ArrayList<>(),
-            tiempoVida,
-            penetracion,
-            daño,
-            "idle",
-            "expirar"
+            estrategiasExpiracion,
+            interaccionesColision,
+            animacionDefault,
+            animacionExpirar,
+            null
         );
+        if (!Double.isFinite(tiempoVida) || tiempoVida <= 0) {
+            throw new IllegalArgumentException("El tiempo de vida debe ser positivo y finito.");
+        }
+        if (daño > 0) {
+            añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(), daño));
+        }
+        this.tiempoVida = tiempoVida;
+        this.penetracion = Math.max(-1, penetracion);
     }
 
     @Override
@@ -111,7 +134,6 @@ public class Proyectil extends Entidad {
 
     protected boolean recibirDaño(double daño) {
         if (!activo() || penetracion < 0) { return false; }
-        System.out.println(this.getHitbox().getId() + " ha recibido " + daño);
         penetracion -= daño;
         if (penetracion <= 0) { expirar(); }
         return true;
