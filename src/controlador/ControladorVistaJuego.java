@@ -4,11 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-<<<<<<< HEAD
 import java.util.function.IntConsumer;
-=======
 import java.util.concurrent.CompletableFuture;
->>>>>>> c6a16891df8731ee56bda2764b81fd576a33ad41
 
 import javafx.application.Platform;
 import javafx.scene.Node;
