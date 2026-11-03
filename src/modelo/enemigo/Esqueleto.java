@@ -17,24 +17,17 @@ import motor.util.observer.NotificadorFuerte;
 
 public class Esqueleto extends Enemigo {
 
-    public static final int ID_GLOBAL_ESQUELETO = 11;
-    public static final String NOMBRE_ESQUELETO = "Esqueleto";
-    public static final String ANIMACION_CAMINAR_ABAJO = "caminar_abajo";
-    public static final double VELOCIDAD_MAXIMA_DEFAULT = 75.0;
-    public static final double VIDA_MAXIMA_DEFAULT = 40.0;
-    public static final double DANIO_DEFAULT = 10.0;
-    public static final int EXPERIENCIA_DEFAULT = 10;
-    public static final double INTERVALO_ATAQUE_DEFAULT = 1.0;
-    public static final double DEFENSA_DEFAULT = 0.0;
-
     public Esqueleto(
         VecDouble2D posicion,
         Hitbox hitbox,
+        double aceleracion,
+        double friccion,
         double velocidadMax,
         double vidaMaxima,
         double daño,
         int experienciaRecompensa,
         Posicionable objetivo,
+        double intervaloAtaque,
         EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision
@@ -42,6 +35,8 @@ public class Esqueleto extends Enemigo {
         this(
             posicion,
             hitbox,
+            aceleracion,
+            friccion,
             velocidadMax,
             new NotificadorDebil<>(),
             new NotificadorFuerte<>(),
@@ -53,6 +48,7 @@ public class Esqueleto extends Enemigo {
             daño,
             experienciaRecompensa,
             objetivo,
+            intervaloAtaque,
             estrategiaMovimiento,
             estrategiasExpiracion,
             interaccionesColision
@@ -62,6 +58,8 @@ public class Esqueleto extends Enemigo {
     public Esqueleto(
         VecDouble2D posicion,
         Hitbox hitbox,
+        double aceleracion,
+        double friccion,
         double velocidadMax,
         Notificador<VecDouble2D> notificadorPosicion,
         Notificador<ModeloEntidad> notificadorInstanciacion,
@@ -73,18 +71,19 @@ public class Esqueleto extends Enemigo {
         double daño,
         int experienciaRecompensa,
         Posicionable objetivo,
+        double intervaloAtaque,
         EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision
     ) {
         super(
-            ID_GLOBAL_ESQUELETO,
-            NOMBRE_ESQUELETO,
+            11,
+            "Esqueleto",
             hitbox,
             posicion,
             new VecDouble2D(0.0, 0.0),
-            ACELERACION_DEFAULT,
-            FRICCION_DEFAULT,
+            aceleracion,
+            friccion,
             velocidadMax,
             notificadorPosicion,
             notificadorInstanciacion,
@@ -95,16 +94,16 @@ public class Esqueleto extends Enemigo {
             estrategiaMovimiento,
             estrategiasExpiracion != null ? estrategiasExpiracion : new ArrayList<>(),
             interaccionesColision != null ? interaccionesColision : new ArrayList<>(),
-            ANIMACION_CAMINAR_ABAJO,
+            "caminar_abajo",
             null,
             SonidoJuego.EXPIRAR_ENEMIGO.getId(),
             vidaMaxima,
-            DEFENSA_DEFAULT,
+            0.0,
             SonidoJuego.DAÑO_ENEMIGO.getId(),
             daño,
             experienciaRecompensa,
             objetivo,
-            INTERVALO_ATAQUE_DEFAULT
+            intervaloAtaque
         );
     }
 }

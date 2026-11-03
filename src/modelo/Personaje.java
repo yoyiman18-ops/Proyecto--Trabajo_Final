@@ -17,12 +17,6 @@ import motor.util.observer.NotificadorFuerte;
 
 public abstract class Personaje extends Entidad {
 
-    public static final double DEFENSA_MAXIMA_DEFAULT = 75.0;
-    public static final double DEFENSA_INICIAL_DEFAULT = 0.0;
-    public static final double FACTOR_PORCENTUAL = 100.0;
-    public static final String ANIMACION_IDLE_DEFAULT = "idle";
-    public static final String ANIMACION_EXPIRAR_DEFAULT = "expirar";
-
     private double vidaMax;
     private double vida;
     private final double defensaMaximaPorcentual;
@@ -79,13 +73,13 @@ public abstract class Personaje extends Entidad {
         if (!Double.isFinite(vidaMaxima) || vidaMaxima <= 0) {
             throw new IllegalArgumentException("La vida máxima debe ser positiva y finita.");
         }
-        if (!Double.isFinite(defensaMaximaPorcentual) || defensaMaximaPorcentual < 0 || defensaMaximaPorcentual > FACTOR_PORCENTUAL) {
-            throw new IllegalArgumentException("La defensa máxima porcentual debe estar entre 0 y " + FACTOR_PORCENTUAL + ".");
+        if (!Double.isFinite(defensaMaximaPorcentual) || defensaMaximaPorcentual < 0 || defensaMaximaPorcentual > 100.0) {
+            throw new IllegalArgumentException("La defensa máxima porcentual debe estar entre 0 y 100.0.");
         }
         this.vidaMax = vidaMaxima;
         this.vida = vidaMaxima;
         this.defensaMaximaPorcentual = defensaMaximaPorcentual;
-        this.defensaPorcentual = DEFENSA_INICIAL_DEFAULT;
+        this.defensaPorcentual = 0.0;
         this.notificadorDaño = Objects.requireNonNull(notificadorDaño, "El notificadorDaño no puede ser nulo");
         this.idSonidoDaño = idSonidoDaño;
     }
@@ -162,7 +156,7 @@ public abstract class Personaje extends Entidad {
         if (cantidad == 0 || vida == 0) {
             return false;
         }
-        double danioEfectivo = cantidad * (1.0 - (defensaPorcentual / FACTOR_PORCENTUAL));
+        double danioEfectivo = cantidad * (1.0 - (defensaPorcentual / 100.0));
         vida = Math.max(0, vida - danioEfectivo);
         if (idSonidoDaño != null) {
             emitirSonido(idSonidoDaño);

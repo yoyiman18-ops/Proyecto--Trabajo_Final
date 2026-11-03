@@ -6,17 +6,13 @@ import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 import modelo.proyectil.ProyectilFactory;
-import modelo.proyectil.ProyectilRojoFactory;
-import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.Hitbox;
-import motor.colisiones.hitboxes.MascaraColision;
 import motor.entrada.EstadoAcciones;
 import motor.entrada.ReceptorEstadoAcciones;
 import motor.modelo.Controlable;
 import motor.modelo.Direccion;
 import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.EstrategiaMovimiento;
-import motor.modelo.EstrategiaMovimientoAcciones;
 import motor.modelo.EstrategiaMovimientoLineal;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
@@ -27,35 +23,10 @@ import motor.util.observer.NotificadorFuerte;
 
 public class Jugador extends Personaje implements Controlable {
 
-    public static final int ID_GLOBAL_JUGADOR_DEFAULT = 1;
-    public static final double VELOCIDAD_ATAQUE_DEFAULT = 1.0;
-    public static final double DANIO_ATAQUE_DEFAULT = 10.0;
-    public static final double CRITICO_DEFAULT = 5.0;
-    public static final double MULTIDISPARO_DEFAULT = 0.0;
-    public static final double MULTIPLICADOR_CRITICO_DEFAULT = 2.0;
-    public static final int NIVEL_INICIAL_DEFAULT = 1;
-    public static final int EXP_INICIAL_DEFAULT = 30;
-    public static final int EXP_INCREMENTO_POR_NIVEL_DEFAULT = 25;
-
-    public static final double ACELERACION_DEFAULT = 800.0;
-    public static final double FRICCION_DEFAULT = 600.0;
-    public static final double VELOCIDAD_MAXIMA_DEFAULT = 200.0;
-    public static final double VIDA_MAXIMA_DEFAULT = 100.0;
-
-    public static final double OFFSET_ORIGEN_DISPARO_X_DEFAULT = -15.0;
-    public static final double OFFSET_ORIGEN_DISPARO_Y_DEFAULT = -16.0;
-    public static final double DESVIACION_MULTIDISPARO_GRADOS_DEFAULT = 15.0;
-
-    public static final double VELOCIDAD_PROYECTIL_DEFAULT = 320.0;
-    public static final double TIEMPO_VIDA_ADICIONAL_PROYECTIL_DEFAULT = 2.0;
-    public static final int PENETRACION_ADICIONAL_PROYECTIL_DEFAULT = 0;
-
-    public static final double DIRECCION_POSITIVA = 1.0;
-    public static final double DIRECCION_NEGATIVA = -1.0;
-
     private int experiencia;
     private int nivel;
     private int experienciaSiguiente;
+    private final int incrementoExperienciaPorNivel;
     private int nivelesPendientes;
     private double danioAtaque;
     private double velocidadAtaque;
@@ -105,6 +76,7 @@ public class Jugador extends Personaje implements Controlable {
         Integer idSonidoDaño,
         int nivelInicial,
         int experienciaSiguienteInicial,
+        int incrementoExperienciaPorNivel,
         double danioAtaque,
         double velocidadAtaque,
         double probabilidadCritico,
@@ -113,6 +85,9 @@ public class Jugador extends Personaje implements Controlable {
         double offsetDisparoX,
         double offsetDisparoY,
         double desviacionMultidisparoGrados,
+        ProyectilFactory proyectilFactory,
+        Integer idSonidoDisparo,
+        Integer idSonidoDisparoCritico,
         Integer idSonidoSubirNivel
     ) {
         super(
@@ -146,17 +121,20 @@ public class Jugador extends Personaje implements Controlable {
         if (experienciaSiguienteInicial <= 0) {
             throw new IllegalArgumentException("La experiencia siguiente inicial debe ser positiva.");
         }
+        if (incrementoExperienciaPorNivel < 0) {
+            throw new IllegalArgumentException("El incremento de experiencia por nivel no puede ser negativo.");
+        }
         if (!Double.isFinite(danioAtaque) || danioAtaque < 0) {
             throw new IllegalArgumentException("El daño de ataque no puede ser negativo.");
         }
         if (!Double.isFinite(velocidadAtaque) || velocidadAtaque <= 0) {
             throw new IllegalArgumentException("La velocidad de ataque debe ser positiva.");
         }
-        if (!Double.isFinite(probabilidadCritico) || probabilidadCritico < 0 || probabilidadCritico > FACTOR_PORCENTUAL) {
-            throw new IllegalArgumentException("La probabilidad de crítico debe estar entre 0 y " + FACTOR_PORCENTUAL + ".");
+        if (!Double.isFinite(probabilidadCritico) || probabilidadCritico < 0 || probabilidadCritico > 100.0) {
+            throw new IllegalArgumentException("La probabilidad de crítico debe estar entre 0 y 100.0.");
         }
-        if (!Double.isFinite(probabilidadMultidisparo) || probabilidadMultidisparo < 0 || probabilidadMultidisparo > FACTOR_PORCENTUAL) {
-            throw new IllegalArgumentException("La probabilidad de multidisparo debe estar entre 0 y " + FACTOR_PORCENTUAL + ".");
+        if (!Double.isFinite(probabilidadMultidisparo) || probabilidadMultidisparo < 0 || probabilidadMultidisparo > 100.0) {
+            throw new IllegalArgumentException("La probabilidad de multidisparo debe estar entre 0 y 100.0.");
         }
         if (!Double.isFinite(multiplicadorCritico) || multiplicadorCritico <= 0) {
             throw new IllegalArgumentException("El multiplicador de daño crítico debe ser positivo.");
@@ -164,6 +142,7 @@ public class Jugador extends Personaje implements Controlable {
         this.experiencia = 0;
         this.nivel = nivelInicial;
         this.experienciaSiguiente = experienciaSiguienteInicial;
+        this.incrementoExperienciaPorNivel = incrementoExperienciaPorNivel;
         this.nivelesPendientes = 0;
         this.danioAtaque = danioAtaque;
         this.velocidadAtaque = velocidadAtaque;
@@ -176,10 +155,12 @@ public class Jugador extends Personaje implements Controlable {
         this.desviacionMultidisparoGrados = desviacionMultidisparoGrados;
 
         this.direccion = Direccion.ABAJO;
-        this.vectorDireccion = new VecDouble2D(0.0, DIRECCION_POSITIVA);
+        this.vectorDireccion = VecDouble2D.abajo();
         this.notificadorVida = Objects.requireNonNull(notificadorVida, "El notificadorVida no puede ser nulo");
+        this.proyectilFactory = proyectilFactory;
+        this.idSonidoDisparo = idSonidoDisparo;
+        this.idSonidoDisparoCritico = idSonidoDisparoCritico;
         this.idSonidoSubirNivel = idSonidoSubirNivel;
-        this.proyectilFactory = crearProyectilFactoryDefault();
         añadirInteraccionColision(new Interaccion(TipoInteraccion.AÑADIR_EXP.clase(), 0.0));
     }
 
@@ -203,6 +184,7 @@ public class Jugador extends Personaje implements Controlable {
         Integer idSonidoDaño,
         int nivelInicial,
         int experienciaSiguienteInicial,
+        int incrementoExperienciaPorNivel,
         double danioAtaque,
         double velocidadAtaque,
         double probabilidadCritico,
@@ -211,6 +193,9 @@ public class Jugador extends Personaje implements Controlable {
         double offsetDisparoX,
         double offsetDisparoY,
         double desviacionMultidisparoGrados,
+        ProyectilFactory proyectilFactory,
+        Integer idSonidoDisparo,
+        Integer idSonidoDisparoCritico,
         Integer idSonidoSubirNivel
     ) {
         this(
@@ -240,6 +225,7 @@ public class Jugador extends Personaje implements Controlable {
             idSonidoDaño,
             nivelInicial,
             experienciaSiguienteInicial,
+            incrementoExperienciaPorNivel,
             danioAtaque,
             velocidadAtaque,
             probabilidadCritico,
@@ -248,68 +234,10 @@ public class Jugador extends Personaje implements Controlable {
             offsetDisparoX,
             offsetDisparoY,
             desviacionMultidisparoGrados,
+            proyectilFactory,
+            idSonidoDisparo,
+            idSonidoDisparoCritico,
             idSonidoSubirNivel
-        );
-    }
-
-    private Jugador(Builder b) {
-        this(
-            b.idGlobal,
-            b.nombre,
-            b.hitbox,
-            b.posicion,
-            b.velocidad,
-            b.aceleracion,
-            b.friccion,
-            b.velocidadMax,
-            b.notificadorPosicion != null ? b.notificadorPosicion : new NotificadorDebil<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            b.notificadorVida != null ? b.notificadorVida : new NotificadorFuerte<>(),
-            b.estrategiaMovimiento,
-            b.estrategiasExpiracion,
-            b.interaccionesColision,
-            b.animacionDefault,
-            b.animacionExpirar,
-            b.idSonidoMuerte,
-            b.vidaMax,
-            b.defensaMaximaPorcentual,
-            b.idSonidoDaño,
-            b.nivelInicial,
-            b.experienciaSiguienteInicial,
-            b.danioAtaque,
-            b.velocidadAtaque,
-            b.probabilidadCritico,
-            b.probabilidadMultidisparo,
-            b.multiplicadorCritico,
-            b.offsetDisparoX,
-            b.offsetDisparoY,
-            b.desviacionMultidisparoGrados,
-            b.idSonidoSubirNivel
-        );
-        this.proyectilFactory = b.proyectilFactory != null ? b.proyectilFactory : crearProyectilFactoryDefault();
-        this.idSonidoDisparo = b.idSonidoDisparo;
-        this.idSonidoDisparoCritico = b.idSonidoDisparoCritico;
-        if (b.vida < b.vidaMax) {
-            setVidaDirecta(b.vida);
-        }
-    }
-
-    private static ProyectilFactory crearProyectilFactoryDefault() {
-        return new ProyectilRojoFactory(
-            MascaraColision.of(CategoriaColision.ALIADO),
-            MascaraColision.of(CategoriaColision.ENEMIGO, CategoriaColision.MURO),
-            new VecDouble2D(),
-            1000.0,
-            0.0,
-            VELOCIDAD_PROYECTIL_DEFAULT,
-            new EstrategiaMovimientoLineal(VecDouble2D.abajo()),
-            TIEMPO_VIDA_ADICIONAL_PROYECTIL_DEFAULT,
-            PENETRACION_ADICIONAL_PROYECTIL_DEFAULT,
-            0.0
         );
     }
 
@@ -369,7 +297,7 @@ public class Jugador extends Personaje implements Controlable {
             return List.of();
         }
         ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
-        boolean esCritico = aleatorio.nextDouble(FACTOR_PORCENTUAL) < probabilidadCritico;
+        boolean esCritico = aleatorio.nextDouble(100.0) < probabilidadCritico;
         double danioFinal = esCritico ? danioAtaque * multiplicadorCritico : danioAtaque;
         VecDouble2D origen = new VecDouble2D(getPosicion().getX() + offsetDisparoX, getPosicion().getY() + offsetDisparoY);
         VecDouble2D dirPrincipal = getVectorDireccion();
@@ -377,7 +305,7 @@ public class Jugador extends Personaje implements Controlable {
         List<DatosDisparo> disparos = new ArrayList<>();
         disparos.add(new DatosDisparo(origen.clone(), dirPrincipal.clone(), danioFinal, esCritico));
 
-        if (aleatorio.nextDouble(FACTOR_PORCENTUAL) < probabilidadMultidisparo) {
+        if (aleatorio.nextDouble(100.0) < probabilidadMultidisparo) {
             double anguloBase = Math.atan2(dirPrincipal.getY(), dirPrincipal.getX());
             double desviacion = Math.toRadians(desviacionMultidisparoGrados);
             VecDouble2D dirExtra = new VecDouble2D(
@@ -446,7 +374,7 @@ public class Jugador extends Personaje implements Controlable {
         while (experienciaAcumulada >= experienciaSiguiente) {
             experienciaAcumulada -= experienciaSiguiente;
             nivel++;
-            experienciaSiguiente = EXP_INICIAL_DEFAULT + (nivel - 1) * EXP_INCREMENTO_POR_NIVEL_DEFAULT;
+            experienciaSiguiente += incrementoExperienciaPorNivel;
             nivelesGanados++;
         }
         experiencia = (int) experienciaAcumulada;
@@ -478,7 +406,7 @@ public class Jugador extends Personaje implements Controlable {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de velocidad de ataque debe ser finito y no negativo.");
         }
-        double nuevaVelocidadAtaque = velocidadAtaque * (1.0 + porcentaje / FACTOR_PORCENTUAL);
+        double nuevaVelocidadAtaque = velocidadAtaque * (1.0 + porcentaje / 100.0);
         if (!Double.isFinite(nuevaVelocidadAtaque)) {
             throw new IllegalArgumentException("La velocidad de ataque resultante debe ser finita.");
         }
@@ -489,7 +417,7 @@ public class Jugador extends Personaje implements Controlable {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de velocidad debe ser finito y no negativo.");
         }
-        double nuevaVelocidadMaxima = getVelocidadMax() * (1.0 + porcentaje / FACTOR_PORCENTUAL);
+        double nuevaVelocidadMaxima = getVelocidadMax() * (1.0 + porcentaje / 100.0);
         if (!Double.isFinite(nuevaVelocidadMaxima)) {
             throw new IllegalArgumentException("La velocidad máxima resultante debe ser finita.");
         }
@@ -500,14 +428,14 @@ public class Jugador extends Personaje implements Controlable {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de crítico debe ser finito y no negativo.");
         }
-        probabilidadCritico = Math.min(FACTOR_PORCENTUAL, probabilidadCritico + porcentaje);
+        probabilidadCritico = Math.min(100.0, probabilidadCritico + porcentaje);
     }
 
     public void aumentarProbabilidadMultidisparo(double porcentaje) {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de multidisparo debe ser finito y no negativo.");
         }
-        probabilidadMultidisparo = Math.min(FACTOR_PORCENTUAL, probabilidadMultidisparo + porcentaje);
+        probabilidadMultidisparo = Math.min(100.0, probabilidadMultidisparo + porcentaje);
     }
 
     @Override
@@ -544,6 +472,10 @@ public class Jugador extends Personaje implements Controlable {
 
     public int getExperienciaSiguiente() {
         return experienciaSiguiente;
+    }
+
+    public int getIncrementoExperienciaPorNivel() {
+        return incrementoExperienciaPorNivel;
     }
 
     public int getNivelesPendientes() {
@@ -596,259 +528,5 @@ public class Jugador extends Personaje implements Controlable {
 
     public Integer getIdSonidoSubirNivel() {
         return idSonidoSubirNivel;
-    }
-
-    public static class Builder {
-        private int idGlobal = ID_GLOBAL_JUGADOR_DEFAULT;
-        private final String nombre;
-        private final Hitbox hitbox;
-        private VecDouble2D posicion = new VecDouble2D(0.0, 0.0);
-        private VecDouble2D velocidad = new VecDouble2D(0.0, 0.0);
-        private double aceleracion = ACELERACION_DEFAULT;
-        private double friccion = FRICCION_DEFAULT;
-        private double velocidadMax = VELOCIDAD_MAXIMA_DEFAULT;
-        private double vidaMax = VIDA_MAXIMA_DEFAULT;
-        private double vida = VIDA_MAXIMA_DEFAULT;
-        private double defensaMaximaPorcentual = DEFENSA_MAXIMA_DEFAULT;
-        private double danioAtaque = DANIO_ATAQUE_DEFAULT;
-        private double velocidadAtaque = VELOCIDAD_ATAQUE_DEFAULT;
-        private double probabilidadCritico = CRITICO_DEFAULT;
-        private double probabilidadMultidisparo = MULTIDISPARO_DEFAULT;
-        private double multiplicadorCritico = MULTIPLICADOR_CRITICO_DEFAULT;
-        private double offsetDisparoX = OFFSET_ORIGEN_DISPARO_X_DEFAULT;
-        private double offsetDisparoY = OFFSET_ORIGEN_DISPARO_Y_DEFAULT;
-        private double desviacionMultidisparoGrados = DESVIACION_MULTIDISPARO_GRADOS_DEFAULT;
-        private int nivelInicial = NIVEL_INICIAL_DEFAULT;
-        private int experienciaSiguienteInicial = EXP_INICIAL_DEFAULT;
-        private EstrategiaMovimiento estrategiaMovimiento = new EstrategiaMovimientoAcciones();
-        private List<EstrategiaExpiracion> estrategiasExpiracion = new ArrayList<>();
-        private List<Interaccion> interaccionesColision = new ArrayList<>();
-        private String animacionDefault = ANIMACION_IDLE_DEFAULT;
-        private String animacionExpirar = ANIMACION_EXPIRAR_DEFAULT;
-        private Notificador<VecDouble2D> notificadorPosicion;
-        private Notificador<Jugador> notificadorVida = new NotificadorFuerte<>();
-        private Integer idSonidoDaño;
-        private Integer idSonidoMuerte;
-        private Integer idSonidoSubirNivel;
-        private ProyectilFactory proyectilFactory;
-        private Integer idSonidoDisparo;
-        private Integer idSonidoDisparoCritico;
-
-        public Builder(String nombre, Hitbox hitbox) {
-            this.nombre = Objects.requireNonNull(nombre, "El nombre no puede ser nulo");
-            this.hitbox = Objects.requireNonNull(hitbox, "La hitbox no puede ser nula");
-        }
-
-        public Builder idGlobal(int idGlobal) {
-            this.idGlobal = idGlobal;
-            return this;
-        }
-
-        public Builder posicion(VecDouble2D posicion) {
-            Objects.requireNonNull(posicion, "La posición no puede ser nula");
-            this.posicion = posicion.clone();
-            return this;
-        }
-
-        public Builder posicion(double x, double y) {
-            this.posicion = new VecDouble2D(x, y);
-            return this;
-        }
-
-        public Builder velocidad(VecDouble2D velocidad) {
-            Objects.requireNonNull(velocidad, "La velocidad no puede ser nula");
-            this.velocidad = velocidad.clone();
-            return this;
-        }
-
-        public Builder aceleracion(double aceleracion) {
-            if (!Double.isFinite(aceleracion) || aceleracion < 0) {
-                throw new IllegalArgumentException("La aceleración debe ser finita y no negativa.");
-            }
-            this.aceleracion = aceleracion;
-            return this;
-        }
-
-        public Builder friccion(double friccion) {
-            if (!Double.isFinite(friccion) || friccion < 0) {
-                throw new IllegalArgumentException("La fricción debe ser finita y no negativa.");
-            }
-            this.friccion = friccion;
-            return this;
-        }
-
-        public Builder velocidadMax(double velocidadMax) {
-            if (!Double.isFinite(velocidadMax) || velocidadMax < 0) {
-                throw new IllegalArgumentException("La velocidad máxima debe ser finita y no negativa.");
-            }
-            this.velocidadMax = velocidadMax;
-            return this;
-        }
-
-        public Builder estrategiaMovimiento(EstrategiaMovimiento estrategiaMovimiento) {
-            this.estrategiaMovimiento = estrategiaMovimiento;
-            return this;
-        }
-
-        public Builder vidaMax(double vidaMax) {
-            if (!Double.isFinite(vidaMax) || vidaMax <= 0) {
-                throw new IllegalArgumentException("La vida máxima debe ser positiva y finita.");
-            }
-            this.vidaMax = vidaMax;
-            return this;
-        }
-
-        public Builder vida(double vida) {
-            if (!Double.isFinite(vida) || vida < 0) {
-                throw new IllegalArgumentException("La vida debe ser finita y no negativa.");
-            }
-            this.vida = vida;
-            return this;
-        }
-
-        public Builder defensaMaximaPorcentual(double defensaMaximaPorcentual) {
-            if (!Double.isFinite(defensaMaximaPorcentual) || defensaMaximaPorcentual < 0 || defensaMaximaPorcentual > FACTOR_PORCENTUAL) {
-                throw new IllegalArgumentException("La defensa máxima porcentual debe estar entre 0 y " + FACTOR_PORCENTUAL + ".");
-            }
-            this.defensaMaximaPorcentual = defensaMaximaPorcentual;
-            return this;
-        }
-
-        public Builder danioAtaque(double danioAtaque) {
-            if (!Double.isFinite(danioAtaque) || danioAtaque < 0) {
-                throw new IllegalArgumentException("El daño de ataque no puede ser negativo.");
-            }
-            this.danioAtaque = danioAtaque;
-            return this;
-        }
-
-        public Builder velocidadAtaque(double velocidadAtaque) {
-            if (!Double.isFinite(velocidadAtaque) || velocidadAtaque <= 0) {
-                throw new IllegalArgumentException("La velocidad de ataque debe ser positiva.");
-            }
-            this.velocidadAtaque = velocidadAtaque;
-            return this;
-        }
-
-        public Builder probabilidadCritico(double probabilidadCritico) {
-            if (!Double.isFinite(probabilidadCritico) || probabilidadCritico < 0 || probabilidadCritico > FACTOR_PORCENTUAL) {
-                throw new IllegalArgumentException("La probabilidad de crítico debe estar entre 0 y " + FACTOR_PORCENTUAL + ".");
-            }
-            this.probabilidadCritico = probabilidadCritico;
-            return this;
-        }
-
-        public Builder probabilidadMultidisparo(double probabilidadMultidisparo) {
-            if (!Double.isFinite(probabilidadMultidisparo) || probabilidadMultidisparo < 0 || probabilidadMultidisparo > FACTOR_PORCENTUAL) {
-                throw new IllegalArgumentException("La probabilidad de multidisparo debe estar entre 0 y " + FACTOR_PORCENTUAL + ".");
-            }
-            this.probabilidadMultidisparo = probabilidadMultidisparo;
-            return this;
-        }
-
-        public Builder multiplicadorCritico(double multiplicadorCritico) {
-            if (!Double.isFinite(multiplicadorCritico) || multiplicadorCritico <= 0) {
-                throw new IllegalArgumentException("El multiplicador de daño crítico debe ser positivo.");
-            }
-            this.multiplicadorCritico = multiplicadorCritico;
-            return this;
-        }
-
-        public Builder offsetDisparo(double offsetX, double offsetY) {
-            this.offsetDisparoX = offsetX;
-            this.offsetDisparoY = offsetY;
-            return this;
-        }
-
-        public Builder desviacionMultidisparoGrados(double grados) {
-            this.desviacionMultidisparoGrados = grados;
-            return this;
-        }
-
-        public Builder nivelInicial(int nivelInicial) {
-            if (nivelInicial <= 0) {
-                throw new IllegalArgumentException("El nivel inicial debe ser positivo.");
-            }
-            this.nivelInicial = nivelInicial;
-            return this;
-        }
-
-        public Builder experienciaSiguienteInicial(int exp) {
-            if (exp <= 0) {
-                throw new IllegalArgumentException("La experiencia debe ser positiva.");
-            }
-            this.experienciaSiguienteInicial = exp;
-            return this;
-        }
-
-        public Builder estrategiasExpiracion(List<EstrategiaExpiracion> estrategias) {
-            this.estrategiasExpiracion = estrategias != null ? new ArrayList<>(estrategias) : new ArrayList<>();
-            return this;
-        }
-
-        public Builder interaccionesColision(List<Interaccion> interacciones) {
-            this.interaccionesColision = interacciones != null ? new ArrayList<>(interacciones) : new ArrayList<>();
-            return this;
-        }
-
-        public Builder animacionDefault(String animacion) {
-            this.animacionDefault = animacion;
-            return this;
-        }
-
-        public Builder animacionExpirar(String animacion) {
-            this.animacionExpirar = animacion;
-            return this;
-        }
-
-        public Builder notificadorPosicion(Notificador<VecDouble2D> notificadorPosicion) {
-            this.notificadorPosicion = notificadorPosicion;
-            return this;
-        }
-
-        public Builder notificadorVida(Notificador<Jugador> notificadorVida) {
-            this.notificadorVida = Objects.requireNonNull(notificadorVida, "El notificador de vida no puede ser nulo");
-            return this;
-        }
-
-        public Builder idSonidoDaño(Integer idSonidoDaño) {
-            this.idSonidoDaño = idSonidoDaño;
-            return this;
-        }
-
-        public Builder idSonidoMuerte(Integer idSonidoMuerte) {
-            this.idSonidoMuerte = idSonidoMuerte;
-            return this;
-        }
-
-        public Builder idSonidoSubirNivel(Integer idSonidoSubirNivel) {
-            this.idSonidoSubirNivel = idSonidoSubirNivel;
-            return this;
-        }
-
-        public Builder proyectilFactory(ProyectilFactory proyectilFactory) {
-            this.proyectilFactory = proyectilFactory;
-            return this;
-        }
-
-        public Builder idSonidoDisparo(Integer idSonidoDisparo) {
-            this.idSonidoDisparo = idSonidoDisparo;
-            return this;
-        }
-
-        public Builder idSonidoDisparoCritico(Integer idSonidoDisparoCritico) {
-            this.idSonidoDisparoCritico = idSonidoDisparoCritico;
-            return this;
-        }
-
-        public Jugador build() {
-            if (this.vida > this.vidaMax) {
-                this.vida = this.vidaMax;
-            }
-            if (this.vida < 0) {
-                this.vida = 0;
-            }
-            return new Jugador(this);
-        }
     }
 }

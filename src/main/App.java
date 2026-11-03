@@ -54,20 +54,17 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import modelo.Jugador;
+import modelo.JugadorFactory;
 import modelo.ModeloPartida;
 import modelo.Partida;
 import motor.Motor;
-import motor.colisiones.hitboxes.CategoriaColision;
-import motor.colisiones.hitboxes.Hitbox;
-import motor.colisiones.hitboxes.HitboxRectangularFactory;
-import motor.colisiones.hitboxes.MascaraColision;
-import motor.colisiones.hitboxes.TipoHitbox;
 import motor.entrada.Accion;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
 import motor.modelo.graficos.Sheet;
 import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
+import motor.util.VecDouble2D;
 import vista.VistaPartida;
 
 // nota: en esta clase se prueban de forma arbitraria las características añadidas.
@@ -118,33 +115,16 @@ public class App extends Application {
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.ATACAR));
 
         // 3. Crear Jugador y Modelo de la partida
-        Sheet sheetJugador = motor.getSheetDAO().cargar(Jugador.ID_GLOBAL_JUGADOR_DEFAULT);
+        Sheet sheetJugador = motor.getSheetDAO().cargar(JugadorFactory.ID_GLOBAL_JUGADOR);
         Rectangle2D rectanguloJugador = sheetJugador.getRecortes().getFirst().getRectangulo();
-        Hitbox hitboxJugador = new HitboxRectangularFactory(
+        Jugador jugador = new JugadorFactory(
             rectanguloJugador.getWidth(),
             rectanguloJugador.getHeight(),
-            TipoHitbox.SOLIDA,
-            MascaraColision.of(CategoriaColision.JUGADOR),
-            MascaraColision.of(
-                CategoriaColision.ENEMIGO,
-                CategoriaColision.MURO,
-                CategoriaColision.ITEM,
-                CategoriaColision.EXP
-            )
-        ).getHitbox();
-
-        Jugador jugador = new Jugador.Builder("jugador", hitboxJugador)
-            .posicion(
+            new VecDouble2D(
                 (escena.getWidth() - rectanguloJugador.getWidth()) / 2.0,
                 (escena.getHeight() - rectanguloJugador.getHeight()) / 2.0
             )
-            .animacionDefault("caminar_abajo")
-            .idSonidoDaño(SonidoJuego.DAÑO_JUGADOR.getId())
-            .idSonidoMuerte(SonidoJuego.MUERTE_JUGADOR.getId())
-            .idSonidoSubirNivel(SonidoJuego.SUBIR_NIVEL.getId())
-            .idSonidoDisparo(SonidoJuego.DISPARO.getId())
-            .idSonidoDisparoCritico(SonidoJuego.DISPARO_CRITICO.getId())
-            .build();
+        ).get();
 
         ModeloPartida modeloPartida = new Partida(
             jugador,

@@ -20,6 +20,8 @@ public abstract class EnemigoFactory extends EntidadFactory {
     public EnemigoFactory(
         HitboxFactory hitboxFactory,
         VecDouble2D posicion,
+        double aceleracion,
+        double friccion,
         double velocidadMax,
         double vidaMaxima,
         double daño,
@@ -33,8 +35,8 @@ public abstract class EnemigoFactory extends EntidadFactory {
             hitboxFactory,
             posicion,
             new VecDouble2D(0.0, 0.0),
-            0.0,
-            0.0,
+            aceleracion,
+            friccion,
             velocidadMax,
             estrategiasExpiracion != null ? estrategiasExpiracion : new ArrayList<>(),
             interaccionesColision != null ? interaccionesColision : new ArrayList<>()
