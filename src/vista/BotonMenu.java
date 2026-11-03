@@ -49,6 +49,18 @@ public class BotonMenu extends Button {
     private DropShadow sombraNormal = new DropShadow(BlurType.GAUSSIAN, Color.rgb(0, 0, 0, 0.85), 5, 0.45, 0, 2);
     private DropShadow sombraHover = new DropShadow(BlurType.GAUSSIAN, Color.rgb(255, 215, 110, 0.55), 10, 0.45, 0, 0);
 
+    public BotonMenu(String texto) {
+        this(texto, null, null, 0, 0);
+    }
+
+    public BotonMenu(String texto, Sheet sheetGui) {
+        this(texto, null, sheetGui, 0, 0);
+    }
+
+    public BotonMenu(String texto, Sheet sheetGui, double ancho, double alto) {
+        this(texto, null, sheetGui, ancho, alto);
+    }
+
     public BotonMenu(OpcionMenu modelo, Sheet sheetGui) {
         this(modelo, sheetGui, 0, 0);
     }

@@ -33,7 +33,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
-import modelo.BotonMenu;
 import motor.modelo.graficos.GestorSheetEstatica;
 import motor.modelo.graficos.Sheet;
 import motor.vista.VistaImagen;

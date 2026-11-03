@@ -5,7 +5,7 @@ import java.util.Objects;
 import javafx.scene.Parent;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
-import modelo.BotonMenu;
+import vista.BotonMenu;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
 import motor.persistencia.dao.sqlite.Conexion;
