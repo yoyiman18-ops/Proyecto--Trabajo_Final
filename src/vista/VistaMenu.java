@@ -36,6 +36,7 @@ import javafx.scene.paint.Stop;
 import modelo.BotonMenu;
 import motor.modelo.graficos.GestorSheetEstatica;
 import motor.modelo.graficos.Sheet;
+import motor.vista.VistaImagen;
 
 public final class VistaMenu extends StackPane {
 

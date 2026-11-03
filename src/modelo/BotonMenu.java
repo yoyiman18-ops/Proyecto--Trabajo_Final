@@ -21,7 +21,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import motor.modelo.graficos.GestorSheetEstatica;
 import motor.modelo.graficos.Sheet;
-import vista.VistaImagen;
+import motor.vista.VistaImagen;
 
 public class BotonMenu extends Button {
 

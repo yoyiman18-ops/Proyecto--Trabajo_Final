@@ -23,6 +23,7 @@ import modelo.OpcionMenu;
 import motor.modelo.graficos.GestorSheetEstatica;
 import motor.modelo.graficos.Recorte;
 import motor.modelo.graficos.Sheet;
+import motor.vista.VistaImagen;
 
 /**
  * Componente visual de la Vista que renderiza una opción de menú con recortes de spritesheet
