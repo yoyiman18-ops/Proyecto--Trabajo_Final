@@ -86,6 +86,10 @@ public final class ControladorVistaJuego {
         );
     }
 
+    public ControladorVistaJuego(GestorRecursos gestorRecursos, double tamanoTile) {
+        this(gestorRecursos, null, tamanoTile);
+    }
+
     public ControladorVistaJuego(
         GestorRecursos gestorRecursos,
         Sheet sheetHud,
@@ -102,7 +106,6 @@ public final class ControladorVistaJuego {
         ConfiguracionMazmorra configuracionMazmorra
     ) {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
-        Objects.requireNonNull(hojaEstilosUrl, "La URL de la hoja de estilos no puede ser nula");
         Objects.requireNonNull(configuracionMazmorra, "La configuración de mazmorra no puede ser nula");
 
         Map<String, Image> imagenesHud = new HashMap<>();

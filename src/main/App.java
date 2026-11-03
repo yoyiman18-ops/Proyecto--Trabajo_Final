@@ -41,8 +41,6 @@ package main;
  * import controlador.VidaControlador;
  */
 
-import java.net.URL;
-
 import controlador.ControladorPartida;
 import controlador.ControladorFondoMazmorra;
 import controlador.ControladorVistaJuego;
@@ -107,15 +105,7 @@ public class App extends Application {
 
     private void iniciarPartida(Stage stage) {
         // 1. Configurar VistaPartida y VistaFondo mediante sus controladores de vista
-        URL hojaEstilos = App.class.getResource("/vista/vista-juego.css");
-        if (hojaEstilos == null) {
-            throw new IllegalStateException("No se encontró vista-juego.css");
-        }
-        ControladorVistaJuego controladorVista = new ControladorVistaJuego(
-            gestorRecursos,
-            hojaEstilos.toExternalForm(),
-            32
-        );
+        ControladorVistaJuego controladorVista = new ControladorVistaJuego(gestorRecursos, 32);
         VistaPartida vista = controladorVista.getVistaJuego();
         Scene escena = new Scene(vista.getRaiz(), 960, 720);
 
