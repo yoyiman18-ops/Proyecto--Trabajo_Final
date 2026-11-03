@@ -7,7 +7,6 @@ import motor.util.Eje;
 import motor.util.VecDouble2D;
 import motor.util.observer.Observador;
 
-
 public class EstrategiaMovimientoAcciones
 implements EstrategiaMovimiento, Observador<EstadoAcciones>, ReceptorEstadoAcciones {
 
@@ -32,7 +31,7 @@ implements EstrategiaMovimiento, Observador<EstadoAcciones>, ReceptorEstadoAccio
     }
 
     @Override
-    public void ejecutar(Móvil sujeto, double dt) {
+    public void ejecutar(Movil sujeto, double dt) {
         if (sujeto == null) { return; }
 
         VecDouble2D direccion = new VecDouble2D(0, 0);

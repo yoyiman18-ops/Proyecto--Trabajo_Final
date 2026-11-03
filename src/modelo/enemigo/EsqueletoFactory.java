@@ -10,6 +10,7 @@ import motor.colisiones.hitboxes.HitboxRectangularFactory;
 import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
 import motor.modelo.EstrategiaExpiracion;
+import motor.modelo.EstrategiaMovimiento;
 import motor.modelo.EstrategiaMovimientoPersecucion;
 import motor.modelo.Interaccion;
 import motor.modelo.Posicionable;
@@ -17,46 +18,7 @@ import motor.util.VecDouble2D;
 
 public class EsqueletoFactory extends EnemigoFactory {
 
-    public static final double ANCHO_HITBOX_ESQUELETO = 28.0;
-    public static final double ALTO_HITBOX_ESQUELETO = 36.0;
-    public static final double ACELERACION_DEFAULT = 600.0;
-    public static final double FRICCION_DEFAULT = 600.0;
-    public static final double VELOCIDAD_MAXIMA_DEFAULT = 75.0;
-    public static final double VIDA_MAXIMA_DEFAULT = 40.0;
-    public static final double DANIO_DEFAULT = 10.0;
-    public static final int EXPERIENCIA_DEFAULT = 10;
-    public static final double INTERVALO_ATAQUE_DEFAULT = 1.0;
-
     public EsqueletoFactory() {
-        this(
-            new VecDouble2D(0.0, 0.0),
-            VELOCIDAD_MAXIMA_DEFAULT,
-            VIDA_MAXIMA_DEFAULT,
-            DANIO_DEFAULT,
-            EXPERIENCIA_DEFAULT,
-            null
-        );
-    }
-
-    public EsqueletoFactory(Posicionable objetivo) {
-        this(
-            new VecDouble2D(0.0, 0.0),
-            VELOCIDAD_MAXIMA_DEFAULT,
-            VIDA_MAXIMA_DEFAULT,
-            DANIO_DEFAULT,
-            EXPERIENCIA_DEFAULT,
-            objetivo
-        );
-    }
-
-    public EsqueletoFactory(
-        VecDouble2D posicion,
-        double velocidadMax,
-        double vidaMaxima,
-        double daño,
-        int experienciaRecompensa,
-        Posicionable objetivo
-    ) {
         this(
             MascaraColision.of(CategoriaColision.ENEMIGO),
             MascaraColision.of(
@@ -65,14 +27,16 @@ public class EsqueletoFactory extends EnemigoFactory {
                 CategoriaColision.ENEMIGO,
                 CategoriaColision.MURO
             ),
-            posicion,
-            ACELERACION_DEFAULT,
-            FRICCION_DEFAULT,
-            velocidadMax,
-            vidaMaxima,
-            daño,
-            experienciaRecompensa,
-            objetivo,
+            new VecDouble2D(0.0, 0.0),
+            600.0,
+            600.0,
+            75.0,
+            40.0,
+            10.0,
+            10,
+            null,
+            1.0,
+            new EstrategiaMovimientoPersecucion(null),
             new ArrayList<>(),
             new ArrayList<>()
         );
@@ -89,13 +53,15 @@ public class EsqueletoFactory extends EnemigoFactory {
         double daño,
         int experienciaRecompensa,
         Posicionable objetivo,
+        double intervaloAtaque,
+        EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision
     ) {
         super(
             new HitboxRectangularFactory(
-                ANCHO_HITBOX_ESQUELETO,
-                ALTO_HITBOX_ESQUELETO,
+                28.0,
+                36.0,
                 TipoHitbox.SOLIDA,
                 categoriasColision,
                 capasColision
@@ -108,7 +74,8 @@ public class EsqueletoFactory extends EnemigoFactory {
             daño,
             experienciaRecompensa,
             objetivo,
-            INTERVALO_ATAQUE_DEFAULT,
+            intervaloAtaque,
+            estrategiaMovimiento,
             estrategiasExpiracion,
             interaccionesColision
         );
@@ -132,10 +99,8 @@ public class EsqueletoFactory extends EnemigoFactory {
             getVelocidadMax(),
             getVidaMaxima(),
             getDanio(),
-            getExperienciaRecompensa(),
-            getObjetivo(),
             getIntervaloAtaque(),
-            new EstrategiaMovimientoPersecucion(getObjetivo()),
+            getEstrategiaMovimiento(),
             estrategias,
             getInteraccionesColision()
         );

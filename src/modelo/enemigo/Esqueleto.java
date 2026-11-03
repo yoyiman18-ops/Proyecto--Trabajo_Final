@@ -9,7 +9,6 @@ import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.EstrategiaMovimiento;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
-import motor.modelo.Posicionable;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
@@ -25,8 +24,6 @@ public class Esqueleto extends Enemigo {
         double velocidadMax,
         double vidaMaxima,
         double daño,
-        int experienciaRecompensa,
-        Posicionable objetivo,
         double intervaloAtaque,
         EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
@@ -46,8 +43,6 @@ public class Esqueleto extends Enemigo {
             new NotificadorFuerte<>(),
             vidaMaxima,
             daño,
-            experienciaRecompensa,
-            objetivo,
             intervaloAtaque,
             estrategiaMovimiento,
             estrategiasExpiracion,
@@ -69,8 +64,6 @@ public class Esqueleto extends Enemigo {
         Notificador<Double> notificadorDaño,
         double vidaMaxima,
         double daño,
-        int experienciaRecompensa,
-        Posicionable objetivo,
         double intervaloAtaque,
         EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
@@ -101,8 +94,6 @@ public class Esqueleto extends Enemigo {
             0.0,
             SonidoJuego.DAÑO_ENEMIGO.getId(),
             daño,
-            experienciaRecompensa,
-            objetivo,
             intervaloAtaque
         );
     }

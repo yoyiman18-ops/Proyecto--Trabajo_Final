@@ -10,9 +10,8 @@ import motor.modelo.Interaccion;
 import motor.util.VecDouble2D;
 
 public abstract class ProyectilFactory extends EntidadFactory {
-    private EstrategiaMovimiento estrategiaMovimiento;
-    private double tiempoVidaAdicional;
-    private int penetracionAdicional;
+    private final double tiempoVidaAdicional;
+    private final int penetracionAdicional;
     private double dañoAdicional;
 
     public ProyectilFactory(
@@ -35,49 +34,16 @@ public abstract class ProyectilFactory extends EntidadFactory {
             aceleracion,
             friccion,
             velocidadMax,
-            estrategiasExpiracion,
-            interaccionesColision
-        );
-        this.estrategiaMovimiento = estrategiaMovimiento;
-        setTiempoVidaAdicional(tiempoVidaAdicional);
-        setPenetracionAdicional(penetracionAdicional);
-        setDañoAdicional(dañoAdicional);
-    }
-
-    public ProyectilFactory(
-        HitboxFactory hitboxFactory,
-        VecDouble2D posicion,
-        EstrategiaMovimiento estrategiaMovimiento,
-        double tiempoVidaAdicional,
-        int penetracionAdicional,
-        double dañoAdicional,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision
-    ) {
-        this(
-            hitboxFactory,
-            posicion,
-            1000.0,
-            0.0,
-            1000.0,
             estrategiaMovimiento,
-            tiempoVidaAdicional,
-            penetracionAdicional,
-            dañoAdicional,
             estrategiasExpiracion,
             interaccionesColision
         );
-    }
-
-    public void setTiempoVidaAdicional(double tiempoVida) {
-        if (!Double.isFinite(tiempoVida)) {
+        if (!Double.isFinite(tiempoVidaAdicional)) {
             throw new IllegalArgumentException("El tiempo de vida debe ser finito");
         }
-        this.tiempoVidaAdicional = tiempoVida;
-    }
-
-    public void setPenetracionAdicional(int penetracion) {
-        this.penetracionAdicional = Math.max(-1, penetracion);
+        this.tiempoVidaAdicional = tiempoVidaAdicional;
+        this.penetracionAdicional = Math.max(-1, penetracionAdicional);
+        setDañoAdicional(dañoAdicional);
     }
 
     public void setDañoAdicional(double daño) {
@@ -85,14 +51,6 @@ public abstract class ProyectilFactory extends EntidadFactory {
             throw new IllegalArgumentException("Daño debe ser finito");
         }
         this.dañoAdicional = Math.max(0.0, daño);
-    }
-
-    public void setEstrategiaMovimiento(EstrategiaMovimiento estrategiaMovimiento) {
-        this.estrategiaMovimiento = estrategiaMovimiento;
-    }
-
-    public EstrategiaMovimiento getEstrategiaMovimiento() {
-        return this.estrategiaMovimiento;
     }
 
     public double getDañoAdicional() { return this.dañoAdicional; }

@@ -15,7 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import modelo.EstrategiaExpiracionSimple;
+
 import modelo.EstrategiaExpiracionSpawnear;
 import modelo.proyectil.Proyectil;
 import modelo.proyectil.ProyectilFactory;
@@ -53,7 +53,7 @@ import motor.util.ContadorSegundos;
 import motor.util.Eje;
 import motor.util.RelojDelta;
 import motor.util.VecDouble2D;
-import motor.util.observer.Contador;
+import motor.util.Contador;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorFuerte;
 import motor.util.observer.Observador;

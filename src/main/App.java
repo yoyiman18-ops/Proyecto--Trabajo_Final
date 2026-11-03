@@ -115,7 +115,7 @@ public class App extends Application {
         motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.ATACAR));
 
         // 3. Crear Jugador y Modelo de la partida
-        Sheet sheetJugador = motor.getSheetDAO().cargar(JugadorFactory.ID_GLOBAL_JUGADOR);
+        Sheet sheetJugador = motor.getSheetDAO().cargar(1);
         Rectangle2D rectanguloJugador = sheetJugador.getRecortes().getFirst().getRectangulo();
         Jugador jugador = new JugadorFactory(
             rectanguloJugador.getWidth(),

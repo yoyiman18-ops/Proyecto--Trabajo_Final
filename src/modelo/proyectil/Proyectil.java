@@ -9,14 +9,15 @@ import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.EstrategiaMovimiento;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
+import motor.util.Contador;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 import motor.util.observer.NotificadorFuerte;
 
 public class Proyectil extends Entidad {
-    private double tiempoVida;
-    private int penetracion; // <0 para que tenga penetracion infinita
+    private final Contador contadorVida;
+    private int penetracion;
 
     public Proyectil(
         int idGlobal,
@@ -55,7 +56,8 @@ public class Proyectil extends Entidad {
             penetracion,
             daño,
             animacionDefault,
-            animacionExpirar
+            animacionExpirar,
+            null
         );
     }
 
@@ -79,7 +81,8 @@ public class Proyectil extends Entidad {
         int penetracion,
         double daño,
         String animacionDefault,
-        String animacionExpirar
+        String animacionExpirar,
+        Integer idSonidoExpiracion
     ) {
         super(
             idGlobal,
@@ -100,7 +103,7 @@ public class Proyectil extends Entidad {
             interaccionesColision,
             animacionDefault,
             animacionExpirar,
-            null
+            idSonidoExpiracion
         );
         if (!Double.isFinite(tiempoVida) || tiempoVida <= 0) {
             throw new IllegalArgumentException("El tiempo de vida debe ser positivo y finito.");
@@ -108,16 +111,16 @@ public class Proyectil extends Entidad {
         if (daño > 0) {
             añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(), daño));
         }
-        this.tiempoVida = tiempoVida;
+        this.contadorVida = new Contador(tiempoVida, tiempoVida);
         this.penetracion = Math.max(-1, penetracion);
     }
 
     @Override
     public void tick(double dt) {
         if (!activo()) { return; }
-        tiempoVida = Math.max(0, tiempoVida - dt);
+        contadorVida.tick(dt);
         super.tick(dt);
-        if (estaExpirado()) { expirar(); }
+        if (contadorVida.estaListo()) { expirar(); }
     }
 
     @Override
@@ -138,8 +141,4 @@ public class Proyectil extends Entidad {
         if (penetracion <= 0) { expirar(); }
         return true;
     }
-
-    public double getTiempoVida() { return this.tiempoVida; }
-    public int getPenetracion() { return this.penetracion; }
-    private boolean estaExpirado() { return tiempoVida == 0; }
 }

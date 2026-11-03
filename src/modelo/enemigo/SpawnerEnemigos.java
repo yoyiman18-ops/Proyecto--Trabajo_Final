@@ -1,33 +1,22 @@
 package modelo.enemigo;
 
+import java.awt.geom.Rectangle2D;
 import java.util.Objects;
 import java.util.Random;
 
 import motor.modelo.Posicionable;
+import motor.util.Contador;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorFuerte;
 
-/**
- * Generador espacial y temporal de enemigos en el área de juego.
- * Encapsula la lógica de cadencia, selección de bordes de aparición y
- * parametrización de la fábrica para no sobrecargar ni al modelo de partida
- * ni a los controladores de interfaz.
- */
 public class SpawnerEnemigos {
-
-    public static final double CADENCIA_DEFAULT = 0.8;
-    public static final double MIN_X_DEFAULT = 48.0;
-    public static final double MAX_X_DEFAULT = 960.0 - 48.0 - EsqueletoFactory.ANCHO_HITBOX_ESQUELETO;
-    public static final double MIN_Y_DEFAULT = 112.0;
-    public static final double MAX_Y_DEFAULT = 720.0 - 48.0 - EsqueletoFactory.ALTO_HITBOX_ESQUELETO;
 
     private final EnemigoFactory enemigoFactory;
     private final Notificador<Enemigo> notificadorEnemigoGenerado;
+    private final Contador cooldownSpawn;
     private final Random random;
 
-    private double cadencia;
-    private double tiempoAcumulado;
     private double minX;
     private double maxX;
     private double minY;
@@ -37,11 +26,11 @@ public class SpawnerEnemigos {
         this(
             enemigoFactory,
             new NotificadorFuerte<>(),
-            CADENCIA_DEFAULT,
-            MIN_X_DEFAULT,
-            MAX_X_DEFAULT,
-            MIN_Y_DEFAULT,
-            MAX_Y_DEFAULT
+            0.8,
+            48.0,
+            912.0,
+            112.0,
+            672.0
         );
     }
 
@@ -59,13 +48,12 @@ public class SpawnerEnemigos {
         if (!Double.isFinite(cadencia) || cadencia <= 0) {
             throw new IllegalArgumentException("La cadencia de spawn debe ser positiva y finita.");
         }
-        this.cadencia = cadencia;
+        this.cooldownSpawn = new Contador(cadencia, 0.0);
         this.minX = minX;
         this.maxX = Math.max(minX, maxX);
         this.minY = minY;
         this.maxY = Math.max(minY, maxY);
         this.random = new Random();
-        this.tiempoAcumulado = this.cadencia;
     }
 
     public void configurarLimites(double minX, double maxX, double minY, double maxY) {
@@ -79,10 +67,9 @@ public class SpawnerEnemigos {
         if (cantidadPendiente <= 0 || dt <= 0) {
             return;
         }
-        tiempoAcumulado += dt;
-        while (tiempoAcumulado >= cadencia && cantidadPendiente > 0) {
-            tiempoAcumulado -= cadencia;
-            cantidadPendiente--;
+        cooldownSpawn.tick(dt);
+        if (cooldownSpawn.estaListo()) {
+            cooldownSpawn.reiniciar();
             Enemigo enemigo = generarEnemigo(velocidadOleada, objetivo);
             if (enemigo != null) {
                 notificadorEnemigoGenerado.notificar(enemigo);
@@ -90,78 +77,35 @@ public class SpawnerEnemigos {
         }
     }
 
-    public Enemigo generarEnemigo(double velocidadOleada, Posicionable objetivo) {
-        VecDouble2D pos = calcularPosicionBorde();
-        enemigoFactory.setPosicion(pos);
+    private Enemigo generarEnemigo(double velocidadOleada, Posicionable objetivo) {
         enemigoFactory.setVelocidadMax(velocidadOleada);
         enemigoFactory.setObjetivo(objetivo);
-        return enemigoFactory.get();
+        Enemigo enemigo = enemigoFactory.get();
+        Rectangle2D bounds = enemigo.getHitbox().getBounds();
+        enemigo.setPosicion(calcularPosicionBorde(bounds.getWidth(), bounds.getHeight()));
+        return enemigo;
     }
 
     public void reiniciar() {
-        this.tiempoAcumulado = this.cadencia;
+        this.cooldownSpawn.reset();
     }
 
     public Notificador<Enemigo> getNotificadorEnemigoGenerado() {
         return notificadorEnemigoGenerado;
     }
 
-    public EnemigoFactory getFactory() {
-        return enemigoFactory;
-    }
+    private VecDouble2D calcularPosicionBorde(double anchoHitbox, double altoHitbox) {
+        double limiteMaxX = Math.max(minX, maxX - anchoHitbox);
+        double limiteMaxY = Math.max(minY, maxY - altoHitbox);
+        double deltaX = Math.max(1.0, limiteMaxX - minX);
+        double deltaY = Math.max(1.0, limiteMaxY - minY);
 
-    public double getCadencia() {
-        return cadencia;
-    }
-
-    public void setCadencia(double cadencia) {
-        if (!Double.isFinite(cadencia) || cadencia <= 0) {
-            throw new IllegalArgumentException("La cadencia debe ser positiva y finita.");
-        }
-        this.cadencia = cadencia;
-    }
-
-    public double getMinX() {
-        return minX;
-    }
-
-    public double getMaxX() {
-        return maxX;
-    }
-
-    public double getMinY() {
-        return minY;
-    }
-
-    public double getMaxY() {
-        return maxY;
-    }
-
-    private VecDouble2D calcularPosicionBorde() {
         int borde = random.nextInt(4);
-        double x;
-        double y;
-        double deltaX = Math.max(1.0, maxX - minX);
-        double deltaY = Math.max(1.0, maxY - minY);
-
-        switch (borde) {
-            case 0 -> { // Borde superior
-                x = minX + random.nextDouble() * deltaX;
-                y = minY;
-            }
-            case 1 -> { // Borde inferior
-                x = minX + random.nextDouble() * deltaX;
-                y = maxY;
-            }
-            case 2 -> { // Borde izquierdo
-                x = minX;
-                y = minY + random.nextDouble() * deltaY;
-            }
-            default -> { // Borde derecho
-                x = maxX;
-                y = minY + random.nextDouble() * deltaY;
-            }
-        }
-        return new VecDouble2D(x, y);
+        return switch (borde) {
+            case 0 -> new VecDouble2D(minX + random.nextDouble() * deltaX, minY);
+            case 1 -> new VecDouble2D(minX + random.nextDouble() * deltaX, limiteMaxY);
+            case 2 -> new VecDouble2D(minX, minY + random.nextDouble() * deltaY);
+            default -> new VecDouble2D(limiteMaxX, minY + random.nextDouble() * deltaY);
+        };
     }
 }

@@ -26,7 +26,7 @@ public class EstrategiaMovimientoLineal implements EstrategiaMovimiento {
     }
 
     @Override
-    public void ejecutar(Móvil sujeto, double dt) {
+    public void ejecutar(Movil sujeto, double dt) {
         if (sujeto == null) { return; }
         VecDouble2D vel = sujeto.getVelocidad();
         double rapidezActual = Math.hypot(vel.getX(), vel.getY());

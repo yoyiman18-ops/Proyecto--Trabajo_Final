@@ -7,14 +7,18 @@ import java.util.Objects;
 import modelo.enemigo.Enemigo;
 import modelo.enemigo.EsqueletoFactory;
 import modelo.enemigo.SpawnerEnemigos;
+import motor.util.Contador;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 import motor.util.observer.NotificadorFuerte;
 
 public final class Partida implements ModeloPartida {
+    private final Jugador jugador;
     private final int cantidadOleadas;
     private final int maxEnemigosSimultaneos;
-    private final double intervaloOleadas;
+    private final double velocidadBaseEnemigos;
+    private final double incrementoVelocidadOleada;
+    private final Contador contadorEntreOleadas;
     private final Notificador<EstadoOleadas> notificadorOleadas;
     private final Notificador<Integer> notificadorSonido;
     private final Notificador<Enemigo> notificadorEnemigoGenerado;
@@ -25,41 +29,15 @@ public final class Partida implements ModeloPartida {
     private final Integer idSonidoDerrota;
     private final List<Enemigo> enemigos;
 
-    private Jugador jugador;
     private int oleadaActual;
     private int enemigosActivos;
     private int enemigosRestantesOleada;
     private int enemigosPorAparecer;
-    private double tiempoHastaOleada;
     private long ultimoSegundoPublicado;
     private boolean oleadasCompletadas;
     private boolean enPausa;
     private boolean eleccionMejoraActiva;
     private boolean partidaFinalizada;
-
-    public Partida() {
-        this(5, 6, 6.0, new NotificadorDebil<>());
-    }
-
-    public Partida(
-        Integer idSonidoMostrarMejoras,
-        Integer idSonidoMejoraAplicada,
-        Integer idSonidoVictoria,
-        Integer idSonidoDerrota
-    ) {
-        this(
-            5,
-            6,
-            6.0,
-            new NotificadorDebil<>(),
-            new NotificadorFuerte<>(),
-            null,
-            idSonidoMostrarMejoras,
-            idSonidoMejoraAplicada,
-            idSonidoVictoria,
-            idSonidoDerrota
-        );
-    }
 
     public Partida(
         Jugador jugador,
@@ -70,7 +48,15 @@ public final class Partida implements ModeloPartida {
     ) {
         this(
             jugador,
-            null,
+            new SpawnerEnemigos(new EsqueletoFactory()),
+            5,
+            6,
+            6.0,
+            75.0,
+            8.0,
+            new NotificadorDebil<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
             idSonidoMostrarMejoras,
             idSonidoMejoraAplicada,
             idSonidoVictoria,
@@ -81,78 +67,14 @@ public final class Partida implements ModeloPartida {
     public Partida(
         Jugador jugador,
         SpawnerEnemigos spawnerEnemigos,
-        Integer idSonidoMostrarMejoras,
-        Integer idSonidoMejoraAplicada,
-        Integer idSonidoVictoria,
-        Integer idSonidoDerrota
-    ) {
-        this(
-            5,
-            6,
-            6.0,
-            new NotificadorDebil<>(),
-            new NotificadorFuerte<>(),
-            spawnerEnemigos,
-            idSonidoMostrarMejoras,
-            idSonidoMejoraAplicada,
-            idSonidoVictoria,
-            idSonidoDerrota
-        );
-        this.jugador = Objects.requireNonNull(jugador, "El jugador no puede ser nulo");
-    }
-
-    public Partida(
         int cantidadOleadas,
         int maxEnemigosSimultaneos,
         double intervaloOleadas,
-        Notificador<EstadoOleadas> notificadorOleadas
-    ) {
-        this(
-            cantidadOleadas,
-            maxEnemigosSimultaneos,
-            intervaloOleadas,
-            notificadorOleadas,
-            new NotificadorFuerte<>(),
-            null,
-            null,
-            null,
-            null,
-            null
-        );
-    }
-
-    public Partida(
-        int cantidadOleadas,
-        int maxEnemigosSimultaneos,
-        double intervaloOleadas,
+        double velocidadBaseEnemigos,
+        double incrementoVelocidadOleada,
         Notificador<EstadoOleadas> notificadorOleadas,
         Notificador<Integer> notificadorSonido,
-        Integer idSonidoMostrarMejoras,
-        Integer idSonidoMejoraAplicada,
-        Integer idSonidoVictoria,
-        Integer idSonidoDerrota
-    ) {
-        this(
-            cantidadOleadas,
-            maxEnemigosSimultaneos,
-            intervaloOleadas,
-            notificadorOleadas,
-            notificadorSonido,
-            null,
-            idSonidoMostrarMejoras,
-            idSonidoMejoraAplicada,
-            idSonidoVictoria,
-            idSonidoDerrota
-        );
-    }
-
-    public Partida(
-        int cantidadOleadas,
-        int maxEnemigosSimultaneos,
-        double intervaloOleadas,
-        Notificador<EstadoOleadas> notificadorOleadas,
-        Notificador<Integer> notificadorSonido,
-        SpawnerEnemigos spawnerEnemigos,
+        Notificador<Enemigo> notificadorEnemigoGenerado,
         Integer idSonidoMostrarMejoras,
         Integer idSonidoMejoraAplicada,
         Integer idSonidoVictoria,
@@ -161,16 +83,21 @@ public final class Partida implements ModeloPartida {
         if (cantidadOleadas <= 0 || maxEnemigosSimultaneos <= 0) {
             throw new IllegalArgumentException("La cantidad de oleadas y el máximo de enemigos deben ser positivos.");
         }
-        if (!Double.isFinite(intervaloOleadas) || intervaloOleadas < 0) {
+        if (!Double.isFinite(intervaloOleadas) || intervaloOleadas < 0
+            || !Double.isFinite(velocidadBaseEnemigos) || velocidadBaseEnemigos <= 0
+            || !Double.isFinite(incrementoVelocidadOleada) || incrementoVelocidadOleada < 0) {
             throw new IllegalArgumentException("Los parámetros de configuración de la partida no son válidos.");
         }
+        this.jugador = Objects.requireNonNull(jugador, "El jugador no puede ser nulo");
+        this.spawnerEnemigos = Objects.requireNonNull(spawnerEnemigos, "El spawner de enemigos no puede ser nulo");
         this.cantidadOleadas = cantidadOleadas;
         this.maxEnemigosSimultaneos = maxEnemigosSimultaneos;
-        this.intervaloOleadas = intervaloOleadas;
+        this.velocidadBaseEnemigos = velocidadBaseEnemigos;
+        this.incrementoVelocidadOleada = incrementoVelocidadOleada;
+        this.contadorEntreOleadas = new Contador(intervaloOleadas);
         this.notificadorOleadas = Objects.requireNonNull(notificadorOleadas, "El notificador de oleadas no puede ser nulo");
         this.notificadorSonido = Objects.requireNonNull(notificadorSonido, "El notificador de sonido no puede ser nulo");
-        this.notificadorEnemigoGenerado = new NotificadorFuerte<>();
-        this.spawnerEnemigos = spawnerEnemigos != null ? spawnerEnemigos : new SpawnerEnemigos(new EsqueletoFactory());
+        this.notificadorEnemigoGenerado = Objects.requireNonNull(notificadorEnemigoGenerado, "El notificador de enemigo generado no puede ser nulo");
         this.spawnerEnemigos.getNotificadorEnemigoGenerado().suscribirObservador(this::alGenerarEnemigo);
         this.idSonidoMostrarMejoras = idSonidoMostrarMejoras;
         this.idSonidoMejoraAplicada = idSonidoMejoraAplicada;
@@ -182,7 +109,6 @@ public final class Partida implements ModeloPartida {
         this.enemigosActivos = 0;
         this.enemigosRestantesOleada = 0;
         this.enemigosPorAparecer = 0;
-        this.tiempoHastaOleada = 0;
         this.ultimoSegundoPublicado = -1;
         this.oleadasCompletadas = false;
         this.enPausa = false;
@@ -193,16 +119,6 @@ public final class Partida implements ModeloPartida {
     @Override
     public Jugador getJugador() {
         return jugador;
-    }
-
-    @Override
-    public void setJugador(Jugador jugador) {
-        this.jugador = Objects.requireNonNull(jugador, "El jugador no puede ser nulo");
-    }
-
-    @Override
-    public List<Enemigo> getEnemigosActivos() {
-        return List.copyOf(enemigos);
     }
 
     @Override
@@ -277,61 +193,6 @@ public final class Partida implements ModeloPartida {
     }
 
     @Override
-    public double calcularVelocidadEnemigoOleadaActual() {
-        return 75 + Math.max(0, oleadaActual - 1) * 8.0;
-    }
-
-    @Override
-    public int calcularEnemigosAGenerar() {
-        int espaciosDisponibles = Math.max(0, maxEnemigosSimultaneos - enemigosActivos);
-        return Math.min(espaciosDisponibles, enemigosPorAparecer);
-    }
-
-    @Override
-    public void registrarEnemigoGenerado() {
-        if (enemigosPorAparecer > 0) {
-            enemigosPorAparecer--;
-            enemigosActivos++;
-            publicarEstadoOleadas((long) Math.ceil(tiempoHastaOleada));
-        }
-    }
-
-    @Override
-    public boolean registrarEnemigoGenerado(Enemigo enemigo) {
-        Objects.requireNonNull(enemigo, "El enemigo no puede ser nulo");
-        if (enemigosPorAparecer <= 0 || enemigosActivos >= maxEnemigosSimultaneos || enemigos.contains(enemigo)) {
-            return false;
-        }
-        enemigos.add(enemigo);
-        registrarEnemigoGenerado();
-        return true;
-    }
-
-    @Override
-    public void registrarEnemigoDerrotado() {
-        if (enemigosActivos > 0) {
-            enemigosActivos--;
-        }
-        if (enemigosRestantesOleada > 0) {
-            enemigosRestantesOleada--;
-        }
-        if (enemigosRestantesOleada == 0) {
-            tiempoHastaOleada = intervaloOleadas;
-            ultimoSegundoPublicado = -1;
-        }
-        publicarEstadoOleadas((long) Math.ceil(tiempoHastaOleada));
-    }
-
-    @Override
-    public boolean registrarEnemigoDerrotado(Enemigo enemigo) {
-        if (enemigo == null || !enemigos.remove(enemigo)) {
-            return false;
-        }
-        registrarEnemigoDerrotado();
-        return true;
-    }
-
-    @Override
     public boolean actualizarOleadas(double dt) {
         if (oleadasCompletadas || partidaFinalizada) {
             return false;
@@ -342,13 +203,13 @@ public final class Partida implements ModeloPartida {
             return false;
         }
 
-        if (enemigosPorAparecer > 0 && spawnerEnemigos != null) {
+        if (enemigosPorAparecer > 0) {
             int cuposDisponibles = maxEnemigosSimultaneos - enemigosActivos;
             if (cuposDisponibles > 0) {
                 spawnerEnemigos.actualizar(
                     dt,
                     Math.min(cuposDisponibles, enemigosPorAparecer),
-                    calcularVelocidadEnemigoOleadaActual(),
+                    velocidadBaseEnemigos + Math.max(0, oleadaActual - 1) * incrementoVelocidadOleada,
                     jugador
                 );
             }
@@ -358,11 +219,10 @@ public final class Partida implements ModeloPartida {
             return false;
         }
 
-        tiempoHastaOleada -= dt;
-        if (tiempoHastaOleada <= 0) {
+        contadorEntreOleadas.tick(dt);
+        if (contadorEntreOleadas.estaListo()) {
             if (oleadaActual >= cantidadOleadas) {
                 oleadasCompletadas = true;
-                tiempoHastaOleada = 0;
                 publicarEstadoOleadas(0);
                 return true;
             }
@@ -370,7 +230,7 @@ public final class Partida implements ModeloPartida {
             return false;
         }
 
-        long segundosRestantes = Math.max(0, (long) Math.ceil(tiempoHastaOleada));
+        long segundosRestantes = Math.max(0, (long) Math.ceil(contadorEntreOleadas.getTiempoRestante()));
         if (segundosRestantes != ultimoSegundoPublicado) {
             publicarEstadoOleadas(segundosRestantes);
             ultimoSegundoPublicado = segundosRestantes;
@@ -379,23 +239,41 @@ public final class Partida implements ModeloPartida {
     }
 
     private void alGenerarEnemigo(Enemigo enemigo) {
-        if (enemigo == null) {
+        if (enemigo == null || enemigosPorAparecer <= 0 || enemigosActivos >= maxEnemigosSimultaneos || enemigos.contains(enemigo)) {
             return;
         }
-        registrarEnemigoGenerado(enemigo);
+        enemigos.add(enemigo);
+        enemigosPorAparecer--;
+        enemigosActivos++;
+        publicarEstadoOleadas((long) Math.ceil(contadorEntreOleadas.getTiempoRestante()));
         enemigo.getNotificadorExpiracion().suscribirObservador(e -> registrarEnemigoDerrotado(enemigo));
         notificadorEnemigoGenerado.notificar(enemigo);
+    }
+
+    private void registrarEnemigoDerrotado(Enemigo enemigo) {
+        if (enemigo == null || !enemigos.remove(enemigo)) {
+            return;
+        }
+        if (enemigosActivos > 0) {
+            enemigosActivos--;
+        }
+        if (enemigosRestantesOleada > 0) {
+            enemigosRestantesOleada--;
+        }
+        if (enemigosRestantesOleada == 0) {
+            contadorEntreOleadas.reiniciar();
+            ultimoSegundoPublicado = -1;
+        }
+        publicarEstadoOleadas((long) Math.ceil(contadorEntreOleadas.getTiempoRestante()));
     }
 
     private void iniciarSiguienteOleada() {
         oleadaActual++;
         enemigosRestantesOleada = oleadaActual * maxEnemigosSimultaneos;
         enemigosPorAparecer = enemigosRestantesOleada;
-        tiempoHastaOleada = 0;
+        contadorEntreOleadas.reset();
         ultimoSegundoPublicado = -1;
-        if (spawnerEnemigos != null) {
-            spawnerEnemigos.reiniciar();
-        }
+        spawnerEnemigos.reiniciar();
         publicarEstadoOleadas(0);
     }
 

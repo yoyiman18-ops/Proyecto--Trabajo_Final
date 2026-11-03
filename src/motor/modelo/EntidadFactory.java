@@ -14,12 +14,9 @@ public abstract class EntidadFactory {
     private double aceleracion;
     private double friccion;
     private double velocidadMax;
+    private EstrategiaMovimiento estrategiaMovimiento;
     private List<EstrategiaExpiracion> estrategiasExpiracion;
     private List<Interaccion> interaccionesColision;
-
-    public EntidadFactory(HitboxFactory hitboxFactory) {
-        this(hitboxFactory, new VecDouble2D(), new VecDouble2D(), 0.0, 0.0, 0.0, new ArrayList<>(), new ArrayList<>());
-    }
 
     public EntidadFactory(
         HitboxFactory hitboxFactory,
@@ -28,6 +25,7 @@ public abstract class EntidadFactory {
         double aceleracion,
         double friccion,
         double velocidadMax,
+        EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision
     ) {
@@ -37,6 +35,7 @@ public abstract class EntidadFactory {
         this.aceleracion = aceleracion;
         this.friccion = friccion;
         this.velocidadMax = velocidadMax;
+        this.estrategiaMovimiento = estrategiaMovimiento;
         this.estrategiasExpiracion = estrategiasExpiracion != null ? new ArrayList<>(estrategiasExpiracion) : new ArrayList<>();
         this.interaccionesColision = interaccionesColision != null ? new ArrayList<>(interaccionesColision) : new ArrayList<>();
     }
@@ -70,6 +69,10 @@ public abstract class EntidadFactory {
         this.velocidadMax = velocidadMax;
     }
 
+    public void setEstrategiaMovimiento(EstrategiaMovimiento estrategiaMovimiento) {
+        this.estrategiaMovimiento = estrategiaMovimiento;
+    }
+
     public void setEstrategiasExpiracion(List<EstrategiaExpiracion> estrategiasExpiracion) {
         this.estrategiasExpiracion = estrategiasExpiracion != null ? new ArrayList<>(estrategiasExpiracion) : new ArrayList<>();
     }
@@ -89,15 +92,16 @@ public abstract class EntidadFactory {
             this.interaccionesColision.add(interaccion);
         }
     }
-    
-    protected HitboxFactory getHitboxFactory() { return this.hitboxFactory; }
-    protected VecDouble2D getPosicion() { return this.posicion != null ? this.posicion.clone() : new VecDouble2D(); }
-    protected VecDouble2D getVelocidad() { return this.velocidad != null ? this.velocidad.clone() : new VecDouble2D(); }
-    protected double getAceleracion() { return this.aceleracion; }
-    protected double getFriccion() { return this.friccion; }
-    protected double getVelocidadMax() { return this.velocidadMax; }
-    protected List<EstrategiaExpiracion> getEstrategiasExpiracion() { return new ArrayList<>(this.estrategiasExpiracion); }
-    protected List<Interaccion> getInteraccionesColision() { return new ArrayList<>(this.interaccionesColision); }
+
+    public HitboxFactory getHitboxFactory() { return this.hitboxFactory; }
+    public VecDouble2D getPosicion() { return this.posicion != null ? this.posicion.clone() : new VecDouble2D(); }
+    public VecDouble2D getVelocidad() { return this.velocidad != null ? this.velocidad.clone() : new VecDouble2D(); }
+    public double getAceleracion() { return this.aceleracion; }
+    public double getFriccion() { return this.friccion; }
+    public double getVelocidadMax() { return this.velocidadMax; }
+    public EstrategiaMovimiento getEstrategiaMovimiento() { return this.estrategiaMovimiento; }
+    public List<EstrategiaExpiracion> getEstrategiasExpiracion() { return new ArrayList<>(this.estrategiasExpiracion); }
+    public List<Interaccion> getInteraccionesColision() { return new ArrayList<>(this.interaccionesColision); }
 
     public abstract ModeloEntidad get();
 }

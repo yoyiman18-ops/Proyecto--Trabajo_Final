@@ -169,15 +169,6 @@ public abstract class Personaje extends Entidad {
         return vida == 0;
     }
 
-    public void curar(double cantidad) {
-        validarCantidadNoNegativa(cantidad);
-        if (cantidad == 0 || vida == vidaMax) {
-            return;
-        }
-        vida = Math.min(vidaMax, vida + cantidad);
-        alModificarVida();
-    }
-
     public void aumentarVidaMaxima(double cantidad) {
         validarCantidadNoNegativa(cantidad);
         if (cantidad == 0) {
@@ -200,23 +191,13 @@ public abstract class Personaje extends Entidad {
         this.defensaPorcentual = Math.min(defensaMaximaPorcentual, defensaPorcentual + porcentaje);
     }
 
-    protected void setVidaDirecta(double vida) {
-        this.vida = Math.max(0, Math.min(vida, vidaMax));
-        alModificarVida();
-    }
-
     protected void alModificarVida() {
-        // Método gancho (hook) para que subclases notifiquen a la UI o reaccionen
     }
 
     protected void validarCantidadNoNegativa(double cantidad) {
         if (!Double.isFinite(cantidad) || cantidad < 0) {
             throw new IllegalArgumentException("La cantidad debe ser finita y no negativa.");
         }
-    }
-
-    public boolean estaVivo() {
-        return activo() && vida > 0;
     }
 
     public double getVida() {
@@ -227,19 +208,7 @@ public abstract class Personaje extends Entidad {
         return vidaMax;
     }
 
-    public double getDefensaPorcentual() {
-        return defensaPorcentual;
-    }
-
-    public double getDefensaMaximaPorcentual() {
-        return defensaMaximaPorcentual;
-    }
-
     public Notificador<Double> getNotificadorDaño() {
         return notificadorDaño;
-    }
-
-    public Integer getIdSonidoDaño() {
-        return idSonidoDaño;
     }
 }

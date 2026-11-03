@@ -1,10 +1,10 @@
 package modelo;
 
-import java.util.ArrayList;
+import java.awt.geom.Rectangle2D;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ThreadLocalRandom;
 
+import modelo.proyectil.Proyectil;
 import modelo.proyectil.ProyectilFactory;
 import motor.colisiones.hitboxes.Hitbox;
 import motor.entrada.EstadoAcciones;
@@ -16,6 +16,7 @@ import motor.modelo.EstrategiaMovimiento;
 import motor.modelo.EstrategiaMovimientoLineal;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
+import motor.util.Contador;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
@@ -30,24 +31,16 @@ public class Jugador extends Personaje implements Controlable {
     private int nivelesPendientes;
     private double danioAtaque;
     private double velocidadAtaque;
-    private double tiempoEnfriamientoAtaque;
-    private double probabilidadCritico;
-    private double probabilidadMultidisparo;
-    private double multiplicadorCritico;
-    private double offsetDisparoX;
-    private double offsetDisparoY;
-    private double desviacionMultidisparoGrados;
+    private final Contador cooldownAtaque;
 
-    private ProyectilFactory proyectilFactory;
-    private Integer idSonidoDisparo;
-    private Integer idSonidoDisparoCritico;
+    private final ProyectilFactory proyectilFactory;
+    private final Integer idSonidoDisparo;
+    private final Integer idSonidoSubirNivel;
 
     private Direccion direccion;
     private Direccion ultimaDireccionAnimada = Direccion.ABAJO;
-    private EstadoAcciones estadoAccionesActual;
     private final VecDouble2D vectorDireccion;
     private final Notificador<Jugador> notificadorVida;
-    private final Integer idSonidoSubirNivel;
 
     public Jugador(
         int idGlobal,
@@ -79,15 +72,8 @@ public class Jugador extends Personaje implements Controlable {
         int incrementoExperienciaPorNivel,
         double danioAtaque,
         double velocidadAtaque,
-        double probabilidadCritico,
-        double probabilidadMultidisparo,
-        double multiplicadorCritico,
-        double offsetDisparoX,
-        double offsetDisparoY,
-        double desviacionMultidisparoGrados,
         ProyectilFactory proyectilFactory,
         Integer idSonidoDisparo,
-        Integer idSonidoDisparoCritico,
         Integer idSonidoSubirNivel
     ) {
         super(
@@ -130,15 +116,6 @@ public class Jugador extends Personaje implements Controlable {
         if (!Double.isFinite(velocidadAtaque) || velocidadAtaque <= 0) {
             throw new IllegalArgumentException("La velocidad de ataque debe ser positiva.");
         }
-        if (!Double.isFinite(probabilidadCritico) || probabilidadCritico < 0 || probabilidadCritico > 100.0) {
-            throw new IllegalArgumentException("La probabilidad de crítico debe estar entre 0 y 100.0.");
-        }
-        if (!Double.isFinite(probabilidadMultidisparo) || probabilidadMultidisparo < 0 || probabilidadMultidisparo > 100.0) {
-            throw new IllegalArgumentException("La probabilidad de multidisparo debe estar entre 0 y 100.0.");
-        }
-        if (!Double.isFinite(multiplicadorCritico) || multiplicadorCritico <= 0) {
-            throw new IllegalArgumentException("El multiplicador de daño crítico debe ser positivo.");
-        }
         this.experiencia = 0;
         this.nivel = nivelInicial;
         this.experienciaSiguiente = experienciaSiguienteInicial;
@@ -146,20 +123,16 @@ public class Jugador extends Personaje implements Controlable {
         this.nivelesPendientes = 0;
         this.danioAtaque = danioAtaque;
         this.velocidadAtaque = velocidadAtaque;
-        this.tiempoEnfriamientoAtaque = 0.0;
-        this.probabilidadCritico = probabilidadCritico;
-        this.probabilidadMultidisparo = probabilidadMultidisparo;
-        this.multiplicadorCritico = multiplicadorCritico;
-        this.offsetDisparoX = offsetDisparoX;
-        this.offsetDisparoY = offsetDisparoY;
-        this.desviacionMultidisparoGrados = desviacionMultidisparoGrados;
+        this.cooldownAtaque = new Contador(1.0 / velocidadAtaque);
 
         this.direccion = Direccion.ABAJO;
         this.vectorDireccion = VecDouble2D.abajo();
         this.notificadorVida = Objects.requireNonNull(notificadorVida, "El notificadorVida no puede ser nulo");
         this.proyectilFactory = proyectilFactory;
+        if (this.proyectilFactory != null) {
+            this.proyectilFactory.setDañoAdicional(this.danioAtaque);
+        }
         this.idSonidoDisparo = idSonidoDisparo;
-        this.idSonidoDisparoCritico = idSonidoDisparoCritico;
         this.idSonidoSubirNivel = idSonidoSubirNivel;
         añadirInteraccionColision(new Interaccion(TipoInteraccion.AÑADIR_EXP.clase(), 0.0));
     }
@@ -187,15 +160,8 @@ public class Jugador extends Personaje implements Controlable {
         int incrementoExperienciaPorNivel,
         double danioAtaque,
         double velocidadAtaque,
-        double probabilidadCritico,
-        double probabilidadMultidisparo,
-        double multiplicadorCritico,
-        double offsetDisparoX,
-        double offsetDisparoY,
-        double desviacionMultidisparoGrados,
         ProyectilFactory proyectilFactory,
         Integer idSonidoDisparo,
-        Integer idSonidoDisparoCritico,
         Integer idSonidoSubirNivel
     ) {
         this(
@@ -228,22 +194,14 @@ public class Jugador extends Personaje implements Controlable {
             incrementoExperienciaPorNivel,
             danioAtaque,
             velocidadAtaque,
-            probabilidadCritico,
-            probabilidadMultidisparo,
-            multiplicadorCritico,
-            offsetDisparoX,
-            offsetDisparoY,
-            desviacionMultidisparoGrados,
             proyectilFactory,
             idSonidoDisparo,
-            idSonidoDisparoCritico,
             idSonidoSubirNivel
         );
     }
 
     @Override
     public void cambio(EstadoAcciones e) {
-        this.estadoAccionesActual = e;
         if (getEstrategiaMovimiento() instanceof ReceptorEstadoAcciones receptor) {
             receptor.getObservadorAcciones().cambio(e);
         }
@@ -270,9 +228,7 @@ public class Jugador extends Personaje implements Controlable {
                 getNotificadorAnimacion().notificar(obtenerAnimacionMovimiento(direccion));
             }
         }
-        if (tiempoEnfriamientoAtaque > 0) {
-            tiempoEnfriamientoAtaque = Math.max(0.0, tiempoEnfriamientoAtaque - dt);
-        }
+        cooldownAtaque.tick(dt);
     }
 
     private String obtenerAnimacionMovimiento(Direccion dir) {
@@ -284,85 +240,24 @@ public class Jugador extends Personaje implements Controlable {
         };
     }
 
-    public boolean intentarAtacar() {
-        if (!activo() || tiempoEnfriamientoAtaque > 0) {
-            return false;
-        }
-        tiempoEnfriamientoAtaque = 1.0 / velocidadAtaque;
-        return true;
-    }
-
-    public List<DatosDisparo> realizarAtaque() {
-        if (!intentarAtacar()) {
-            return List.of();
-        }
-        ThreadLocalRandom aleatorio = ThreadLocalRandom.current();
-        boolean esCritico = aleatorio.nextDouble(100.0) < probabilidadCritico;
-        double danioFinal = esCritico ? danioAtaque * multiplicadorCritico : danioAtaque;
-        VecDouble2D origen = new VecDouble2D(getPosicion().getX() + offsetDisparoX, getPosicion().getY() + offsetDisparoY);
-        VecDouble2D dirPrincipal = getVectorDireccion();
-
-        List<DatosDisparo> disparos = new ArrayList<>();
-        disparos.add(new DatosDisparo(origen.clone(), dirPrincipal.clone(), danioFinal, esCritico));
-
-        if (aleatorio.nextDouble(100.0) < probabilidadMultidisparo) {
-            double anguloBase = Math.atan2(dirPrincipal.getY(), dirPrincipal.getX());
-            double desviacion = Math.toRadians(desviacionMultidisparoGrados);
-            VecDouble2D dirExtra = new VecDouble2D(
-                Math.cos(anguloBase + desviacion),
-                Math.sin(anguloBase + desviacion)
-            );
-            disparos.add(new DatosDisparo(origen.clone(), dirExtra, danioFinal, esCritico));
-        }
-        return List.copyOf(disparos);
-    }
-
     public boolean atacar() {
-        if (proyectilFactory == null) {
+        if (!activo() || !cooldownAtaque.estaListo() || proyectilFactory == null) {
             return false;
         }
-        List<DatosDisparo> disparos = realizarAtaque();
-        if (disparos.isEmpty()) {
-            return false;
-        }
-        boolean algunCritico = false;
-        for (DatosDisparo disparo : disparos) {
-            algunCritico |= disparo.esCritico();
-            proyectilFactory.setPosicion(disparo.origen());
-            proyectilFactory.setEstrategiaMovimiento(new EstrategiaMovimientoLineal(disparo.direccion()));
-            proyectilFactory.setDañoAdicional(Math.max(0.0, disparo.danio() - 1.0));
-            getNotificadorInstanciacion().notificar(proyectilFactory.get());
-        }
-        if (algunCritico && idSonidoDisparoCritico != null) {
-            emitirSonido(idSonidoDisparoCritico);
-        } else if (idSonidoDisparo != null) {
+        cooldownAtaque.reiniciar();
+        proyectilFactory.setEstrategiaMovimiento(new EstrategiaMovimientoLineal(vectorDireccion.clone()));
+        Proyectil proyectil = proyectilFactory.get();
+        Rectangle2D boundsJugador = getHitbox().getBounds();
+        Rectangle2D boundsProyectil = proyectil.getHitbox().getBounds();
+        proyectil.setPosicion(new VecDouble2D(
+            boundsJugador.getCenterX() - (boundsProyectil.getCenterX() - proyectil.getPosicion().getX()),
+            boundsJugador.getCenterY() - (boundsProyectil.getCenterY() - proyectil.getPosicion().getY())
+        ));
+        getNotificadorInstanciacion().notificar(proyectil);
+        if (idSonidoDisparo != null) {
             emitirSonido(idSonidoDisparo);
         }
         return true;
-    }
-
-    public ProyectilFactory getProyectilFactory() {
-        return proyectilFactory;
-    }
-
-    public void setProyectilFactory(ProyectilFactory proyectilFactory) {
-        this.proyectilFactory = proyectilFactory;
-    }
-
-    public Integer getIdSonidoDisparo() {
-        return idSonidoDisparo;
-    }
-
-    public void setIdSonidoDisparo(Integer idSonidoDisparo) {
-        this.idSonidoDisparo = idSonidoDisparo;
-    }
-
-    public Integer getIdSonidoDisparoCritico() {
-        return idSonidoDisparoCritico;
-    }
-
-    public void setIdSonidoDisparoCritico(Integer idSonidoDisparoCritico) {
-        this.idSonidoDisparoCritico = idSonidoDisparoCritico;
     }
 
     public int ganarExperiencia(int cantidad) {
@@ -400,6 +295,9 @@ public class Jugador extends Personaje implements Controlable {
             throw new IllegalArgumentException("El daño de ataque resultante debe ser finito.");
         }
         danioAtaque = nuevoDanio;
+        if (proyectilFactory != null) {
+            proyectilFactory.setDañoAdicional(danioAtaque);
+        }
     }
 
     public void aumentarVelocidadAtaque(double porcentaje) {
@@ -411,31 +309,7 @@ public class Jugador extends Personaje implements Controlable {
             throw new IllegalArgumentException("La velocidad de ataque resultante debe ser finita.");
         }
         velocidadAtaque = nuevaVelocidadAtaque;
-    }
-
-    public void aumentarVelocidadMaxima(double porcentaje) {
-        if (!Double.isFinite(porcentaje) || porcentaje < 0) {
-            throw new IllegalArgumentException("El porcentaje de velocidad debe ser finito y no negativo.");
-        }
-        double nuevaVelocidadMaxima = getVelocidadMax() * (1.0 + porcentaje / 100.0);
-        if (!Double.isFinite(nuevaVelocidadMaxima)) {
-            throw new IllegalArgumentException("La velocidad máxima resultante debe ser finita.");
-        }
-        setVelocidadMax(nuevaVelocidadMaxima);
-    }
-
-    public void aumentarProbabilidadCritico(double porcentaje) {
-        if (!Double.isFinite(porcentaje) || porcentaje < 0) {
-            throw new IllegalArgumentException("El porcentaje de crítico debe ser finito y no negativo.");
-        }
-        probabilidadCritico = Math.min(100.0, probabilidadCritico + porcentaje);
-    }
-
-    public void aumentarProbabilidadMultidisparo(double porcentaje) {
-        if (!Double.isFinite(porcentaje) || porcentaje < 0) {
-            throw new IllegalArgumentException("El porcentaje de multidisparo debe ser finito y no negativo.");
-        }
-        probabilidadMultidisparo = Math.min(100.0, probabilidadMultidisparo + porcentaje);
+        cooldownAtaque.setDuracion(1.0 / velocidadAtaque);
     }
 
     @Override
@@ -474,10 +348,6 @@ public class Jugador extends Personaje implements Controlable {
         return experienciaSiguiente;
     }
 
-    public int getIncrementoExperienciaPorNivel() {
-        return incrementoExperienciaPorNivel;
-    }
-
     public int getNivelesPendientes() {
         return nivelesPendientes;
     }
@@ -486,47 +356,7 @@ public class Jugador extends Personaje implements Controlable {
         return danioAtaque;
     }
 
-    public double getVelocidadAtaque() {
-        return velocidadAtaque;
-    }
-
-    public double getProbabilidadCritico() {
-        return probabilidadCritico;
-    }
-
-    public double getProbabilidadMultidisparo() {
-        return probabilidadMultidisparo;
-    }
-
-    public double getMultiplicadorCritico() {
-        return multiplicadorCritico;
-    }
-
-    public double getOffsetDisparoX() {
-        return offsetDisparoX;
-    }
-
-    public double getOffsetDisparoY() {
-        return offsetDisparoY;
-    }
-
-    public double getDesviacionMultidisparoGrados() {
-        return desviacionMultidisparoGrados;
-    }
-
-    public Direccion getDireccion() {
-        return direccion;
-    }
-
-    public VecDouble2D getVectorDireccion() {
-        return vectorDireccion.clone();
-    }
-
     public Notificador<Jugador> getNotificadorVida() {
         return notificadorVida;
-    }
-
-    public Integer getIdSonidoSubirNivel() {
-        return idSonidoSubirNivel;
     }
 }

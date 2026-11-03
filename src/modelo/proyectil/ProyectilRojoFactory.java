@@ -36,29 +36,6 @@ public class ProyectilRojoFactory extends ProyectilFactory {
         );
     }
 
-    public ProyectilRojoFactory(
-        MascaraColision categoriasColision,
-        MascaraColision capasColision,
-        VecDouble2D posicion,
-        EstrategiaMovimiento estrategiaMovimiento,
-        double tiempoVidaAdicional,
-        int penetracionAdicional,
-        double dañoAdicional
-    ) {
-        this(
-            categoriasColision,
-            capasColision,
-            posicion,
-            1000.0,
-            0.0,
-            1000.0,
-            estrategiaMovimiento,
-            tiempoVidaAdicional,
-            penetracionAdicional,
-            dañoAdicional
-        );
-    }
-
     @Override
     public Proyectil get() {
         return new ProyectilRojo(

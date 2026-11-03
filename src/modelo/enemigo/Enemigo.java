@@ -8,10 +8,9 @@ import motor.colisiones.hitboxes.Hitbox;
 import motor.modelo.Direccion;
 import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.EstrategiaMovimiento;
-import motor.modelo.EstrategiaMovimientoPersecucion;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
-import motor.modelo.Posicionable;
+import motor.util.Contador;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
@@ -19,11 +18,8 @@ import motor.util.observer.NotificadorFuerte;
 
 public class Enemigo extends Personaje {
 
-    private double daño;
-    private int experienciaRecompensa;
-    private Posicionable objetivo;
-    private double intervaloAtaque;
-    private double tiempoHastaAtaque;
+    private final double daño;
+    private final Contador cooldownAtaque;
     private boolean contactoConObjetivo;
     private Direccion direccion;
     private String animacionActual;
@@ -53,8 +49,6 @@ public class Enemigo extends Personaje {
         double defensaMaximaPorcentual,
         Integer idSonidoDaño,
         double daño,
-        int experienciaRecompensa,
-        Posicionable objetivo,
         double intervaloAtaque
     ) {
         super(
@@ -85,17 +79,11 @@ public class Enemigo extends Personaje {
         if (!Double.isFinite(daño) || daño < 0) {
             throw new IllegalArgumentException("El daño debe ser finito y no negativo.");
         }
-        if (experienciaRecompensa < 0) {
-            throw new IllegalArgumentException("La experiencia de recompensa no puede ser negativa.");
-        }
         if (!Double.isFinite(intervaloAtaque) || intervaloAtaque <= 0) {
             throw new IllegalArgumentException("El intervalo de ataque debe ser positivo y finito.");
         }
         this.daño = daño;
-        this.experienciaRecompensa = experienciaRecompensa;
-        this.objetivo = objetivo;
-        this.intervaloAtaque = intervaloAtaque;
-        this.tiempoHastaAtaque = 0.0;
+        this.cooldownAtaque = new Contador(intervaloAtaque);
         this.contactoConObjetivo = false;
         this.direccion = Direccion.ABAJO;
         this.animacionActual = animacionDefault;
@@ -125,8 +113,6 @@ public class Enemigo extends Personaje {
         double defensaMaximaPorcentual,
         Integer idSonidoDaño,
         double daño,
-        int experienciaRecompensa,
-        Posicionable objetivo,
         double intervaloAtaque
     ) {
         this(
@@ -154,8 +140,6 @@ public class Enemigo extends Personaje {
             defensaMaximaPorcentual,
             idSonidoDaño,
             daño,
-            experienciaRecompensa,
-            objetivo,
             intervaloAtaque
         );
     }
@@ -165,7 +149,7 @@ public class Enemigo extends Personaje {
         if (!activo()) {
             return;
         }
-        tiempoHastaAtaque = Math.max(0.0, tiempoHastaAtaque - dt);
+        cooldownAtaque.tick(dt);
 
         if (contactoConObjetivo) {
             getVelocidad().setX(0.0);
@@ -183,11 +167,11 @@ public class Enemigo extends Personaje {
             } else {
                 direccion = vel.getY() >= 0.0 ? Direccion.ABAJO : Direccion.ARRIBA;
             }
-            if (puedeAtacar()) {
+            if (cooldownAtaque.estaListo()) {
                 String animacionMovimiento = obtenerAnimacionMovimiento(direccion);
                 if (!animacionMovimiento.equals(animacionActual)) {
                     animacionActual = animacionMovimiento;
-                    getNotificadorAnimacion().notificar(animacionMovimiento);
+                    getNotificadorAnimacion().notificar(animacionActual);
                 }
             }
         }
@@ -211,24 +195,12 @@ public class Enemigo extends Personaje {
         };
     }
 
-    public boolean puedeAtacar() {
-        return tiempoHastaAtaque <= 0.0;
-    }
-
-    public void reiniciarTiempoAtaque() {
-        tiempoHastaAtaque = intervaloAtaque;
-    }
-
-    public void setContactoConObjetivo(boolean contacto) {
-        this.contactoConObjetivo = contacto;
-    }
-
     @Override
     public List<Interaccion> getInteracciones() {
         if (!activo()) {
             return List.of();
         }
-        if (puedeAtacar() && daño > 0) {
+        if (cooldownAtaque.estaListo() && daño > 0) {
             return super.getInteracciones();
         }
         return List.of(new Interaccion(TipoInteraccion.SOLIDO.clase(), 0.0));
@@ -241,41 +213,14 @@ public class Enemigo extends Personaje {
         }
         TipoInteraccion interaccion = TipoInteraccion.deInt(i.clase());
         if (interaccion == TipoInteraccion.AÑADIR_EXP) {
-            setContactoConObjetivo(true);
-            if (puedeAtacar()) {
-                reiniciarTiempoAtaque();
+            this.contactoConObjetivo = true;
+            if (cooldownAtaque.estaListo()) {
+                cooldownAtaque.reiniciar();
                 animacionActual = obtenerAnimacionAtaque(direccion);
                 getNotificadorAnimacion().notificar(animacionActual);
             }
             return true;
         }
         return super.interactuar(i);
-    }
-
-    public double getDaño() {
-        return daño;
-    }
-
-    public int getExperienciaRecompensa() {
-        return experienciaRecompensa;
-    }
-
-    public Posicionable getObjetivo() {
-        return objetivo;
-    }
-
-    public void setObjetivo(Posicionable objetivo) {
-        this.objetivo = objetivo;
-        if (getEstrategiaMovimiento() instanceof EstrategiaMovimientoPersecucion persecucion) {
-            persecucion.setObjetivo(objetivo);
-        }
-    }
-
-    public double getIntervaloAtaque() {
-        return intervaloAtaque;
-    }
-
-    public double getTiempoHastaAtaque() {
-        return tiempoHastaAtaque;
     }
 }

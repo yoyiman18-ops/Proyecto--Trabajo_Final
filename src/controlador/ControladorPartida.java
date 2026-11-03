@@ -12,7 +12,6 @@ import modelo.EstadoOleadas;
 import modelo.Jugador;
 import modelo.ModeloPartida;
 import modelo.enemigo.Enemigo;
-import modelo.enemigo.EsqueletoFactory;
 import modelo.enemigo.SpawnerEnemigos;
 import motor.Motor;
 import motor.entrada.Accion;
@@ -110,9 +109,9 @@ public final class ControladorPartida implements ReceptorEstadoAcciones, Ticking
                 double mInf = fondo != null ? fondo.getMargenInferiorJugable() : 0.0;
                 spawner.configurarLimites(
                     mH,
-                    Math.max(mH, anchoArea - mH - EsqueletoFactory.ANCHO_HITBOX_ESQUELETO),
+                    Math.max(mH, anchoArea - mH),
                     mSup,
-                    Math.max(mSup, altoArea - mInf - EsqueletoFactory.ALTO_HITBOX_ESQUELETO)
+                    Math.max(mSup, altoArea - mInf)
                 );
             }
         }
