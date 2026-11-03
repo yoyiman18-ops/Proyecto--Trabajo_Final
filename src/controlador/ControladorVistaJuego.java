@@ -73,36 +73,13 @@ public final class ControladorVistaJuego {
         this.enPausa = false;
     }
 
-    public ControladorVistaJuego(
-        GestorRecursos gestorRecursos,
-        String hojaEstilosUrl,
-        double tamanoTile
-    ) {
-        this(
-            gestorRecursos,
-            cargarSheetHudDesdeBaseDeDatos(gestorRecursos),
-            hojaEstilosUrl,
-            new ConfiguracionMazmorra(tamanoTile)
-        );
-    }
-
     public ControladorVistaJuego(GestorRecursos gestorRecursos, double tamanoTile) {
-        this(gestorRecursos, null, tamanoTile);
+        this(gestorRecursos, null, new ConfiguracionMazmorra(tamanoTile));
     }
 
     public ControladorVistaJuego(
         GestorRecursos gestorRecursos,
         Sheet sheetHud,
-        String hojaEstilosUrl,
-        double tamanoTile
-    ) {
-        this(gestorRecursos, sheetHud, hojaEstilosUrl, new ConfiguracionMazmorra(tamanoTile));
-    }
-
-    public ControladorVistaJuego(
-        GestorRecursos gestorRecursos,
-        Sheet sheetHud,
-        String hojaEstilosUrl,
         ConfiguracionMazmorra configuracionMazmorra
     ) {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
@@ -121,7 +98,7 @@ public final class ControladorVistaJuego {
         }
 
         VistaHud vistaHud = new VistaHud(imagenesHud, recortesHud);
-        this.vista = new VistaJuego(vistaHud, hojaEstilosUrl);
+        this.vista = new VistaJuego(vistaHud);
 
         this.controladorFondo = new ControladorFondoMazmorra(
             this.vista.getAreaJuego(),
