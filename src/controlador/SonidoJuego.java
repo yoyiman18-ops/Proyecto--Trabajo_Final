@@ -33,6 +33,12 @@ public enum SonidoJuego {
     public String getNombre() { return nombre; }
     public Extension.Sonido getExtension() { return extension; }
 
+    public void reproducirEn(GestorAudio gestorAudio) {
+        if (gestorAudio != null) {
+            gestorAudio.reproducirSonido(this.id);
+        }
+    }
+
     public static void precargarTodos(GestorAudio gestorAudio) {
         if (gestorAudio == null) {
             return;
