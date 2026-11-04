@@ -324,9 +324,7 @@ public final class Partida implements ModeloPartida {
 
     @Override
     public boolean registrarEnemigoDerrotado(Enemigo enemigo) {
-        if (enemigo == null || !enemigos.remove(enemigo)) {
-            return false;
-        }
+        if (enemigo == null || !enemigos.remove(enemigo)) { return false; }
         registrarEnemigoDerrotado();
         return true;
     }
