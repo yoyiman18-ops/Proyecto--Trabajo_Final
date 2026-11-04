@@ -52,10 +52,6 @@ public class BotonMenu extends Button {
     private DropShadow sombraHover = new DropShadow(BlurType.GAUSSIAN, Color.rgb(255, 215, 110, 0.55), 10, 0.45, 0, 0);
 
     public BotonMenu(OpcionMenu modelo, Sheet sheetGui) {
-        this(modelo, sheetGui, 0, 0);
-    }
-
-    public BotonMenu(OpcionMenu modelo, Sheet sheetGui, double ancho, double alto) {
         this(
             modelo,
             sheetGui,
@@ -63,17 +59,9 @@ public class BotonMenu extends Button {
             RECORTE_HOVER_DEFAULT,
             RECORTE_PRESIONADO_DEFAULT,
             RECORTE_MARCADO_DEFAULT,
-            ancho,
-            alto
+            0,
+            0
         );
-    }
-
-    public BotonMenu(String texto, Runnable accion, Sheet sheetGui) {
-        this(new OpcionMenu(texto, accion), sheetGui);
-    }
-
-    public BotonMenu(String texto, Runnable accion, Sheet sheetGui, double ancho, double alto) {
-        this(new OpcionMenu(texto, accion), sheetGui, ancho, alto);
     }
 
     public BotonMenu(

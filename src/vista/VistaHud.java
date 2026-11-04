@@ -129,8 +129,7 @@ public final class VistaHud extends HBox {
             "II  PAUSA",
             "placa_brillante",
             ANCHO_BOTON_PAUSA,
-            ALTO_BOTON_PAUSA,
-            "pause-button"
+            ALTO_BOTON_PAUSA
         );
         this.botonPausar.setFocusTraversable(false);
 
@@ -196,7 +195,6 @@ public final class VistaHud extends HBox {
             espaciadorDerecho,
             grupoDerecho
         );
-        getStyleClass().add("game-hud-overlay");
         setAlignment(Pos.TOP_CENTER);
         setPadding(new Insets(6, 12, 0, 12));
         setPickOnBounds(false);
@@ -280,11 +278,9 @@ public final class VistaHud extends HBox {
         String texto,
         String nombreRecorte,
         double ancho,
-        double alto,
-        String claseEstilo
+        double alto
     ) {
         Button boton = new Button(texto);
-        boton.getStyleClass().add(claseEstilo);
         boton.setMinSize(ancho, alto);
         boton.setPrefSize(ancho, alto);
         boton.setMaxSize(ancho, alto);
@@ -293,14 +289,22 @@ public final class VistaHud extends HBox {
         if (fondoPlaca != null) {
             boton.setGraphic(fondoPlaca);
             boton.setContentDisplay(ContentDisplay.CENTER);
-            boton.getStyleClass().add("rpg-plaque-button");
         }
         return boton;
     }
 
+    public Button crearBotonPlacaRpg(
+        String texto,
+        String nombreRecorte,
+        double ancho,
+        double alto,
+        String claseEstilo
+    ) {
+        return crearBotonPlacaRpg(texto, nombreRecorte, ancho, alto);
+    }
+
     public StackPane crearCasilleroIcono(Image imagenIcono, double tamanoMarco, double tamanoIcono) {
         StackPane casillero = new StackPane();
-        casillero.getStyleClass().add("hud-icon-slot");
         casillero.setMinSize(tamanoMarco, tamanoMarco);
         casillero.setPrefSize(tamanoMarco, tamanoMarco);
         casillero.setMaxSize(tamanoMarco, tamanoMarco);
@@ -335,18 +339,14 @@ public final class VistaHud extends HBox {
     }
 
     private Label crearValor(String valorInicial) {
-        Label valor = new Label(valorInicial);
-        valor.getStyleClass().add("hud-value");
-        return valor;
+        return new Label(valorInicial);
     }
 
     private StackPane crearPlacaVitalidad() {
         corazones.setPrefWrapLength(135);
         corazones.setAlignment(Pos.CENTER_LEFT);
-        vida.getStyleClass().add("hp-value");
 
         Label tituloVida = new Label("VITALIDAD");
-        tituloVida.getStyleClass().add("hud-label");
 
         HBox cabeceraVida = new HBox(8, tituloVida, vida);
         cabeceraVida.setAlignment(Pos.CENTER_LEFT);
@@ -375,9 +375,6 @@ public final class VistaHud extends HBox {
         }
         gemasExperiencia.setAlignment(Pos.CENTER_LEFT);
 
-        nivelExperiencia.getStyleClass().add("xp-level");
-        valorExperiencia.getStyleClass().add("xp-value");
-
         HBox etiquetas = new HBox(8, nivelExperiencia, valorExperiencia);
         etiquetas.setAlignment(Pos.CENTER_LEFT);
 
@@ -401,7 +398,6 @@ public final class VistaHud extends HBox {
         double alto
     ) {
         Label etiqueta = new Label(titulo);
-        etiqueta.getStyleClass().add("hud-label");
 
         VBox textos = new VBox(0, etiqueta, nodoValor);
         textos.setAlignment(Pos.CENTER_LEFT);
@@ -421,7 +417,6 @@ public final class VistaHud extends HBox {
         double alto
     ) {
         StackPane tarjeta = new StackPane();
-        tarjeta.getStyleClass().add("hud-plaque");
         tarjeta.setMinSize(ancho, alto);
         tarjeta.setPrefSize(ancho, alto);
         tarjeta.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
@@ -430,8 +425,6 @@ public final class VistaHud extends HBox {
         ImageView fondoPlaca = crearRecorteRpg(nombreRecorte, ancho, alto);
         if (fondoPlaca != null) {
             tarjeta.getChildren().add(fondoPlaca);
-        } else {
-            tarjeta.getStyleClass().add("hud-plaque-fallback");
         }
         tarjeta.getChildren().add(contenido);
         return tarjeta;

@@ -21,59 +21,14 @@ import motor.util.VecDouble2D;
 
 public class JugadorFactory extends EntidadFactory {
 
-    public static final int ID_GLOBAL_JUGADOR = 1;
-    public static final String NOMBRE_JUGADOR_DEFAULT = "jugador";
-    public static final String ANIMACION_DEFAULT = "caminar_abajo";
-    public static final String ANIMACION_EXPIRAR = "expirar";
-
-    public static final double ACELERACION_DEFAULT = 800.0;
-    public static final double FRICCION_DEFAULT = 600.0;
-    public static final double VELOCIDAD_MAXIMA_DEFAULT = 200.0;
-    public static final double VIDA_MAXIMA_DEFAULT = 100.0;
-    public static final double DEFENSA_MAXIMA_DEFAULT = 75.0;
-
-    public static final int NIVEL_INICIAL_DEFAULT = 1;
-    public static final int EXP_INICIAL_DEFAULT = 30;
-    public static final int EXP_INCREMENTO_POR_NIVEL_DEFAULT = 25;
-
-    public static final double DANIO_ATAQUE_DEFAULT = 10.0;
-    public static final double VELOCIDAD_ATAQUE_DEFAULT = 1.0;
-    public static final double CRITICO_DEFAULT = 5.0;
-    public static final double MULTIDISPARO_DEFAULT = 0.0;
-    public static final double MULTIPLICADOR_CRITICO_DEFAULT = 2.0;
-
-    public static final double OFFSET_ORIGEN_DISPARO_X_DEFAULT = -15.0;
-    public static final double OFFSET_ORIGEN_DISPARO_Y_DEFAULT = -16.0;
-    public static final double DESVIACION_MULTIDISPARO_GRADOS_DEFAULT = 15.0;
-
-    public static final double VELOCIDAD_PROYECTIL_DEFAULT = 320.0;
-    public static final double TIEMPO_VIDA_ADICIONAL_PROYECTIL_DEFAULT = 2.0;
-    public static final int PENETRACION_ADICIONAL_PROYECTIL_DEFAULT = 0;
-
-    private int idGlobal = ID_GLOBAL_JUGADOR;
-    private String nombre = NOMBRE_JUGADOR_DEFAULT;
-    private String animacionDefault = ANIMACION_DEFAULT;
-    private String animacionExpirar = ANIMACION_EXPIRAR;
-    private double vidaMaxima = VIDA_MAXIMA_DEFAULT;
-    private double defensaMaximaPorcentual = DEFENSA_MAXIMA_DEFAULT;
-    private int nivelInicial = NIVEL_INICIAL_DEFAULT;
-    private int experienciaSiguienteInicial = EXP_INICIAL_DEFAULT;
-    private int incrementoExperienciaPorNivel = EXP_INCREMENTO_POR_NIVEL_DEFAULT;
-    private double danioAtaque = DANIO_ATAQUE_DEFAULT;
-    private double velocidadAtaque = VELOCIDAD_ATAQUE_DEFAULT;
-    private double probabilidadCritico = CRITICO_DEFAULT;
-    private double probabilidadMultidisparo = MULTIDISPARO_DEFAULT;
-    private double multiplicadorCritico = MULTIPLICADOR_CRITICO_DEFAULT;
-    private double offsetDisparoX = OFFSET_ORIGEN_DISPARO_X_DEFAULT;
-    private double offsetDisparoY = OFFSET_ORIGEN_DISPARO_Y_DEFAULT;
-    private double desviacionMultidisparoGrados = DESVIACION_MULTIDISPARO_GRADOS_DEFAULT;
-    private EstrategiaMovimiento estrategiaMovimiento;
-    private ProyectilFactory proyectilFactory;
-    private Integer idSonidoDaño = SonidoJuego.DAÑO_JUGADOR.getId();
-    private Integer idSonidoExpiracion = SonidoJuego.MUERTE_JUGADOR.getId();
-    private Integer idSonidoSubirNivel = SonidoJuego.SUBIR_NIVEL.getId();
-    private Integer idSonidoDisparo = SonidoJuego.DISPARO.getId();
-    private Integer idSonidoDisparoCritico = SonidoJuego.DISPARO_CRITICO.getId();
+    private final double vidaMaxima;
+    private final double defensaMaximaPorcentual;
+    private final int nivelInicial;
+    private final int experienciaSiguienteInicial;
+    private final int incrementoExperienciaPorNivel;
+    private final double danioAtaque;
+    private final double velocidadAtaque;
+    private final ProyectilFactory proyectilFactory;
 
     public JugadorFactory(double anchoHitbox, double altoHitbox, VecDouble2D posicion) {
         this(
@@ -91,11 +46,29 @@ public class JugadorFactory extends EntidadFactory {
             ),
             posicion,
             new VecDouble2D(0.0, 0.0),
-            ACELERACION_DEFAULT,
-            FRICCION_DEFAULT,
-            VELOCIDAD_MAXIMA_DEFAULT,
+            800.0,
+            600.0,
+            200.0,
+            100.0,
+            75.0,
+            1,
+            30,
+            25,
+            10.0,
+            1.0,
             new EstrategiaMovimientoAcciones(),
-            crearProyectilFactoryDefault(),
+            new ProyectilRojoFactory(
+                MascaraColision.of(CategoriaColision.ALIADO),
+                MascaraColision.of(CategoriaColision.ENEMIGO, CategoriaColision.MURO),
+                new VecDouble2D(),
+                1000.0,
+                0.0,
+                320.0,
+                new EstrategiaMovimientoLineal(VecDouble2D.abajo()),
+                2.0,
+                0,
+                0.0
+            ),
             new ArrayList<>(),
             new ArrayList<>()
         );
@@ -108,6 +81,13 @@ public class JugadorFactory extends EntidadFactory {
         double aceleracion,
         double friccion,
         double velocidadMax,
+        double vidaMaxima,
+        double defensaMaximaPorcentual,
+        int nivelInicial,
+        int experienciaSiguienteInicial,
+        int incrementoExperienciaPorNivel,
+        double danioAtaque,
+        double velocidadAtaque,
         EstrategiaMovimiento estrategiaMovimiento,
         ProyectilFactory proyectilFactory,
         List<EstrategiaExpiracion> estrategiasExpiracion,
@@ -120,63 +100,48 @@ public class JugadorFactory extends EntidadFactory {
             aceleracion,
             friccion,
             velocidadMax,
+            estrategiaMovimiento,
             estrategiasExpiracion,
             interaccionesColision
         );
-        this.estrategiaMovimiento = estrategiaMovimiento;
+        this.vidaMaxima = vidaMaxima;
+        this.defensaMaximaPorcentual = defensaMaximaPorcentual;
+        this.nivelInicial = nivelInicial;
+        this.experienciaSiguienteInicial = experienciaSiguienteInicial;
+        this.incrementoExperienciaPorNivel = incrementoExperienciaPorNivel;
+        this.danioAtaque = danioAtaque;
+        this.velocidadAtaque = velocidadAtaque;
         this.proyectilFactory = proyectilFactory;
-    }
-
-    private static ProyectilFactory crearProyectilFactoryDefault() {
-        return new ProyectilRojoFactory(
-            MascaraColision.of(CategoriaColision.ALIADO),
-            MascaraColision.of(CategoriaColision.ENEMIGO, CategoriaColision.MURO),
-            new VecDouble2D(),
-            1000.0,
-            0.0,
-            VELOCIDAD_PROYECTIL_DEFAULT,
-            new EstrategiaMovimientoLineal(VecDouble2D.abajo()),
-            TIEMPO_VIDA_ADICIONAL_PROYECTIL_DEFAULT,
-            PENETRACION_ADICIONAL_PROYECTIL_DEFAULT,
-            0.0
-        );
     }
 
     @Override
     public Jugador get() {
         return new Jugador(
-            idGlobal,
-            nombre,
+            1,
+            "jugador",
             getHitboxFactory().getHitbox(),
             getPosicion(),
             getVelocidad(),
             getAceleracion(),
             getFriccion(),
             getVelocidadMax(),
-            estrategiaMovimiento != null ? estrategiaMovimiento : new EstrategiaMovimientoAcciones(),
+            getEstrategiaMovimiento(),
             getEstrategiasExpiracion(),
             getInteraccionesColision(),
-            animacionDefault,
-            animacionExpirar,
-            idSonidoExpiracion,
+            "caminar_abajo",
+            "expirar",
+            SonidoJuego.MUERTE_JUGADOR.getId(),
             vidaMaxima,
             defensaMaximaPorcentual,
-            idSonidoDaño,
+            SonidoJuego.DAÑO_JUGADOR.getId(),
             nivelInicial,
             experienciaSiguienteInicial,
             incrementoExperienciaPorNivel,
             danioAtaque,
             velocidadAtaque,
-            probabilidadCritico,
-            probabilidadMultidisparo,
-            multiplicadorCritico,
-            offsetDisparoX,
-            offsetDisparoY,
-            desviacionMultidisparoGrados,
-            proyectilFactory != null ? proyectilFactory : crearProyectilFactoryDefault(),
-            idSonidoDisparo,
-            idSonidoDisparoCritico,
-            idSonidoSubirNivel
+            proyectilFactory,
+            SonidoJuego.DISPARO.getId(),
+            SonidoJuego.SUBIR_NIVEL.getId()
         );
     }
 }

@@ -26,7 +26,7 @@ public class EstrategiaMovimientoPersecucion implements EstrategiaMovimiento {
     }
 
     @Override
-    public void ejecutar(Móvil sujeto, double dt) {
+    public void ejecutar(Movil sujeto, double dt) {
         if (sujeto == null) { return; }
         if (posicionObjetivo == null) {
             sujeto.frenar(Eje.X, dt);

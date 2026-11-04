@@ -3,8 +3,7 @@ package motor.modelo;
 import motor.util.Eje;
 import motor.util.VecDouble2D;
 
-
-public interface Móvil {
+public interface Movil {
     void acelerar(VecDouble2D direccion, double dt);
     void frenar(Eje eje, double dt);
     VecDouble2D getVelocidad();

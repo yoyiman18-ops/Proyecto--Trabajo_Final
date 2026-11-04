@@ -85,7 +85,8 @@ public class ProyectilRojo extends Proyectil {
             1 + penetracionAdicional,
             1 + dañoAdicional,
             "idle",
-            "expirar"
+            "expirar",
+            null
         );
     }
 }

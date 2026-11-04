@@ -15,7 +15,6 @@ import motor.util.observer.NotificadorDebil;
 import motor.util.observer.NotificadorFuerte;
 
 public class Experiencia extends Entidad {
-    private double cantidadExp;
 
     public Experiencia(
         int idGlobal,
@@ -31,7 +30,8 @@ public class Experiencia extends Entidad {
         List<Interaccion> interaccionesColision,
         double cantidadExp,
         String animacionDefault,
-        String animacionExpirar
+        String animacionExpirar,
+        Integer idSonidoExpiracion
     ) {
         this(
             idGlobal,
@@ -52,7 +52,8 @@ public class Experiencia extends Entidad {
             interaccionesColision,
             cantidadExp,
             animacionDefault,
-            animacionExpirar
+            animacionExpirar,
+            idSonidoExpiracion
         );
     }
 
@@ -75,7 +76,8 @@ public class Experiencia extends Entidad {
         List<Interaccion> interaccionesColision,
         double cantidadExp,
         String animacionDefault,
-        String animacionExpirar
+        String animacionExpirar,
+        Integer idSonidoExpiracion
     ) {
         super(
             idGlobal,
@@ -96,48 +98,24 @@ public class Experiencia extends Entidad {
             interaccionesColision,
             animacionDefault,
             animacionExpirar,
-            null
+            idSonidoExpiracion
         );
         if (!Double.isFinite(cantidadExp) || cantidadExp <= 0) {
             throw new IllegalArgumentException("La cantidad de experiencia debe ser positiva y finita.");
         }
-        this.cantidadExp = cantidadExp;
         añadirInteraccionColision(new Interaccion(TipoInteraccion.GANAREXP.clase(), cantidadExp));
     }
 
     @Override
-    public void tick(double dt) {
-        if (!activo()) { return; }
-        super.tick(dt);
-    }
-
-    @Override
     public boolean interactuar(Interaccion i) {
-        TipoInteraccion interaccion = TipoInteraccion.deInt(i.clase());
-        if (interaccion == null) { return false; }
-        return switch (interaccion) {
-            case AÑADIR_EXP -> {
-                recoger();
-                yield true;
-            }
-            default -> false;
-        };
-    }
-
-    public boolean recoger() {
-        if (!activo()) { return false; }
-        expirar();
-        return true;
-    }
-
-    public double getCantidadExp() {
-        return this.cantidadExp;
-    }
-
-    public void setCantidadExp(double cantidadExp) {
-        if (!Double.isFinite(cantidadExp) || cantidadExp <= 0) {
-            throw new IllegalArgumentException("La cantidad de experiencia debe ser positiva y finita.");
+        if (i == null || !activo()) {
+            return false;
         }
-        this.cantidadExp = cantidadExp;
+        TipoInteraccion interaccion = TipoInteraccion.deInt(i.clase());
+        if (interaccion == TipoInteraccion.AÑADIR_EXP) {
+            expirar();
+            return true;
+        }
+        return false;
     }
 }

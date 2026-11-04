@@ -1,5 +1,5 @@
 package motor.modelo;
 
 public interface EstrategiaMovimiento {
-    void ejecutar(Móvil sujeto, double dt);
+    void ejecutar(Movil sujeto, double dt);
 }

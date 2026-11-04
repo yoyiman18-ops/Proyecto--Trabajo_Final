@@ -4,7 +4,7 @@ import motor.colisiones.Colisionable;
 import motor.util.observer.Notificador;
 
 public interface ModeloEntidad
-extends Colisionable, Ticking, Activable, IdGlobal, Instanciador<ModeloEntidad>, Animable, Móvil {
+extends Colisionable, Ticking, Activable, IdGlobal, Instanciador<ModeloEntidad>, Animable, Movil {
     Notificador<Integer> getNotificadorExpiracion();
     Notificador<Integer> getNotificadorSonido();
 }
