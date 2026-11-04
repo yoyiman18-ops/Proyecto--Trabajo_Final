@@ -41,41 +41,34 @@ package main;
  * import controlador.VidaControlador;
  */
 
-import controlador.ControladorPartida;
 import controlador.ControladorFondoMazmorra;
 import controlador.ControladorVistaJuego;
+import controlador.EnsambladorPartida;
 import controlador.MenuControlador;
 import controlador.MusicaJuego;
 import controlador.SonidoJuego;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
-import modelo.Jugador;
-import modelo.JugadorFactory;
-import modelo.ModeloPartida;
-import modelo.Partida;
 import motor.Motor;
-import motor.entrada.Accion;
-import motor.entrada.MapeoTeclado;
-import motor.entrada.TipoEntrada;
-import motor.modelo.graficos.Sheet;
 import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
-import motor.util.VecDouble2D;
-import vista.VistaPartida;
 
 // nota: en esta clase se prueban de forma arbitraria las características añadidas.
 
 public class App extends Application {
+    private static final double ANCHO_VENTANA = 960.0;
+    private static final double ALTO_VENTANA = 720.0;
+
     private final GestorRecursos gestorRecursos;
     private final GestorAudio gestorAudio;
+    private final EnsambladorPartida ensambladorPartida;
 
     public App() {
         this.gestorRecursos = new GestorRecursos();
         this.gestorAudio = new GestorAudio(this.gestorRecursos);
+        this.ensambladorPartida = new EnsambladorPartida(Motor.getInstancia(), this.gestorRecursos);
         SonidoJuego.precargarTodos(this.gestorAudio);
         ControladorVistaJuego.precargarRecursosHud(this.gestorRecursos);
         ControladorFondoMazmorra.precargarTiles(this.gestorRecursos);
@@ -93,7 +86,7 @@ public class App extends Application {
             () -> iniciarPartida(stage),
             Platform::exit
         );
-        Scene escena = new Scene(menuControlador.getVista(), 960, 720);
+        Scene escena = new Scene(menuControlador.getVista(), ANCHO_VENTANA, ALTO_VENTANA);
         stage.setScene(escena);
         stage.setTitle("Waves 2D");
         MusicaJuego.MENU.reproducirEn(gestorAudio);
@@ -101,49 +94,11 @@ public class App extends Application {
     }
 
     private void iniciarPartida(Stage stage) {
-        // 1. Configurar VistaPartida y VistaFondo mediante sus controladores de vista
-        ControladorVistaJuego controladorVista = new ControladorVistaJuego(gestorRecursos, 32);
-        VistaPartida vista = controladorVista.getVistaJuego();
-        Scene escena = new Scene(vista.getRaiz(), 960, 720);
-
-        // 2. Obtener Motor genérico y configurar mapeos de teclado
-        Motor motor = Motor.getInstancia();
-        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.A, TipoEntrada.MANTENER, Accion.MOVER_IZQUIERDA));
-        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.D, TipoEntrada.MANTENER, Accion.MOVER_DERECHA));
-        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.W, TipoEntrada.MANTENER, Accion.MOVER_ARRIBA));
-        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.S, TipoEntrada.MANTENER, Accion.MOVER_ABAJO));
-        motor.teclado().añadirMapeo(new MapeoTeclado(KeyCode.SPACE, TipoEntrada.PRESIONAR, Accion.ATACAR));
-
-        // 3. Crear Jugador y Modelo de la partida
-        Sheet sheetJugador = motor.getSheetDAO().cargar(1);
-        Rectangle2D rectanguloJugador = sheetJugador.getRecortes().getFirst().getRectangulo();
-        Jugador jugador = new JugadorFactory(
-            rectanguloJugador.getWidth(),
-            rectanguloJugador.getHeight(),
-            new VecDouble2D(
-                (escena.getWidth() - rectanguloJugador.getWidth()) / 2.0,
-                (escena.getHeight() - rectanguloJugador.getHeight()) / 2.0
-            )
-        ).get();
-
-        ModeloPartida modeloPartida = new Partida(
-            jugador,
-            SonidoJuego.MOSTRAR_MEJORAS.getId(),
-            SonidoJuego.MEJORA_APLICADA.getId(),
-            SonidoJuego.VICTORIA.getId(),
-            SonidoJuego.DERROTA.getId()
-        );
-
-        // 4. Iniciar ControladorPartida
-        ControladorPartida controladorPartida = new ControladorPartida(
-            modeloPartida,
-            controladorVista,
-            motor
-        );
-        stage.setScene(escena);
+        EnsambladorPartida.PartidaEnsamblada partida = ensambladorPartida.ensamblar(ANCHO_VENTANA, ALTO_VENTANA);
+        stage.setScene(partida.escena());
         MusicaJuego.PARTIDA.reproducirEn(gestorAudio);
-        controladorPartida.iniciar(
-            escena,
+        partida.controlador().iniciar(
+            partida.escena(),
             () -> mostrarMenu(stage),
             () -> iniciarPartida(stage)
         );
