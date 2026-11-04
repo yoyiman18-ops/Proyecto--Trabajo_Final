@@ -5,12 +5,9 @@ import java.util.List;
 import java.util.Objects;
 
 import modelo.enemigo.Enemigo;
-import modelo.enemigo.EsqueletoFactory;
 import modelo.enemigo.SpawnerEnemigos;
 import motor.util.Contador;
 import motor.util.observer.Notificador;
-import motor.util.observer.NotificadorDebil;
-import motor.util.observer.NotificadorFuerte;
 
 public final class Partida implements ModeloPartida {
     private final Jugador jugador;
@@ -38,31 +35,6 @@ public final class Partida implements ModeloPartida {
     private boolean enPausa;
     private boolean eleccionMejoraActiva;
     private boolean partidaFinalizada;
-
-    public Partida(
-        Jugador jugador,
-        Integer idSonidoMostrarMejoras,
-        Integer idSonidoMejoraAplicada,
-        Integer idSonidoVictoria,
-        Integer idSonidoDerrota
-    ) {
-        this(
-            jugador,
-            new SpawnerEnemigos(new EsqueletoFactory()),
-            5,
-            6,
-            6.0,
-            75.0,
-            8.0,
-            new NotificadorDebil<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            idSonidoMostrarMejoras,
-            idSonidoMejoraAplicada,
-            idSonidoVictoria,
-            idSonidoDerrota
-        );
-    }
 
     public Partida(
         Jugador jugador,

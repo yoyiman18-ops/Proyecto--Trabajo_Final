@@ -9,6 +9,8 @@ import modelo.Jugador;
 import modelo.JugadorFactory;
 import modelo.ModeloPartida;
 import modelo.Partida;
+import modelo.enemigo.EsqueletoFactory;
+import modelo.enemigo.SpawnerEnemigos;
 import motor.Motor;
 import motor.entrada.Accion;
 import motor.entrada.MapeoTeclado;
@@ -16,6 +18,8 @@ import motor.entrada.TipoEntrada;
 import motor.modelo.graficos.Sheet;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
+import motor.util.observer.NotificadorDebil;
+import motor.util.observer.NotificadorFuerte;
 import vista.VistaPartida;
 
 /**
@@ -24,9 +28,6 @@ import vista.VistaPartida;
  * Desacopla la inicialización de bajo nivel de la clase principal App.
  */
 public class EnsambladorPartida {
-
-    public static final int ID_SHEET_JUGADOR = 1;
-    public static final double TAMANIO_TILE_DEFECTO = 32.0;
 
     /**
      * Representa el resultado del ensamblado de una partida lista para ejecutarse.
@@ -52,7 +53,7 @@ public class EnsambladorPartida {
     public PartidaEnsamblada ensamblar(double anchoEscena, double altoEscena) {
         configurarMapeosTeclado();
 
-        ControladorVistaJuego controladorVista = new ControladorVistaJuego(gestorRecursos, TAMANIO_TILE_DEFECTO);
+        ControladorVistaJuego controladorVista = new ControladorVistaJuego(gestorRecursos, 32);
         VistaPartida vista = controladorVista.getVistaJuego();
         Scene escena = new Scene(vista.getRaiz(), anchoEscena, altoEscena);
 
@@ -76,7 +77,7 @@ public class EnsambladorPartida {
     }
 
     private Jugador crearJugador(double anchoArea, double altoArea) {
-        Sheet sheetJugador = motor.getSheetDAO().cargar(ID_SHEET_JUGADOR);
+        Sheet sheetJugador = motor.getSheetDAO().cargar(1);
         Rectangle2D rectanguloJugador = sheetJugador.getRecortes().getFirst().getRectangulo();
         return new JugadorFactory(
             rectanguloJugador.getWidth(),
@@ -89,8 +90,18 @@ public class EnsambladorPartida {
     }
 
     private ModeloPartida crearModeloPartida(Jugador jugador) {
+        SpawnerEnemigos spawner = new SpawnerEnemigos(new EsqueletoFactory());
         return new Partida(
             jugador,
+            spawner,
+            5,
+            6,
+            6.0,
+            75.0,
+            8.0,
+            new NotificadorDebil<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
             SonidoJuego.MOSTRAR_MEJORAS.getId(),
             SonidoJuego.MEJORA_APLICADA.getId(),
             SonidoJuego.VICTORIA.getId(),
