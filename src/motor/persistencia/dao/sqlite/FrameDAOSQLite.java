@@ -25,7 +25,7 @@ public class FrameDAOSQLite extends FrameDAO {
     }
 
     @Override
-    public boolean guardar(Frame objeto) {
+    synchronized public boolean guardar(Frame objeto) {
         if (objeto == null) {
             return false;
         }
@@ -64,7 +64,7 @@ public class FrameDAOSQLite extends FrameDAO {
     }
 
     @Override
-    public Frame cargar(PKFrame clave) {
+    synchronized public Frame cargar(PKFrame clave) {
         if (clave == null) {
             return null;
         }
@@ -114,7 +114,7 @@ public class FrameDAOSQLite extends FrameDAO {
     }
 
     @Override
-    public boolean eliminar(PKFrame clave) {
+    synchronized public boolean eliminar(PKFrame clave) {
         if (clave == null) {
             return false;
         }
@@ -130,7 +130,7 @@ public class FrameDAOSQLite extends FrameDAO {
     }
 
     @Override
-    public List<Frame> cargarTodos() {
+    synchronized public List<Frame> cargarTodos() {
         List<Frame> frames = new ArrayList<>();
         String sql = """
             SELECT id_sheet, nombre_animacion, nro_frame, nombre_recorte, duracion
@@ -180,7 +180,7 @@ public class FrameDAOSQLite extends FrameDAO {
     }
 
     @Override
-    public boolean modificar(Frame objeto) {
+    synchronized public boolean modificar(Frame objeto) {
         if (objeto == null) {
             return false;
         }

@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.Random;
 
 import motor.modelo.Posicionable;
-import motor.util.Contador;
+import motor.util.ContadorSegundos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorFuerte;
@@ -14,7 +14,7 @@ public class SpawnerEnemigos {
 
     private final EnemigoFactory enemigoFactory;
     private final Notificador<Enemigo> notificadorEnemigoGenerado;
-    private final Contador cooldownSpawn;
+    private final ContadorSegundos cooldownSpawn;
     private final Random random;
 
     private double minX;
@@ -48,7 +48,7 @@ public class SpawnerEnemigos {
         if (!Double.isFinite(cadencia) || cadencia <= 0) {
             throw new IllegalArgumentException("La cadencia de spawn debe ser positiva y finita.");
         }
-        this.cooldownSpawn = new Contador(cadencia, 0.0);
+        this.cooldownSpawn = new ContadorSegundos(cadencia, true);
         this.minX = minX;
         this.maxX = Math.max(minX, maxX);
         this.minY = minY;
@@ -78,16 +78,14 @@ public class SpawnerEnemigos {
     }
 
     private Enemigo generarEnemigo(double velocidadOleada, Posicionable objetivo) {
-        enemigoFactory.setVelocidadMax(velocidadOleada);
-        enemigoFactory.setObjetivo(objetivo);
-        Enemigo enemigo = enemigoFactory.get();
+        Enemigo enemigo = enemigoFactory.get(objetivo, velocidadOleada);
         Rectangle2D bounds = enemigo.getHitbox().getBounds();
         enemigo.setPosicion(calcularPosicionBorde(bounds.getWidth(), bounds.getHeight()));
         return enemigo;
     }
 
     public void reiniciar() {
-        this.cooldownSpawn.reset();
+        this.cooldownSpawn.forzarListo();
     }
 
     public Notificador<Enemigo> getNotificadorEnemigoGenerado() {

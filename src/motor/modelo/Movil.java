@@ -9,7 +9,6 @@ public interface Movil {
     VecDouble2D getVelocidad();
     VecDouble2D getPosicion();
     double getVelocidadMax();
-    void setVelocidadMax(double velocidadMax);
     double getAceleracion();
     double getFriccion();
 }

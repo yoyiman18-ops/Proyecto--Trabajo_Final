@@ -27,11 +27,7 @@ import motor.util.observer.Observador;
 import vista.BotonMenu;
 import vista.VistaMenu;
 
-/**
- * Controlador del menú principal en la arquitectura MVC.
- * Coordina los modelos de opciones de menú (OpcionMenu), el audio y la vista (VistaMenu)
- * respetando el principio Abierto/Cerrado (OCP).
- */
+
 public final class MenuControlador {
 
     public static final String RECURSO_IMAGEN_MENU_DEFAULT = "menu";
@@ -187,7 +183,7 @@ public final class MenuControlador {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
         Objects.requireNonNull(urlBaseDatos, "La URL de la base de datos no puede ser nula");
         DAOSoloLectura<Integer, Sheet> sheetDAO = new SheetDAOSQLite(
-            Conexion.getInstancia(urlBaseDatos).getConexion(),
+            Conexion.getInstancia().get(),
             gestorRecursos
         );
         return sheetDAO.cargar(idSheet);

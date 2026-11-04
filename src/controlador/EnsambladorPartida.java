@@ -99,14 +99,14 @@ public class EnsambladorPartida {
     private Jugador crearJugador(double anchoArea, double altoArea) {
         Sheet sheetJugador = motor.getSheetDAO().cargar(1);
         Rectangle2D rectanguloJugador = sheetJugador.getRecortes().getFirst().getRectangulo();
-        return new JugadorFactory(
+        return new JugadorFactory().get(
             rectanguloJugador.getWidth(),
             rectanguloJugador.getHeight(),
             new VecDouble2D(
                 (anchoArea - rectanguloJugador.getWidth()) / 2.0,
                 (altoArea - rectanguloJugador.getHeight()) / 2.0
             )
-        ).get();
+        );
     }
 
     private ModeloPartida crearModeloPartida(Jugador jugador) {

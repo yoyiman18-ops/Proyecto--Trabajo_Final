@@ -15,8 +15,7 @@ import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.EstrategiaMovimiento;
 import motor.modelo.EstrategiaMovimientoLineal;
 import motor.modelo.Interaccion;
-import motor.modelo.ModeloEntidad;
-import motor.util.Contador;
+import motor.util.ContadorSegundos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
@@ -29,9 +28,9 @@ public class Jugador extends Personaje implements Controlable {
     private int experienciaSiguiente;
     private final int incrementoExperienciaPorNivel;
     private int nivelesPendientes;
-    private double danioAtaque;
+    private double dañoAtaque;
     private double velocidadAtaque;
-    private final Contador cooldownAtaque;
+    private final ContadorSegundos cooldownAtaque;
 
     private final ProyectilFactory proyectilFactory;
     private final Integer idSonidoDisparo;
@@ -51,13 +50,6 @@ public class Jugador extends Personaje implements Controlable {
         double aceleracion,
         double friccion,
         double velocidadMax,
-        Notificador<VecDouble2D> notificadorPosicion,
-        Notificador<ModeloEntidad> notificadorInstanciacion,
-        Notificador<Integer> notificadorExpiracion,
-        Notificador<Integer> notificadorSonido,
-        Notificador<String> notificadorAnimacion,
-        Notificador<Double> notificadorDaño,
-        Notificador<Jugador> notificadorVida,
         EstrategiaMovimiento estrategiaMovimiento,
         List<EstrategiaExpiracion> estrategiasExpiracion,
         List<Interaccion> interaccionesColision,
@@ -70,7 +62,7 @@ public class Jugador extends Personaje implements Controlable {
         int nivelInicial,
         int experienciaSiguienteInicial,
         int incrementoExperienciaPorNivel,
-        double danioAtaque,
+        double dañoAtaque,
         double velocidadAtaque,
         ProyectilFactory proyectilFactory,
         Integer idSonidoDisparo,
@@ -85,12 +77,12 @@ public class Jugador extends Personaje implements Controlable {
             aceleracion,
             friccion,
             velocidadMax,
-            notificadorPosicion,
-            notificadorInstanciacion,
-            notificadorExpiracion,
-            notificadorSonido,
-            notificadorAnimacion,
-            notificadorDaño,
+            new NotificadorDebil<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
+            new NotificadorFuerte<>(),
             estrategiaMovimiento,
             estrategiasExpiracion,
             interaccionesColision,
@@ -110,7 +102,7 @@ public class Jugador extends Personaje implements Controlable {
         if (incrementoExperienciaPorNivel < 0) {
             throw new IllegalArgumentException("El incremento de experiencia por nivel no puede ser negativo.");
         }
-        if (!Double.isFinite(danioAtaque) || danioAtaque < 0) {
+        if (!Double.isFinite(dañoAtaque) || dañoAtaque < 0) {
             throw new IllegalArgumentException("El daño de ataque no puede ser negativo.");
         }
         if (!Double.isFinite(velocidadAtaque) || velocidadAtaque <= 0) {
@@ -121,83 +113,17 @@ public class Jugador extends Personaje implements Controlable {
         this.experienciaSiguiente = experienciaSiguienteInicial;
         this.incrementoExperienciaPorNivel = incrementoExperienciaPorNivel;
         this.nivelesPendientes = 0;
-        this.danioAtaque = danioAtaque;
+        this.dañoAtaque = dañoAtaque;
         this.velocidadAtaque = velocidadAtaque;
-        this.cooldownAtaque = new Contador(1.0 / velocidadAtaque);
+        this.cooldownAtaque = new ContadorSegundos(1.0 / velocidadAtaque, true);
 
         this.direccion = Direccion.ABAJO;
         this.vectorDireccion = VecDouble2D.abajo();
-        this.notificadorVida = Objects.requireNonNull(notificadorVida, "El notificadorVida no puede ser nulo");
+        this.notificadorVida = new NotificadorDebil<>();
         this.proyectilFactory = proyectilFactory;
-        if (this.proyectilFactory != null) {
-            this.proyectilFactory.setDañoAdicional(this.danioAtaque);
-        }
         this.idSonidoDisparo = idSonidoDisparo;
         this.idSonidoSubirNivel = idSonidoSubirNivel;
         añadirInteraccionColision(new Interaccion(TipoInteraccion.AÑADIR_EXP.clase(), 0.0));
-    }
-
-    public Jugador(
-        int idGlobal,
-        String nombre,
-        Hitbox hitbox,
-        VecDouble2D posicion,
-        VecDouble2D velocidad,
-        double aceleracion,
-        double friccion,
-        double velocidadMax,
-        EstrategiaMovimiento estrategiaMovimiento,
-        List<EstrategiaExpiracion> estrategiasExpiracion,
-        List<Interaccion> interaccionesColision,
-        String animacionDefault,
-        String animacionExpirar,
-        Integer idSonidoExpiracion,
-        double vidaMaxima,
-        double defensaMaximaPorcentual,
-        Integer idSonidoDaño,
-        int nivelInicial,
-        int experienciaSiguienteInicial,
-        int incrementoExperienciaPorNivel,
-        double danioAtaque,
-        double velocidadAtaque,
-        ProyectilFactory proyectilFactory,
-        Integer idSonidoDisparo,
-        Integer idSonidoSubirNivel
-    ) {
-        this(
-            idGlobal,
-            nombre,
-            hitbox,
-            posicion,
-            velocidad,
-            aceleracion,
-            friccion,
-            velocidadMax,
-            new NotificadorDebil<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            new NotificadorFuerte<>(),
-            estrategiaMovimiento,
-            estrategiasExpiracion,
-            interaccionesColision,
-            animacionDefault,
-            animacionExpirar,
-            idSonidoExpiracion,
-            vidaMaxima,
-            defensaMaximaPorcentual,
-            idSonidoDaño,
-            nivelInicial,
-            experienciaSiguienteInicial,
-            incrementoExperienciaPorNivel,
-            danioAtaque,
-            velocidadAtaque,
-            proyectilFactory,
-            idSonidoDisparo,
-            idSonidoSubirNivel
-        );
     }
 
     @Override
@@ -245,8 +171,12 @@ public class Jugador extends Personaje implements Controlable {
             return false;
         }
         cooldownAtaque.reiniciar();
-        proyectilFactory.setEstrategiaMovimiento(new EstrategiaMovimientoLineal(vectorDireccion.clone()));
-        Proyectil proyectil = proyectilFactory.get();
+        Proyectil proyectil = proyectilFactory.get(
+            getPosicion().clone(),
+            new EstrategiaMovimientoLineal(vectorDireccion.clone()),
+            dañoAtaque
+        );
+
         Rectangle2D boundsJugador = getHitbox().getBounds();
         Rectangle2D boundsProyectil = proyectil.getHitbox().getBounds();
         proyectil.setPosicion(new VecDouble2D(
@@ -288,16 +218,14 @@ public class Jugador extends Personaje implements Controlable {
         return true;
     }
 
+    public boolean modificarDañoAtaque(double cantidad) {
+        double nuevoDaño = dañoAtaque + cantidad;
+        if (nuevoDaño <= 0) { return false; }
+        this.dañoAtaque = nuevoDaño; return true;
+    }
+
     public void aumentarDanioAtaque(double cantidad) {
-        validarCantidadNoNegativa(cantidad);
-        double nuevoDanio = danioAtaque + cantidad;
-        if (!Double.isFinite(nuevoDanio)) {
-            throw new IllegalArgumentException("El daño de ataque resultante debe ser finito.");
-        }
-        danioAtaque = nuevoDanio;
-        if (proyectilFactory != null) {
-            proyectilFactory.setDañoAdicional(danioAtaque);
-        }
+        modificarDañoAtaque(cantidad);
     }
 
     public void aumentarVelocidadAtaque(double porcentaje) {
@@ -309,7 +237,7 @@ public class Jugador extends Personaje implements Controlable {
             throw new IllegalArgumentException("La velocidad de ataque resultante debe ser finita.");
         }
         velocidadAtaque = nuevaVelocidadAtaque;
-        cooldownAtaque.setDuracion(1.0 / velocidadAtaque);
+        cooldownAtaque.setIntervaloSegundos(1.0 / velocidadAtaque);
     }
 
     @Override
@@ -329,34 +257,19 @@ public class Jugador extends Personaje implements Controlable {
         return super.interactuar(i);
     }
 
-    @Override
-    protected void alModificarVida() {
-        if (notificadorVida != null) {
-            notificadorVida.notificar(this);
-        }
-    }
+    protected void alModificarVida() { notificadorVida.notificar(this); }
 
-    public int getExperiencia() {
-        return experiencia;
-    }
+    public int getExperiencia() { return experiencia; }
 
-    public int getNivel() {
-        return nivel;
-    }
+    public int getNivel() { return nivel; }
 
-    public int getExperienciaSiguiente() {
-        return experienciaSiguiente;
-    }
+    public int getExperienciaSiguiente() { return experienciaSiguiente; }
 
-    public int getNivelesPendientes() {
-        return nivelesPendientes;
-    }
+    public int getNivelesPendientes() { return nivelesPendientes; }
 
-    public double getDanioAtaque() {
-        return danioAtaque;
-    }
+    public double getdañoAtaque() { return dañoAtaque; }
 
-    public Notificador<Jugador> getNotificadorVida() {
-        return notificadorVida;
-    }
+    public double getDanioAtaque() { return dañoAtaque; }
+
+    public Notificador<Jugador> getNotificadorVida() { return notificadorVida; }
 }

@@ -6,7 +6,7 @@ import java.util.Objects;
 
 import modelo.enemigo.Enemigo;
 import modelo.enemigo.SpawnerEnemigos;
-import motor.util.Contador;
+import motor.util.ContadorSegundos;
 import motor.util.observer.Notificador;
 
 public final class Partida implements ModeloPartida {
@@ -15,7 +15,7 @@ public final class Partida implements ModeloPartida {
     private final int maxEnemigosSimultaneos;
     private final double velocidadBaseEnemigos;
     private final double incrementoVelocidadOleada;
-    private final Contador contadorEntreOleadas;
+    private final ContadorSegundos contadorEntreOleadas;
     private final Notificador<EstadoOleadas> notificadorOleadas;
     private final Notificador<Integer> notificadorSonido;
     private final Notificador<Enemigo> notificadorEnemigoGenerado;
@@ -66,7 +66,7 @@ public final class Partida implements ModeloPartida {
         this.maxEnemigosSimultaneos = maxEnemigosSimultaneos;
         this.velocidadBaseEnemigos = velocidadBaseEnemigos;
         this.incrementoVelocidadOleada = incrementoVelocidadOleada;
-        this.contadorEntreOleadas = new Contador(intervaloOleadas);
+        this.contadorEntreOleadas = new ContadorSegundos(intervaloOleadas);
         this.notificadorOleadas = Objects.requireNonNull(notificadorOleadas, "El notificador de oleadas no puede ser nulo");
         this.notificadorSonido = Objects.requireNonNull(notificadorSonido, "El notificador de sonido no puede ser nulo");
         this.notificadorEnemigoGenerado = Objects.requireNonNull(notificadorEnemigoGenerado, "El notificador de enemigo generado no puede ser nulo");
@@ -89,46 +89,30 @@ public final class Partida implements ModeloPartida {
     }
 
     @Override
-    public Jugador getJugador() {
-        return jugador;
-    }
+    public Jugador getJugador() { return jugador; }
 
     @Override
-    public Notificador<EstadoOleadas> getNotificadorOleadas() {
-        return notificadorOleadas;
-    }
+    public Notificador<EstadoOleadas> getNotificadorOleadas() { return notificadorOleadas; }
 
     @Override
-    public Notificador<Integer> getNotificadorSonido() {
-        return notificadorSonido;
-    }
+    public Notificador<Integer> getNotificadorSonido() { return notificadorSonido; }
 
     @Override
-    public Notificador<Enemigo> getNotificadorEnemigoGenerado() {
-        return notificadorEnemigoGenerado;
-    }
+    public Notificador<Enemigo> getNotificadorEnemigoGenerado() { return notificadorEnemigoGenerado; }
 
     @Override
-    public SpawnerEnemigos getSpawnerEnemigos() {
-        return spawnerEnemigos;
-    }
+    public SpawnerEnemigos getSpawnerEnemigos() { return spawnerEnemigos; }
 
     @Override
-    public boolean isEnPausa() {
-        return enPausa;
-    }
+    public boolean isEnPausa() { return enPausa; }
 
     @Override
     public void setEnPausa(boolean enPausa) {
-        if (!partidaFinalizada) {
-            this.enPausa = enPausa;
-        }
+        if (!partidaFinalizada) { this.enPausa = enPausa;}
     }
 
     @Override
-    public boolean isEleccionMejoraActiva() {
-        return eleccionMejoraActiva;
-    }
+    public boolean isEleccionMejoraActiva() { return eleccionMejoraActiva; }
 
     @Override
     public void iniciarEleccionMejora() {

@@ -69,7 +69,11 @@ implements Observador<VecDouble2D> {
             this.getCapasColision().interseccion(otra.getCategoriasColision()) != 0
         );
     }
-    public long combinarIds(Hitbox otra) { return Codificacion.combinarInt(this.getId(), otra.getId()); }
+    public long combinarIds(Hitbox otra) {
+        int id1 = this.getId();
+        int id2 = otra.getId();
+        return id1 < id2 ? Codificacion.combinarInt(id1, id2) : Codificacion.combinarInt(id2, id1);
+    }
 
     public void cambio(VecDouble2D posicion) { if (posicion != null) {actualizarTransformacion(posicion);} } 
 

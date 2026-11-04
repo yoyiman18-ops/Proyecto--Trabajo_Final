@@ -84,7 +84,7 @@ public class Motor implements Ticking {
 
     private boolean pausa;
 
-    public static Motor getInstancia() {
+    synchronized public static Motor getInstancia() {
         if (Motor.instancia == null) {
             GestorRecursos gestorRecursos = new GestorRecursos();
             Motor.instancia = new Motor(
@@ -121,8 +121,8 @@ public class Motor implements Ticking {
         this.colisionables = new ArrayList<>();
         this.colaInstanciacion = new ArrayDeque<>();
         this.colaLimpieza = new ArrayDeque<>();
-        this.conexion = Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db"); 
-        this.sheetDAO = new SheetDAOSQLite(conexion.getConexion(), gestorRecursos);
+        this.conexion = Conexion.getInstancia(); 
+        this.sheetDAO = new SheetDAOSQLite(conexion.get(), gestorRecursos);
         this.ensambladorControladorEntidad = new EnsambladorControladorEntidad(sheetDAO, gestorAudio);
         this.pausa = false;
         
@@ -152,16 +152,13 @@ public class Motor implements Ticking {
     public GestorRecursos recursos() { return this.gestorRecursos; }
     public GestorAudio audio() { return this.gestorAudio; }
     public GestorEntradaTeclado teclado() { return this.gestorEntradaTeclado; }
-    public RelojDelta reloj() { return this.relojDelta; }
-    public SistemaColisiones colisiones() { return this.sistemaColisiones; }
-    public List<Colisionable> colisionables() { return this.colisionables; }
     public Pane getRoot() { return this.root; }
-    public void setRoot(Pane root) { this.root = root; }
+    public RelojDelta reloj() { return this.relojDelta; }
     public DAOSoloLectura<Integer,Sheet> getSheetDAO() { return this.sheetDAO; }
     public void iniciar() { this.relojDelta.iniciar(); Platform.runLater(root::requestFocus);}
     public void detener() { this.relojDelta.detener(); }
     public void setPausa(boolean pausa) { this.pausa = pausa; }
-    public boolean isPausa() { return this.pausa; }
+    public boolean pausado() { return this.pausa; }
 
     public void limpiar() {
         this.controladores.clear();

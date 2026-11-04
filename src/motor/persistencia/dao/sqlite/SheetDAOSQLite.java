@@ -38,7 +38,7 @@ public class SheetDAOSQLite extends SheetDAO {
     }
 
     @Override
-    public boolean guardar(Sheet objeto) {
+    synchronized public boolean guardar(Sheet objeto) {
         if (objeto == null) {
             return false;
         }
@@ -86,7 +86,7 @@ public class SheetDAOSQLite extends SheetDAO {
     }
 
     @Override
-    public Sheet cargar(Integer clave) {
+    synchronized public Sheet cargar(Integer clave) {
         if (clave == null) {
             return null;
         }
@@ -128,7 +128,7 @@ public class SheetDAOSQLite extends SheetDAO {
     }
 
     @Override
-    public boolean eliminar(Integer clave) {
+    synchronized public boolean eliminar(Integer clave) {
         if (clave == null) {
             return false;
         }
@@ -142,7 +142,7 @@ public class SheetDAOSQLite extends SheetDAO {
     }
 
     @Override
-    public List<Sheet> cargarTodos() {
+    synchronized public List<Sheet> cargarTodos() {
         List<Sheet> sheets = new ArrayList<>();
         String sql = "SELECT id_sheet, path, extension FROM sheet ORDER BY id_sheet ASC;";
         try (PreparedStatement sentencia = conexion.prepareStatement(sql);
@@ -180,7 +180,7 @@ public class SheetDAOSQLite extends SheetDAO {
     }
 
     @Override
-    public boolean modificar(Sheet objeto) {
+    synchronized public boolean modificar(Sheet objeto) {
         if (objeto == null) {
             return false;
         }

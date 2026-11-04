@@ -1,6 +1,8 @@
 package modelo.proyectil;
 
 import java.util.ArrayList;
+
+import motor.colisiones.hitboxes.CategoriaColision;
 import motor.colisiones.hitboxes.HitboxRectangularFactory;
 import motor.colisiones.hitboxes.MascaraColision;
 import motor.colisiones.hitboxes.TipoHitbox;
@@ -9,47 +11,30 @@ import motor.util.VecDouble2D;
 
 public class ProyectilRojoFactory extends ProyectilFactory {
 
-    public ProyectilRojoFactory(
-        MascaraColision categoriasColision,
-        MascaraColision capasColision,
+    @Override
+    public ProyectilRojo get(
         VecDouble2D posicion,
-        double aceleracion,
-        double friccion,
-        double velocidadMax,
         EstrategiaMovimiento estrategiaMovimiento,
-        double tiempoVidaAdicional,
-        int penetracionAdicional,
         double dañoAdicional
     ) {
-        super(
-            new HitboxRectangularFactory(24, 24, 16, 16, TipoHitbox.SOLIDA, categoriasColision, capasColision, true),
-            posicion,
-            aceleracion,
-            friccion,
-            velocidadMax,
+        return new ProyectilRojo(
+            posicion != null ? posicion.clone() : new VecDouble2D(),
+            new HitboxRectangularFactory().get(
+                24, 24, 16, 16,
+                TipoHitbox.SOLIDA,
+                MascaraColision.of(CategoriaColision.ALIADO),
+                MascaraColision.of(CategoriaColision.ENEMIGO, CategoriaColision.MURO),
+                true
+            ),
+            1000.0,
+            0.0,
+            320.0,
             estrategiaMovimiento,
-            tiempoVidaAdicional,
-            penetracionAdicional,
             dañoAdicional,
+            2.0,
+            0,
             new ArrayList<>(),
             new ArrayList<>()
-        );
-    }
-
-    @Override
-    public Proyectil get() {
-        return new ProyectilRojo(
-            getPosicion(),
-            getHitboxFactory().getHitbox(),
-            getAceleracion(),
-            getFriccion(),
-            getVelocidadMax(),
-            getEstrategiaMovimiento(),
-            getDañoAdicional(),
-            getTiempoVidaAdicional(),
-            getPenetracionAdicional(),
-            getEstrategiasExpiracion(),
-            getInteraccionesColision()
         );
     }
 }

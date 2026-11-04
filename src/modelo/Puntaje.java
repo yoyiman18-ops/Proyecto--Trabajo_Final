@@ -16,4 +16,12 @@ public final class Puntaje {
     public int getPuntos() {
         return puntos;
     }
+
+    public int fecha() {
+        return fecha;
+    }
+
+    public int puntos() {
+        return puntos;
+    }
 }

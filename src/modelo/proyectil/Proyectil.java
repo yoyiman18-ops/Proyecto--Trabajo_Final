@@ -9,14 +9,14 @@ import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.EstrategiaMovimiento;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
-import motor.util.Contador;
+import motor.util.ContadorSegundos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
 import motor.util.observer.NotificadorFuerte;
 
 public class Proyectil extends Entidad {
-    private final Contador contadorVida;
+    private final ContadorSegundos contadorVida;
     private int penetracion;
 
     public Proyectil(
@@ -111,7 +111,7 @@ public class Proyectil extends Entidad {
         if (daño > 0) {
             añadirInteraccionColision(new Interaccion(TipoInteraccion.DAÑAR.clase(), daño));
         }
-        this.contadorVida = new Contador(tiempoVida, tiempoVida);
+        this.contadorVida = new ContadorSegundos(tiempoVida);
         this.penetracion = Math.max(-1, penetracion);
     }
 
