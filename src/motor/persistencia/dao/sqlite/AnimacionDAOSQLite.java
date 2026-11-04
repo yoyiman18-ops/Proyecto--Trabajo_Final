@@ -28,7 +28,7 @@ public class AnimacionDAOSQLite extends AnimacionDAO {
     }
 
     @Override
-    synchronized public boolean guardar(Animacion objeto) {
+    public boolean guardar(Animacion objeto) {
         if (objeto == null) {
             return false;
         }
@@ -76,7 +76,7 @@ public class AnimacionDAOSQLite extends AnimacionDAO {
     }
 
     @Override
-    synchronized public Animacion cargar(PKAnimacion clave) {
+    public Animacion cargar(PKAnimacion clave) {
         if (clave == null) {
             return null;
         }
@@ -106,7 +106,7 @@ public class AnimacionDAOSQLite extends AnimacionDAO {
     }
 
     @Override
-    synchronized public boolean eliminar(PKAnimacion clave) {
+    public boolean eliminar(PKAnimacion clave) {
         if (clave == null) {
             return false;
         }
@@ -123,7 +123,7 @@ public class AnimacionDAOSQLite extends AnimacionDAO {
     }
 
     @Override
-    synchronized public List<Animacion> cargarTodos() {
+    public List<Animacion> cargarTodos() {
         List<Animacion> animaciones = new ArrayList<>();
         String sql = """
             SELECT id_sheet, nombre_animacion, es_bucle
@@ -155,7 +155,7 @@ public class AnimacionDAOSQLite extends AnimacionDAO {
     }
 
     @Override
-    synchronized public boolean modificar(Animacion objeto) {
+    public boolean modificar(Animacion objeto) {
         if (objeto == null) {
             return false;
         }

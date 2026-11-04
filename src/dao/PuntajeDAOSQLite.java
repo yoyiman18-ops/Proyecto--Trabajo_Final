@@ -54,10 +54,8 @@ public final class PuntajeDAOSQLite implements PuntajeDAO, AutoCloseable {
         this.seleccionarPuntajes =
             "SELECT fecha, puntos FROM puntajes WHERE puntos > 0 ORDER BY puntos DESC LIMIT " + LIMITE_PUNTAJES;
 
-        synchronized (this.conexion) {
-            try (Statement sentencia = this.conexion.createStatement()) {
-                sentencia.executeUpdate(this.crearTabla);
-            }
+        try (Statement sentencia = this.conexion.createStatement()) {
+            sentencia.executeUpdate(this.crearTabla);
         }
     }
 
@@ -68,25 +66,23 @@ public final class PuntajeDAOSQLite implements PuntajeDAO, AutoCloseable {
             return;
         }
 
-        synchronized (conexion) {
-            List<Puntaje> actuales = listar();
-            if (actuales.size() >= LIMITE_PUNTAJES) {
-                Puntaje menor = actuales.get(LIMITE_PUNTAJES - 1);
-                if (puntaje.getPuntos() <= menor.getPuntos()) {
-                    return;
-                }
-                for (int i = LIMITE_PUNTAJES - 1; i < actuales.size(); i++) {
-                    borrar(actuales.get(i));
-                }
+        List<Puntaje> actuales = listar();
+        if (actuales.size() >= LIMITE_PUNTAJES) {
+            Puntaje menor = actuales.get(LIMITE_PUNTAJES - 1);
+            if (puntaje.getPuntos() <= menor.getPuntos()) {
+                return;
             }
+            for (int i = LIMITE_PUNTAJES - 1; i < actuales.size(); i++) {
+                borrar(actuales.get(i));
+            }
+        }
 
-            try (PreparedStatement sentencia = conexion.prepareStatement(insertarPuntaje)) {
-                sentencia.setObject(1, puntaje.fecha());
-                sentencia.setInt(2, puntaje.puntos());
-                sentencia.executeUpdate();
-            } catch (SQLException e) {
-                throw new IllegalStateException("Error al guardar el puntaje: " + e.getMessage(), e);
-            }
+        try (PreparedStatement sentencia = conexion.prepareStatement(insertarPuntaje)) {
+            sentencia.setObject(1, puntaje.fecha());
+            sentencia.setInt(2, puntaje.puntos());
+            sentencia.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al guardar el puntaje: " + e.getMessage(), e);
         }
     }
 
@@ -94,41 +90,35 @@ public final class PuntajeDAOSQLite implements PuntajeDAO, AutoCloseable {
     public void borrar(Puntaje puntaje) {
         Objects.requireNonNull(puntaje, "El puntaje no puede ser nulo.");
 
-        synchronized (conexion) {
-            try (PreparedStatement sentencia = conexion.prepareStatement(borrarPuntaje)) {
-                sentencia.setObject(1, puntaje.fecha());
-                sentencia.setInt(2, puntaje.puntos());
-                sentencia.executeUpdate();
-            } catch (SQLException e) {
-                throw new IllegalStateException("Error al borrar el puntaje: " + e.getMessage(), e);
-            }
+        try (PreparedStatement sentencia = conexion.prepareStatement(borrarPuntaje)) {
+            sentencia.setObject(1, puntaje.fecha());
+            sentencia.setInt(2, puntaje.puntos());
+            sentencia.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al borrar el puntaje: " + e.getMessage(), e);
         }
     }
 
     @Override
     public void borrarTodos() {
-        synchronized (conexion) {
-            try (Statement sentencia = conexion.createStatement()) {
-                sentencia.executeUpdate("DELETE FROM puntajes");
-            } catch (SQLException e) {
-                throw new IllegalStateException("Error al borrar los puntajes: " + e.getMessage(), e);
-            }
+        try (Statement sentencia = conexion.createStatement()) {
+            sentencia.executeUpdate("DELETE FROM puntajes");
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al borrar los puntajes: " + e.getMessage(), e);
         }
     }
 
     @Override
     public List<Puntaje> listar() {
-        synchronized (conexion) {
-            try (Statement sentencia = conexion.createStatement();
-                 ResultSet rs = sentencia.executeQuery(seleccionarPuntajes)) {
-                List<Puntaje> puntajes = new ArrayList<>();
-                while (rs.next()) {
-                    puntajes.add(new Puntaje(rs.getInt("fecha"), rs.getInt("puntos")));
-                }
-                return puntajes;
-            } catch (SQLException e) {
-                throw new IllegalStateException("Error al listar los puntajes: " + e.getMessage(), e);
+        try (Statement sentencia = conexion.createStatement();
+             ResultSet rs = sentencia.executeQuery(seleccionarPuntajes)) {
+            List<Puntaje> puntajes = new ArrayList<>();
+            while (rs.next()) {
+                puntajes.add(new Puntaje(rs.getInt("fecha"), rs.getInt("puntos")));
             }
+            return puntajes;
+        } catch (SQLException e) {
+            throw new IllegalStateException("Error al listar los puntajes: " + e.getMessage(), e);
         }
     }
 

@@ -25,7 +25,7 @@ public class RecorteDAOSQLite extends RecorteDAO {
     }
 
     @Override
-    synchronized public boolean guardar(Recorte objeto) {
+    public boolean guardar(Recorte objeto) {
         if (objeto == null) {
             return false;
         }
@@ -64,7 +64,7 @@ public class RecorteDAOSQLite extends RecorteDAO {
     }
 
     @Override
-    synchronized public Recorte cargar(PKRecorte clave) {
+    public Recorte cargar(PKRecorte clave) {
         if (clave == null) {
             return null;
         }
@@ -90,7 +90,7 @@ public class RecorteDAOSQLite extends RecorteDAO {
     }
 
     @Override
-    synchronized public boolean eliminar(PKRecorte clave) {
+    public boolean eliminar(PKRecorte clave) {
         if (clave == null) {
             return false;
         }
@@ -105,7 +105,7 @@ public class RecorteDAOSQLite extends RecorteDAO {
     }
 
     @Override
-    synchronized public List<Recorte> cargarTodos() {
+    public List<Recorte> cargarTodos() {
         List<Recorte> recortes = new ArrayList<>();
         String sql = """
             SELECT id_sheet, nombre_recorte, offset_x, offset_y, ancho, alto
@@ -133,7 +133,7 @@ public class RecorteDAOSQLite extends RecorteDAO {
     }
 
     @Override
-    synchronized public boolean modificar(Recorte objeto) {
+    public boolean modificar(Recorte objeto) {
         if (objeto == null) {
             return false;
         }
