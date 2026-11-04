@@ -50,7 +50,7 @@ public final class MenuControlador {
         if (gestorAudio != null) {
             this.notificadorSonido.suscribirObservador(gestorAudio.getObservadorSonido());
         }
-        this.puntajeDAO = crearPuntajeDAO(URL_BD_DEFAULT);
+        this.puntajeDAO = crearPuntajeDAO();
         this.opciones = new ArrayList<>(crearOpcionesPorDefecto(this.notificadorSonido, onJugar, this::mostrarRanking, onSalir));
         Sheet sheetHud = cargarSheetHudDesdeBaseDeDatos(gestorRecursos, URL_BD_DEFAULT, ID_SHEET_HUD_DEFAULT);
         this.vista = crearVistaMenu(gestorRecursos, sheetHud, RECURSO_IMAGEN_MENU_DEFAULT, this.opciones);
@@ -72,7 +72,7 @@ public final class MenuControlador {
         if (observadorSonido != null) {
             this.notificadorSonido.suscribirObservador(observadorSonido);
         }
-        this.puntajeDAO = crearPuntajeDAO(URL_BD_DEFAULT);
+        this.puntajeDAO = crearPuntajeDAO();
         this.vista.setOnBorrarRanking(() -> {
             this.notificadorSonido.notificar(SonidoJuego.BOTON.getId());
             borrarRanking();
@@ -245,9 +245,9 @@ public final class MenuControlador {
         return puntajeDAO;
     }
 
-    private static PuntajeDAO crearPuntajeDAO(String urlBaseDatos) {
+    private static PuntajeDAO crearPuntajeDAO() {
         try {
-            Connection conexion = Conexion.getInstancia(urlBaseDatos).getConexion();
+            Connection conexion = Conexion.getInstancia().get();
             return new PuntajeDAOSQLite(conexion);
         } catch (SQLException e) {
             return new PuntajeDAO() {

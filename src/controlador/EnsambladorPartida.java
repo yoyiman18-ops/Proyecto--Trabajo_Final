@@ -78,7 +78,7 @@ public class EnsambladorPartida {
 
     private PuntajeDAO crearPuntajeDAO() {
         try {
-            Connection conexion = Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db").getConexion();
+            Connection conexion = Conexion.getInstancia().get();
             return new PuntajeDAOSQLite(conexion);
         } catch (SQLException e) {
             return new PuntajeDAO() {
