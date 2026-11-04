@@ -89,46 +89,30 @@ public final class Partida implements ModeloPartida {
     }
 
     @Override
-    public Jugador getJugador() {
-        return jugador;
-    }
+    public Jugador getJugador() { return jugador; }
 
     @Override
-    public Notificador<EstadoOleadas> getNotificadorOleadas() {
-        return notificadorOleadas;
-    }
+    public Notificador<EstadoOleadas> getNotificadorOleadas() { return notificadorOleadas; }
 
     @Override
-    public Notificador<Integer> getNotificadorSonido() {
-        return notificadorSonido;
-    }
+    public Notificador<Integer> getNotificadorSonido() { return notificadorSonido; }
 
     @Override
-    public Notificador<Enemigo> getNotificadorEnemigoGenerado() {
-        return notificadorEnemigoGenerado;
-    }
+    public Notificador<Enemigo> getNotificadorEnemigoGenerado() { return notificadorEnemigoGenerado; }
 
     @Override
-    public SpawnerEnemigos getSpawnerEnemigos() {
-        return spawnerEnemigos;
-    }
+    public SpawnerEnemigos getSpawnerEnemigos() { return spawnerEnemigos; }
 
     @Override
-    public boolean isEnPausa() {
-        return enPausa;
-    }
+    public boolean isEnPausa() { return enPausa; }
 
     @Override
     public void setEnPausa(boolean enPausa) {
-        if (!partidaFinalizada) {
-            this.enPausa = enPausa;
-        }
+        if (!partidaFinalizada) { this.enPausa = enPausa;}
     }
 
     @Override
-    public boolean isEleccionMejoraActiva() {
-        return eleccionMejoraActiva;
-    }
+    public boolean isEleccionMejoraActiva() { return eleccionMejoraActiva; }
 
     @Override
     public void iniciarEleccionMejora() {
@@ -164,58 +148,24 @@ public final class Partida implements ModeloPartida {
         emitirSonido(oleadasCompletadas ? idSonidoVictoria : idSonidoDerrota);
     }
 
-    @Override
     public double calcularVelocidadEnemigoOleadaActual() {
         return 75 + Math.max(0, oleadaActual - 1) * 8.0;
     }
 
-    @Override
     public int calcularEnemigosAGenerar() {
         int espaciosDisponibles = Math.max(0, maxEnemigosSimultaneos - enemigosActivos);
         return Math.min(espaciosDisponibles, enemigosPorAparecer);
     }
 
-    @Override
-    public void registrarEnemigoGenerado() {
-        if (enemigosPorAparecer > 0) {
-            enemigosPorAparecer--;
-            enemigosActivos++;
-            publicarEstadoOleadas((long) Math.ceil(tiempoHastaOleada));
-        }
-    }
-
-    @Override
     public boolean registrarEnemigoGenerado(Enemigo enemigo) {
         Objects.requireNonNull(enemigo, "El enemigo no puede ser nulo");
         if (enemigosPorAparecer <= 0 || enemigosActivos >= maxEnemigosSimultaneos || enemigos.contains(enemigo)) {
             return false;
         }
         enemigos.add(enemigo);
-        registrarEnemigoGenerado();
         return true;
     }
 
-    @Override
-    public void registrarEnemigoDerrotado() {
-        if (enemigosActivos > 0) {
-            enemigosActivos--;
-        }
-        if (enemigosRestantesOleada > 0) {
-            enemigosRestantesOleada--;
-        }
-        if (enemigosRestantesOleada == 0) {
-            tiempoHastaOleada = intervaloOleadas;
-            ultimoSegundoPublicado = -1;
-        }
-        publicarEstadoOleadas((long) Math.ceil(tiempoHastaOleada));
-    }
-
-    @Override
-    public boolean registrarEnemigoDerrotado(Enemigo enemigo) {
-        if (enemigo == null || !enemigos.remove(enemigo)) { return false; }
-        registrarEnemigoDerrotado();
-        return true;
-    }
 
     @Override
     public boolean actualizarOleadas(double dt) {
