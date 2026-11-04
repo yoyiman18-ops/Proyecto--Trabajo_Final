@@ -1,10 +1,9 @@
 package motor.entrada;
 import java.util.EnumSet;
-import java.util.Set;
 
 // una snapshot del estado de acciones
-public record EstadoAcciones(Set<Accion> estado) {    
-    public EstadoAcciones(Set<Accion> estado) {
+public record EstadoAcciones(EnumSet<Accion> estado) {    
+    public EstadoAcciones(EnumSet<Accion> estado) {
         this.estado = EnumSet.copyOf(estado);
     }
 

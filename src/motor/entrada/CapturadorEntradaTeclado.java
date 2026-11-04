@@ -1,42 +1,60 @@
 package motor.entrada;
+import java.util.ArrayDeque;
+import java.util.EnumSet;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
-
+import java.util.Set;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 public class CapturadorEntradaTeclado {
-    private final EventHandler<KeyEvent> observadorPresionar;
-    private final EventHandler<KeyEvent> observadorSoltar;
+    private final static Logger logger = Logger.getLogger(CapturadorEntradaTeclado.class.getName());
+    private final EventHandler<KeyEvent> capturaPresionar = e -> presionarTecla(e);
+    private final EventHandler<KeyEvent> capturaSoltar = e -> soltarTecla(e);
 
-    private final Queue<EntradaTeclado> bufferEntrada;
+    private final Set<KeyCode> soltadas,presionadas,mantenidas;
+    private final Queue<EstadoEntradaTeclado> bufferEntrada;
 
     public CapturadorEntradaTeclado() {
-        this.bufferEntrada = new ConcurrentLinkedDeque<>();
-        this.observadorPresionar = this::presionarTecla;
-        this.observadorSoltar = this::soltarTecla;
+        this.soltadas= EnumSet.noneOf(KeyCode.class);
+        this.mantenidas = EnumSet.noneOf(KeyCode.class);
+        this.presionadas = EnumSet.noneOf(KeyCode.class);
+        this.bufferEntrada = new ArrayDeque<>();
     }
 
-    public EntradaTeclado getEntrada() { return bufferEntrada.poll(); }
+    public EstadoEntradaTeclado getEstado() { return bufferEntrada.poll(); }
+
+    public void iniciarFrame() { 
+        encolarEstado();
+        this.presionadas.clear(); 
+        this.soltadas.clear(); 
+    }
 
     public void registrar(Scene escena) {
-        escena.addEventFilter(KeyEvent.KEY_PRESSED, observadorPresionar);
-        escena.addEventFilter(KeyEvent.KEY_RELEASED, observadorSoltar);
+        escena.addEventFilter(KeyEvent.KEY_PRESSED, capturaPresionar);
+        escena.addEventFilter(KeyEvent.KEY_RELEASED, capturaSoltar);
     }
 
     public void deregistrar(Scene escena) {
-        escena.removeEventFilter(KeyEvent.KEY_PRESSED, observadorPresionar);
-        escena.removeEventFilter(KeyEvent.KEY_RELEASED, observadorSoltar);
+        escena.removeEventFilter(KeyEvent.KEY_PRESSED, capturaPresionar);
+        escena.removeEventFilter(KeyEvent.KEY_RELEASED, capturaSoltar);
     }
 
-    private void presionarTecla(KeyEvent e) {
-        bufferEntrada.add(new EntradaTeclado(e.getCode(), TipoEntrada.PRESIONAR));
-        System.out.println("Presionada: " + e.getCode());    
+    private void encolarEstado() {
+        this.bufferEntrada.add(new EstadoEntradaTeclado(presionadas, mantenidas, soltadas));
+    }
+
+    private void presionarTecla(KeyEvent e) { 
+        if (!(this.mantenidas.contains(e.getCode()))) { this.presionadas.add(e.getCode()); }
+        this.mantenidas.add(e.getCode());
     }
 
     private void soltarTecla(KeyEvent e) { 
-        bufferEntrada.add(new EntradaTeclado(e.getCode(), TipoEntrada.SOLTAR));
+        this.soltadas.add(e.getCode());
+        this.mantenidas.remove(e.getCode());
     }
 
 }
