@@ -17,6 +17,8 @@ import modelo.Puntaje;
 
 public final class PuntajeDAOSQLite implements PuntajeDAO, AutoCloseable {
 
+    public static final int LIMITE_PUNTAJES = 5;
+
     private final String crearTabla;
     private final String insertarPuntaje;
     private final String borrarPuntaje;
@@ -47,8 +49,10 @@ public final class PuntajeDAOSQLite implements PuntajeDAO, AutoCloseable {
                 + "puntos INTEGER NOT NULL"
                 + ")";
         this.insertarPuntaje = "INSERT INTO puntajes (fecha, puntos) VALUES (?, ?)";
-        this.borrarPuntaje = "DELETE FROM puntajes WHERE fecha = ? AND puntos = ?";
-        this.seleccionarPuntajes = "SELECT fecha, puntos FROM puntajes ORDER BY puntos DESC";
+        this.borrarPuntaje =
+            "DELETE FROM puntajes WHERE rowid = (SELECT rowid FROM puntajes WHERE fecha = ? AND puntos = ? LIMIT 1)";
+        this.seleccionarPuntajes =
+            "SELECT fecha, puntos FROM puntajes WHERE puntos > 0 ORDER BY puntos DESC LIMIT " + LIMITE_PUNTAJES;
 
         synchronized (this.conexion) {
             try (Statement sentencia = this.conexion.createStatement()) {
@@ -60,8 +64,22 @@ public final class PuntajeDAOSQLite implements PuntajeDAO, AutoCloseable {
     @Override
     public void guardar(Puntaje puntaje) {
         Objects.requireNonNull(puntaje, "El puntaje no puede ser nulo.");
+        if (puntaje.getPuntos() <= 0) {
+            return;
+        }
 
         synchronized (conexion) {
+            List<Puntaje> actuales = listar();
+            if (actuales.size() >= LIMITE_PUNTAJES) {
+                Puntaje menor = actuales.get(LIMITE_PUNTAJES - 1);
+                if (puntaje.getPuntos() <= menor.getPuntos()) {
+                    return;
+                }
+                for (int i = LIMITE_PUNTAJES - 1; i < actuales.size(); i++) {
+                    borrar(actuales.get(i));
+                }
+            }
+
             try (PreparedStatement sentencia = conexion.prepareStatement(insertarPuntaje)) {
                 sentencia.setInt(1, puntaje.getFecha());
                 sentencia.setInt(2, puntaje.getPuntos());
@@ -88,6 +106,17 @@ public final class PuntajeDAOSQLite implements PuntajeDAO, AutoCloseable {
     }
 
     @Override
+    public void borrarTodos() {
+        synchronized (conexion) {
+            try (Statement sentencia = conexion.createStatement()) {
+                sentencia.executeUpdate("DELETE FROM puntajes");
+            } catch (SQLException e) {
+                throw new IllegalStateException("Error al borrar los puntajes: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    @Override
     public List<Puntaje> listar() {
         synchronized (conexion) {
             try (Statement sentencia = conexion.createStatement();
@@ -105,37 +134,24 @@ public final class PuntajeDAOSQLite implements PuntajeDAO, AutoCloseable {
 
     @Override
     public CompletableFuture<Void> guardarAsync(Puntaje puntaje) {
-        return guardarAsync(puntaje, this.executor);
+        Objects.requireNonNull(puntaje, "El puntaje no puede ser nulo.");
+        return CompletableFuture.runAsync(() -> guardar(puntaje), this.executor);
     }
 
     @Override
     public CompletableFuture<Void> borrarAsync(Puntaje puntaje) {
-        return borrarAsync(puntaje, this.executor);
+        Objects.requireNonNull(puntaje, "El puntaje no puede ser nulo.");
+        return CompletableFuture.runAsync(() -> borrar(puntaje), this.executor);
     }
 
     @Override
-    public CompletableFuture<Void> guardarAsync(Puntaje puntaje, Executor executor) {
-        Objects.requireNonNull(puntaje, "El puntaje no puede ser nulo.");
-        Objects.requireNonNull(executor, "El executor no puede ser nulo.");
-        return CompletableFuture.runAsync(() -> guardar(puntaje), executor);
-    }
-
-    @Override
-    public CompletableFuture<Void> borrarAsync(Puntaje puntaje, Executor executor) {
-        Objects.requireNonNull(puntaje, "El puntaje no puede ser nulo.");
-        Objects.requireNonNull(executor, "El executor no puede ser nulo.");
-        return CompletableFuture.runAsync(() -> borrar(puntaje), executor);
+    public CompletableFuture<Void> borrarTodosAsync() {
+        return CompletableFuture.runAsync(this::borrarTodos, this.executor);
     }
 
     @Override
     public CompletableFuture<List<Puntaje>> listarAsync() {
-        return listarAsync(this.executor);
-    }
-
-    @Override
-    public CompletableFuture<List<Puntaje>> listarAsync(Executor executor) {
-        Objects.requireNonNull(executor, "El executor no puede ser nulo.");
-        return CompletableFuture.supplyAsync(this::listar, executor);
+        return CompletableFuture.supplyAsync(this::listar, this.executor);
     }
 
     @Override

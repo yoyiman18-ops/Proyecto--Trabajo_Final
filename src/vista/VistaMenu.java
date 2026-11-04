@@ -10,6 +10,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Label;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
@@ -34,7 +35,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import modelo.OpcionMenu;
+import modelo.Puntaje;
 import motor.modelo.graficos.GestorSheetEstatica;
 import motor.modelo.graficos.Recorte;
 import motor.modelo.graficos.Sheet;
@@ -61,14 +65,10 @@ public final class VistaMenu extends StackPane {
     private final List<GestorSheetEstatica> gestoresSheet;
     private final VBox contenedorBotones;
     private final StackPane marcoMenu;
-
-    public VistaMenu(Image imagenFondo) {
-        this(imagenFondo, null, Collections.emptyList());
-    }
-
-    public VistaMenu(Image imagenFondo, Sheet sheetGui) {
-        this(imagenFondo, sheetGui, Collections.emptyList());
-    }
+    private final StackPane panelRanking;
+    private final VBox contenedorFilasRanking;
+    private final BotonMenu botonBorrarRanking;
+    private final BotonMenu botonVolverRanking;
 
     public VistaMenu(Image imagenFondo, Sheet sheetGui, List<OpcionMenu> opciones) {
         Objects.requireNonNull(imagenFondo, "La imagen de fondo del menú no puede ser nula");
@@ -98,6 +98,42 @@ public final class VistaMenu extends StackPane {
         getChildren().add(this.marcoMenu);
         StackPane.setAlignment(this.marcoMenu, Pos.BOTTOM_CENTER);
         StackPane.setMargin(this.marcoMenu, new Insets(0, 0, 48, 0));
+
+        this.contenedorFilasRanking = new VBox(8);
+        this.contenedorFilasRanking.setAlignment(Pos.CENTER);
+        this.contenedorFilasRanking.setMinWidth(260);
+
+        Label tituloRanking = new Label("RANKING");
+        tituloRanking.setFont(Font.font("Georgia", FontWeight.BOLD, 20));
+        tituloRanking.setTextFill(Color.web("#ffe89e"));
+        tituloRanking.setEffect(new DropShadow(BlurType.GAUSSIAN, Color.rgb(0, 0, 0, 0.85), 5, 0.45, 0, 2));
+
+        this.botonBorrarRanking = new BotonMenu(new OpcionMenu("borrar_ranking", "BORRAR", () -> {}), sheetGui);
+        if (this.botonBorrarRanking.getGestorSheet() != null) {
+            this.gestoresSheet.add(this.botonBorrarRanking.getGestorSheet());
+        }
+
+        this.botonVolverRanking = new BotonMenu(new OpcionMenu("volver_ranking", "VOLVER", this::ocultarRanking), sheetGui);
+        if (this.botonVolverRanking.getGestorSheet() != null) {
+            this.gestoresSheet.add(this.botonVolverRanking.getGestorSheet());
+        }
+
+        VBox botonesAccion = new VBox(8, this.botonBorrarRanking, this.botonVolverRanking);
+        botonesAccion.setAlignment(Pos.CENTER);
+
+        VBox cuerpoRanking = new VBox(14, tituloRanking, this.contenedorFilasRanking, botonesAccion);
+        cuerpoRanking.setAlignment(Pos.CENTER);
+        cuerpoRanking.setPadding(new Insets(10, 20, 10, 20));
+
+        StackPane marcoRanking = envolverEnMarco(cuerpoRanking);
+
+        this.panelRanking = new StackPane(marcoRanking);
+        this.panelRanking.setAlignment(Pos.CENTER);
+        this.panelRanking.setBackground(new Background(new BackgroundFill(Color.rgb(10, 8, 6, 0.85), CornerRadii.EMPTY, Insets.EMPTY)));
+        this.panelRanking.setVisible(false);
+        this.panelRanking.setManaged(false);
+
+        getChildren().add(this.panelRanking);
     }
 
     public void setOpciones(List<OpcionMenu> nuevasOpciones) {
@@ -198,6 +234,61 @@ public final class VistaMenu extends StackPane {
     public BotonMenu getBotonSalir() {
         BotonMenu boton = getBotonPorId("salir");
         return boton != null ? boton : getBotonPorTexto("SALIR");
+    }
+
+    public BotonMenu getBotonRanking() {
+        BotonMenu boton = getBotonPorId("ranking");
+        return boton != null ? boton : getBotonPorTexto("RANKING");
+    }
+
+    public void mostrarRanking(List<Puntaje> puntajes) {
+        contenedorFilasRanking.getChildren().clear();
+        if (puntajes == null || puntajes.isEmpty()) {
+            Label vacio = new Label("SIN PUNTAJES REGISTRADOS");
+            vacio.setFont(Font.font("Georgia", FontWeight.NORMAL, 14));
+            vacio.setTextFill(Color.web("#a09585"));
+            contenedorFilasRanking.getChildren().add(vacio);
+        } else {
+            int limite = Math.min(puntajes.size(), 5);
+            for (int i = 0; i < limite; i++) {
+                Puntaje p = puntajes.get(i);
+                Label fila = new Label(String.format("#%d   %d PTS", i + 1, p.getPuntos()));
+                fila.setFont(Font.font("Georgia", FontWeight.BOLD, 15));
+                fila.setTextFill(i == 0 ? Color.web("#ffd700") : Color.web("#fff2d2"));
+                fila.setEffect(new DropShadow(BlurType.GAUSSIAN, Color.rgb(0, 0, 0, 0.7), 3, 0.3, 0, 1));
+                contenedorFilasRanking.getChildren().add(fila);
+            }
+        }
+        panelRanking.setManaged(true);
+        panelRanking.setVisible(true);
+    }
+
+    public void ocultarRanking() {
+        panelRanking.setVisible(false);
+        panelRanking.setManaged(false);
+    }
+
+    public void setOnCerrarRanking(Runnable accion) {
+        if (accion != null) {
+            this.botonVolverRanking.setOnAction(event -> {
+                accion.run();
+                ocultarRanking();
+            });
+        }
+    }
+
+    public void setOnBorrarRanking(Runnable accion) {
+        if (accion != null) {
+            this.botonBorrarRanking.setOnAction(event -> accion.run());
+        }
+    }
+
+    public BotonMenu getBotonBorrarRanking() {
+        return botonBorrarRanking;
+    }
+
+    public boolean isRankingVisible() {
+        return panelRanking.isVisible();
     }
 
     public void setOnJugar(Runnable accion) {

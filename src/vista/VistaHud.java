@@ -117,7 +117,7 @@ public final class VistaHud extends HBox {
         this.oleada = crearValor("--");
         this.enemigos = crearValor("--");
         this.danio = crearValor("--");
-        this.puntos = crearValor("--/--");
+        this.puntos = crearValor("0/0");
         this.indicadorPuntos = crearMedallonAtributo(
             "PUNTOS",
             this.puntos,
@@ -174,8 +174,6 @@ public final class VistaHud extends HBox {
             ANCHO_MEDALLON_DANIO,
             ALTO_MEDALLON
         );
-        indicadorPuntos.setVisible(false);
-        indicadorPuntos.setManaged(false);
 
         HBox grupoDerecho = new HBox(8, medallonDanio, indicadorPuntos, botonPausar);
         grupoDerecho.setAlignment(Pos.TOP_RIGHT);

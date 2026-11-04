@@ -1,13 +1,19 @@
 package controlador;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import dao.PuntajeDAO;
+import dao.PuntajeDAOSQLite;
+import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import modelo.OpcionMenu;
+import modelo.Puntaje;
 import motor.modelo.graficos.Sheet;
 import motor.persistencia.dao.DAOSoloLectura;
 import motor.persistencia.dao.sqlite.Conexion;
@@ -35,6 +41,7 @@ public final class MenuControlador {
     private final VistaMenu vista;
     private final List<OpcionMenu> opciones;
     private final Notificador<Integer> notificadorSonido;
+    private final PuntajeDAO puntajeDAO;
 
     public MenuControlador(
         GestorRecursos gestorRecursos,
@@ -47,9 +54,15 @@ public final class MenuControlador {
         if (gestorAudio != null) {
             this.notificadorSonido.suscribirObservador(gestorAudio.getObservadorSonido());
         }
-        this.opciones = new ArrayList<>(crearOpcionesPorDefecto(this.notificadorSonido, onJugar, onSalir));
+        this.puntajeDAO = crearPuntajeDAO(URL_BD_DEFAULT);
+        this.opciones = new ArrayList<>(crearOpcionesPorDefecto(this.notificadorSonido, onJugar, this::mostrarRanking, onSalir));
         Sheet sheetHud = cargarSheetHudDesdeBaseDeDatos(gestorRecursos, URL_BD_DEFAULT, ID_SHEET_HUD_DEFAULT);
         this.vista = crearVistaMenu(gestorRecursos, sheetHud, RECURSO_IMAGEN_MENU_DEFAULT, this.opciones);
+        this.vista.setOnBorrarRanking(() -> {
+            this.notificadorSonido.notificar(SonidoJuego.BOTON.getId());
+            borrarRanking();
+        });
+        this.vista.setOnCerrarRanking(() -> this.notificadorSonido.notificar(SonidoJuego.BOTON.getId()));
     }
 
     public MenuControlador(
@@ -63,6 +76,12 @@ public final class MenuControlador {
         if (observadorSonido != null) {
             this.notificadorSonido.suscribirObservador(observadorSonido);
         }
+        this.puntajeDAO = crearPuntajeDAO(URL_BD_DEFAULT);
+        this.vista.setOnBorrarRanking(() -> {
+            this.notificadorSonido.notificar(SonidoJuego.BOTON.getId());
+            borrarRanking();
+        });
+        this.vista.setOnCerrarRanking(() -> this.notificadorSonido.notificar(SonidoJuego.BOTON.getId()));
 
         // Sincronizar las opciones del controlador con la vista para garantizar que siempre se rendericen
         if (!this.opciones.isEmpty() && this.vista.getOpciones().isEmpty()) {
@@ -75,15 +94,21 @@ public final class MenuControlador {
     private static List<OpcionMenu> crearOpcionesPorDefecto(
         Notificador<Integer> notificadorSonido,
         Runnable onJugar,
+        Runnable onRanking,
         Runnable onSalir
     ) {
         Objects.requireNonNull(onJugar, "La acción de jugar no puede ser nula");
+        Objects.requireNonNull(onRanking, "La acción de ranking no puede ser nula");
         Objects.requireNonNull(onSalir, "La acción de salir no puede ser nula");
 
         return List.of(
             new OpcionMenu("jugar", "JUGAR", () -> {
                 notificadorSonido.notificar(SonidoJuego.BOTON.getId());
                 onJugar.run();
+            }),
+            new OpcionMenu("ranking", "RANKING", () -> {
+                notificadorSonido.notificar(SonidoJuego.BOTON.getId());
+                onRanking.run();
             }),
             new OpcionMenu("salir", "SALIR", () -> {
                 notificadorSonido.notificar(SonidoJuego.BOTON.getId());
@@ -198,5 +223,41 @@ public final class MenuControlador {
 
     public BotonMenu getBotonSalir() {
         return vista.getBotonSalir();
+    }
+
+    public BotonMenu getBotonRanking() {
+        return vista.getBotonRanking();
+    }
+
+    public void mostrarRanking() {
+        puntajeDAO.listarAsync().thenAccept(lista -> {
+            Platform.runLater(() -> vista.mostrarRanking(lista));
+        });
+    }
+
+    public void borrarRanking() {
+        puntajeDAO.borrarTodosAsync().thenRun(() -> {
+            Platform.runLater(() -> vista.mostrarRanking(List.of()));
+        });
+    }
+
+    public BotonMenu getBotonBorrarRanking() {
+        return vista.getBotonBorrarRanking();
+    }
+
+    public PuntajeDAO getPuntajeDAO() {
+        return puntajeDAO;
+    }
+
+    private static PuntajeDAO crearPuntajeDAO(String urlBaseDatos) {
+        try {
+            Connection conexion = Conexion.getInstancia(urlBaseDatos).getConexion();
+            return new PuntajeDAOSQLite(conexion);
+        } catch (SQLException e) {
+            return new PuntajeDAO() {
+                @Override public void guardar(Puntaje puntaje) {}
+                @Override public void borrar(Puntaje puntaje) {}
+            };
+        }
     }
 }

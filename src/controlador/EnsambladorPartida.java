@@ -1,7 +1,11 @@
 package controlador;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Objects;
 
+import dao.PuntajeDAO;
+import dao.PuntajeDAOSQLite;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
@@ -9,6 +13,7 @@ import modelo.Jugador;
 import modelo.JugadorFactory;
 import modelo.ModeloPartida;
 import modelo.Partida;
+import modelo.Puntaje;
 import modelo.enemigo.EsqueletoFactory;
 import modelo.enemigo.SpawnerEnemigos;
 import motor.Motor;
@@ -16,6 +21,7 @@ import motor.entrada.Accion;
 import motor.entrada.MapeoTeclado;
 import motor.entrada.TipoEntrada;
 import motor.modelo.graficos.Sheet;
+import motor.persistencia.dao.sqlite.Conexion;
 import motor.recursos.GestorRecursos;
 import motor.util.VecDouble2D;
 import motor.util.observer.NotificadorDebil;
@@ -59,13 +65,27 @@ public class EnsambladorPartida {
 
         Jugador jugador = crearJugador(anchoEscena, altoEscena);
         ModeloPartida modeloPartida = crearModeloPartida(jugador);
+        PuntajeDAO puntajeDAO = crearPuntajeDAO();
         ControladorPartida controladorPartida = new ControladorPartida(
             modeloPartida,
             controladorVista,
-            motor
+            motor,
+            puntajeDAO
         );
 
         return new PartidaEnsamblada(controladorPartida, escena);
+    }
+
+    private PuntajeDAO crearPuntajeDAO() {
+        try {
+            Connection conexion = Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db").getConexion();
+            return new PuntajeDAOSQLite(conexion);
+        } catch (SQLException e) {
+            return new PuntajeDAO() {
+                @Override public void guardar(Puntaje puntaje) {}
+                @Override public void borrar(Puntaje puntaje) {}
+            };
+        }
     }
 
     private void configurarMapeosTeclado() {

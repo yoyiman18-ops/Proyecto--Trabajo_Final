@@ -5,12 +5,14 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
+import dao.PuntajeDAO;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import modelo.EstadoOleadas;
 import modelo.Jugador;
 import modelo.ModeloPartida;
+import modelo.Puntaje;
 import modelo.enemigo.Enemigo;
 import modelo.enemigo.SpawnerEnemigos;
 import motor.Motor;
@@ -41,6 +43,7 @@ public final class ControladorPartida implements ReceptorEstadoAcciones, Ticking
     private final ModeloPartida modeloPartida;
     private final ControladorVistaJuego controladorVista;
     private final Motor motor;
+    private final PuntajeDAO puntajeDAO;
     private final Observador<EstadoAcciones> observadorAcciones;
     private final Observador<Double> observadorTick;
     private final Observador<Jugador> observadorVidaJugador;
@@ -52,15 +55,19 @@ public final class ControladorPartida implements ReceptorEstadoAcciones, Ticking
     private int ultimaExperienciaSincronizada;
     private int ultimoNivelSincronizado;
     private int ultimaExperienciaSiguienteSincronizada;
+    private int puntajeMaximo;
+    private int puntajeBajas;
 
     public ControladorPartida(
         ModeloPartida modeloPartida,
         ControladorVistaJuego controladorVista,
-        Motor motor
+        Motor motor,
+        PuntajeDAO puntajeDAO
     ) {
         this.modeloPartida = Objects.requireNonNull(modeloPartida, "El modelo de la partida no puede ser nulo");
         this.controladorVista = Objects.requireNonNull(controladorVista, "El controlador de vista no puede ser nulo");
         this.motor = Objects.requireNonNull(motor, "El motor no puede ser nulo");
+        this.puntajeDAO = Objects.requireNonNull(puntajeDAO, "El DAO de puntajes no puede ser nulo");
         this.observadorAcciones = this::actualizarEstadoAcciones;
         this.observadorTick = this::tick;
         this.observadorVidaJugador = this::alModificarVidaJugador;
@@ -71,6 +78,8 @@ public final class ControladorPartida implements ReceptorEstadoAcciones, Ticking
         this.ultimaExperienciaSincronizada = -1;
         this.ultimoNivelSincronizado = -1;
         this.ultimaExperienciaSiguienteSincronizada = -1;
+        this.puntajeMaximo = 0;
+        this.puntajeBajas = 0;
     }
 
     public void iniciar(
@@ -169,6 +178,10 @@ public final class ControladorPartida implements ReceptorEstadoAcciones, Ticking
     private void alGenerarEnemigo(Enemigo enemigo) {
         if (enemigo != null) {
             motor.ensamblarEntidad(enemigo);
+            enemigo.getNotificadorExpiracion().suscribirObservador(e -> {
+                this.puntajeBajas++;
+                controladorVista.getVistaJuego().actualizarPuntos(this.puntajeBajas, Math.max(this.puntajeBajas, this.puntajeMaximo));
+            });
         }
     }
 
@@ -225,6 +238,14 @@ public final class ControladorPartida implements ReceptorEstadoAcciones, Ticking
         vista.actualizarEnemigos(0);
         vista.actualizarTiempo(0);
         sincronizarProgresoJugador(jugador);
+        vista.actualizarPuntos(0, 0);
+        puntajeDAO.listarAsync().thenAccept(lista -> {
+            int record = (lista != null && !lista.isEmpty()) ? lista.getFirst().getPuntos() : 0;
+            Platform.runLater(() -> {
+                this.puntajeMaximo = record;
+                vista.actualizarPuntos(this.puntajeBajas, this.puntajeMaximo);
+            });
+        });
     }
 
     private void sincronizarProgresoJugador(Jugador jugador) {
@@ -296,13 +317,14 @@ public final class ControladorPartida implements ReceptorEstadoAcciones, Ticking
             return;
         }
         modeloPartida.finalizarPartida();
+        int puntos = guardarPuntajeFinal();
         controladorVista.cerrarPausa();
         controladorVista.cerrarEleccionMejora();
         controladorVista.setEnPausa(true);
         motor.setPausa(true);
         VistaPartida vista = controladorVista.getVistaJuego();
         vista.setPausaHabilitada(false);
-        controladorVista.mostrarFinPartida("DERROTA");
+        controladorVista.mostrarFinPartida("DERROTA - " + puntos + " PTS");
     }
 
     private void alActualizarOleadas(EstadoOleadas estado) {
@@ -315,13 +337,26 @@ public final class ControladorPartida implements ReceptorEstadoAcciones, Ticking
         vista.actualizarTiempo(estado.segundosHastaOleada());
         if (estado.completadas() && !modeloPartida.isPartidaFinalizada()) {
             modeloPartida.finalizarPartida();
+            int puntos = guardarPuntajeFinal();
             controladorVista.cerrarPausa();
             controladorVista.cerrarEleccionMejora();
             controladorVista.setEnPausa(true);
             motor.setPausa(true);
             vista.setPausaHabilitada(false);
-            controladorVista.mostrarFinPartida("¡VICTORIA!");
+            controladorVista.mostrarFinPartida("¡VICTORIA! - " + puntos + " PTS");
         }
+    }
+
+    private int guardarPuntajeFinal() {
+        if (puntajeBajas > 0) {
+            int fecha = (int) (System.currentTimeMillis() / 1000L);
+            puntajeDAO.guardarAsync(new Puntaje(fecha, puntajeBajas));
+        }
+        return puntajeBajas;
+    }
+
+    public PuntajeDAO getPuntajeDAO() {
+        return puntajeDAO;
     }
 
     private void desuscribirObservadores() {
