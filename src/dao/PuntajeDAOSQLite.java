@@ -63,8 +63,8 @@ public final class PuntajeDAOSQLite implements PuntajeDAO, AutoCloseable {
 
         synchronized (conexion) {
             try (PreparedStatement sentencia = conexion.prepareStatement(insertarPuntaje)) {
-                sentencia.setInt(1, puntaje.getFecha());
-                sentencia.setInt(2, puntaje.getPuntos());
+                sentencia.setObject(1, puntaje.fecha());
+                sentencia.setInt(2, puntaje.puntos());
                 sentencia.executeUpdate();
             } catch (SQLException e) {
                 throw new IllegalStateException("Error al guardar el puntaje: " + e.getMessage(), e);
@@ -78,8 +78,8 @@ public final class PuntajeDAOSQLite implements PuntajeDAO, AutoCloseable {
 
         synchronized (conexion) {
             try (PreparedStatement sentencia = conexion.prepareStatement(borrarPuntaje)) {
-                sentencia.setInt(1, puntaje.getFecha());
-                sentencia.setInt(2, puntaje.getPuntos());
+                sentencia.setObject(1, puntaje.fecha());
+                sentencia.setInt(2, puntaje.puntos());
                 sentencia.executeUpdate();
             } catch (SQLException e) {
                 throw new IllegalStateException("Error al borrar el puntaje: " + e.getMessage(), e);

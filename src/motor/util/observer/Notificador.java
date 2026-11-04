@@ -1,5 +1,4 @@
 package motor.util.observer;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 

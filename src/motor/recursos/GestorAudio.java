@@ -15,17 +15,10 @@ import motor.util.observer.Observador;
 
 public class GestorAudio {
 
-    public record RecursoSonido(String nombre, Extension.Sonido extension) {
-        public RecursoSonido {
-            Objects.requireNonNull(nombre, "El nombre del recurso de sonido no puede ser nulo");
-            Objects.requireNonNull(extension, "La extensión del recurso de sonido no puede ser nula");
-        }
-    }
-
     private final GestorRecursos gestorRecursos;
     private final ExecutorService hiloAudio;
     private final Logger logger;
-    private final Map<Integer, RecursoSonido> sonidosPorId;
+    private final Map<Integer, Recurso> sonidosPorId;
     private final Observador<Integer> observadorSonido;
 
     private MediaPlayer reproductorMusica;
@@ -43,33 +36,28 @@ public class GestorAudio {
         });
     }
 
-    public Observador<Integer> getObservadorSonido() {
-        return this.observadorSonido;
-    }
+    public Observador<Integer> getObservadorSonido() { return this.observadorSonido; }
+    public Observador<Integer> getObservadorIdSonido() { return this.observadorSonido; }
 
     public void registrarSonido(int id, String nombre, Extension.Sonido ext) {
         if (nombre == null || ext == null) {
             return;
         }
-        sonidosPorId.put(id, new RecursoSonido(nombre, ext));
+        sonidosPorId.put(id, new Recurso(nombre, ext));
         precargarSonido(nombre, ext);
     }
 
     public void reproducirSonido(int id) {
-        RecursoSonido recurso = sonidosPorId.get(id);
+        Recurso recurso = sonidosPorId.get(id);
         if (recurso != null) {
-            reproducirSonido(recurso.nombre(), recurso.extension());
+            reproducirSonido(recurso.path(), recurso.ext());
         }
     }
 
     public void precargarSonido(String nombre, Extension.Sonido ext) {
-        if (nombre == null || ext == null) {
-            return;
-        }
+        if (nombre == null || ext == null) { return; }
         hiloAudio.submit(() -> {
-            try {
-                gestorRecursos.getSonido(nombre, ext);
-            } catch (Exception e) {
+            try { gestorRecursos.getSonido(nombre, ext); } catch (Exception e) {
                 logger.log(Level.WARNING, "No se pudo precargar sonido: " + nombre, e);
             }
         });
@@ -92,9 +80,7 @@ public class GestorAudio {
     }
 
     public void reproducirMusica(String nombre, Extension.Sonido ext) {
-        if (nombre == null || ext == null) {
-            return;
-        }
+        if (nombre == null || ext == null) { return; }
         if (nombre.equals(musicaActual) && reproductorMusica != null) {
             reproductorMusica.play();
             return;
@@ -111,17 +97,9 @@ public class GestorAudio {
         }
     }
 
-    public void pausarMusica() {
-        if (reproductorMusica != null) {
-            reproductorMusica.pause();
-        }
-    }
+    public void pausarMusica() { if (reproductorMusica != null) { reproductorMusica.pause(); }}
 
-    public void reanudarMusica() {
-        if (reproductorMusica != null) {
-            reproductorMusica.play();
-        }
-    }
+    public void reanudarMusica() { if (reproductorMusica != null) { reproductorMusica.play(); }}
 
     public void detenerMusica() {
         if (reproductorMusica != null) {

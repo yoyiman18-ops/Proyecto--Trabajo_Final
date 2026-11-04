@@ -132,27 +132,17 @@ public abstract class Personaje extends Entidad {
 
     @Override
     public boolean interactuar(Interaccion i) {
-        if (i == null) {
-            return false;
-        }
+        if (i == null) { return false; }
         TipoInteraccion interaccion = TipoInteraccion.deInt(i.clase());
-        if (interaccion == null) {
-            return false;
-        }
+        if (interaccion == null) { return false; }
         return switch (interaccion) {
-            case DAÑAR, SOLIDO -> {
-                recibirDaño(i.valor());
-                yield true;
-            }
+            case DAÑAR -> recibirDaño(i.valor());
             default -> false;
         };
     }
 
     public boolean recibirDaño(double cantidad) {
-        if (!activo()) {
-            return false;
-        }
-        validarCantidadNoNegativa(cantidad);
+        if (!activo()) { return false; }
         if (cantidad == 0 || vida == 0) {
             return false;
         }
@@ -170,7 +160,9 @@ public abstract class Personaje extends Entidad {
     }
 
     public void aumentarVidaMaxima(double cantidad) {
-        validarCantidadNoNegativa(cantidad);
+        if (!Double.isFinite(cantidad) || cantidad < 0) {
+            throw new IllegalArgumentException("La cantidad debe ser finita y no negativa.");
+        }
         if (cantidad == 0) {
             return;
         }
@@ -184,6 +176,9 @@ public abstract class Personaje extends Entidad {
         alModificarVida();
     }
 
+    protected void alModificarVida() {
+    }
+
     public void aumentarDefensa(double porcentaje) {
         if (!Double.isFinite(porcentaje) || porcentaje < 0) {
             throw new IllegalArgumentException("El porcentaje de defensa debe ser finito y no negativo.");
@@ -191,24 +186,9 @@ public abstract class Personaje extends Entidad {
         this.defensaPorcentual = Math.min(defensaMaximaPorcentual, defensaPorcentual + porcentaje);
     }
 
-    protected void alModificarVida() {
-    }
+    public double getVida() { return vida; }
 
-    protected void validarCantidadNoNegativa(double cantidad) {
-        if (!Double.isFinite(cantidad) || cantidad < 0) {
-            throw new IllegalArgumentException("La cantidad debe ser finita y no negativa.");
-        }
-    }
+    public double getVidaMax() { return vidaMax; }
 
-    public double getVida() {
-        return vida;
-    }
-
-    public double getVidaMax() {
-        return vidaMax;
-    }
-
-    public Notificador<Double> getNotificadorDaño() {
-        return notificadorDaño;
-    }
+    public Notificador<Double> getNotificadorDaño() { return notificadorDaño; }
 }

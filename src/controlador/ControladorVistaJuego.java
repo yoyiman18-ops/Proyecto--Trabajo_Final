@@ -115,7 +115,7 @@ public final class ControladorVistaJuego {
     public static Sheet cargarSheetHudDesdeBaseDeDatos(GestorRecursos gestorRecursos) {
         Objects.requireNonNull(gestorRecursos, "El gestor de recursos no puede ser nulo");
         DAOSoloLectura<Integer, Sheet> sheetDAO = new SheetDAOSQLite(
-            Conexion.getInstancia("jdbc:sqlite:src/recursos/datos.db").getConexion(),
+            Conexion.getInstancia().get(),
             gestorRecursos
         );
         return sheetDAO.cargar(ID_SHEET_HUD);

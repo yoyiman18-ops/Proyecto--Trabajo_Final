@@ -4,11 +4,7 @@ import java.util.Objects;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorFuerte;
 
-/**
- * Modelo de datos puro que representa una opción seleccionable en un menú.
- * Es agnóstico de la interfaz gráfica y notifica cambios de estado reactivamente
- * a través de notificadores observables del motor.
- */
+
 public class OpcionMenu {
 
     private final String id;
@@ -75,13 +71,9 @@ public class OpcionMenu {
         }
     }
 
-    public Notificador<Boolean> getNotificadorHabilitada() {
-        return notificadorHabilitada;
-    }
+    public Notificador<Boolean> getNotificadorHabilitada() { return notificadorHabilitada; }
 
-    public Notificador<String> getNotificadorTexto() {
-        return notificadorTexto;
-    }
+    public Notificador<String> getNotificadorTexto() { return notificadorTexto; }
 
     public void ejecutar() {
         if (habilitada && accion != null) {

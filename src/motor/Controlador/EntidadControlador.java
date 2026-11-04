@@ -50,7 +50,8 @@ public class EntidadControlador implements ControladorEntidad {
     }
 
     private void alExpirar(int e) {
-        if (modelo.getAnimacionExpirar() == null) {
+        String animExpirar = modelo.getAnimacionExpirar();
+        if (animExpirar == null || !gestorSheet.setAnimacion(animExpirar)) {
             vista.setVisible(false);
             setActivo(false);
             return;

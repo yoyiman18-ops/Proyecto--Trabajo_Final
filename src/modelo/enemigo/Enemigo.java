@@ -10,7 +10,7 @@ import motor.modelo.EstrategiaExpiracion;
 import motor.modelo.EstrategiaMovimiento;
 import motor.modelo.Interaccion;
 import motor.modelo.ModeloEntidad;
-import motor.util.Contador;
+import motor.util.ContadorSegundos;
 import motor.util.VecDouble2D;
 import motor.util.observer.Notificador;
 import motor.util.observer.NotificadorDebil;
@@ -19,7 +19,7 @@ import motor.util.observer.NotificadorFuerte;
 public class Enemigo extends Personaje {
 
     private final double daño;
-    private final Contador cooldownAtaque;
+    private final ContadorSegundos cooldownAtaque;
     private boolean contactoConObjetivo;
     private Direccion direccion;
     private String animacionActual;
@@ -83,7 +83,7 @@ public class Enemigo extends Personaje {
             throw new IllegalArgumentException("El intervalo de ataque debe ser positivo y finito.");
         }
         this.daño = daño;
-        this.cooldownAtaque = new Contador(intervaloAtaque);
+        this.cooldownAtaque = new ContadorSegundos(intervaloAtaque, true);
         this.contactoConObjetivo = false;
         this.direccion = Direccion.ABAJO;
         this.animacionActual = animacionDefault;

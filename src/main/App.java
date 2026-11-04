@@ -1,45 +1,5 @@
 package main;
 
-/*
- * Imports del prototipo anterior, conservados para futuras implementaciones:
- * import vista.SpriteVista;
- * import javafx.scene.control.Label;
- * import vista.MenuVista;
- * import javafx.scene.control.Label;
- * import controlador.JugadorControlador;
- * import javafx.animation.AnimationTimer;
- * import javafx.geometry.Rectangle2D;
- * import javafx.scene.layout.Pane;
- * import vista.SpriteVista;
- * import motor.colisiones.*;
- * import motor.colisiones.hitboxes.CategoriaColision;
- * import motor.colisiones.hitboxes.Hitbox;
- * import motor.colisiones.hitboxes.HitboxGenerica;
- * import motor.colisiones.hitboxes.HitboxRectangular;
- * import motor.colisiones.hitboxes.MascaraColision;
- * import motor.colisiones.hitboxes.TipoHitbox;
- * import motor.colisiones.sistema.FaseEspecificaSimple;
- * import motor.colisiones.sistema.FaseGeneralSpatialHashGrid;
- * import motor.entrada.EstadoEntradaTeclado;
- * import motor.entrada.GestorEntradaTeclado;
- * import motor.modelo.Entidad;
- * import motor.recursos.GestorRecursos;
- * import motor.recursos.cache.CacheImagenes;
- * import motor.util.VecDouble2D;
- * import motor.util.observer.Observador;
- * import java.awt.Shape;
- * import java.awt.geom.Ellipse2D;
- * import java.util.ArrayList;
- * import java.util.List;
- * import java.util.concurrent.atomic.AtomicInteger;
- * import javax.swing.Timer;
- * import modelo.Entidad;
- * import modelo.EntidadViva;
- * import controlador.EnemigoControlador;
- * import controlador.ExperienciaControlador;
- * import controlador.ProyectilControlador;
- * import controlador.VidaControlador;
- */
 
 import controlador.ControladorFondoMazmorra;
 import controlador.ControladorVistaJuego;
@@ -55,7 +15,7 @@ import motor.Motor;
 import motor.recursos.GestorAudio;
 import motor.recursos.GestorRecursos;
 
-// nota: en esta clase se prueban de forma arbitraria las características añadidas.
+
 
 public class App extends Application {
     private static final double ANCHO_VENTANA = 960.0;

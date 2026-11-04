@@ -14,7 +14,10 @@ public class EstrategiaExpiracionSpawnear implements EstrategiaExpiracion {
 
     @Override 
     public int ejecutar(ModeloEntidad entidad) {
-        for (ModeloEntidad e : spawneados) { e.setPosicion(entidad.getPosicion()); entidad.getNotificadorInstanciacion().notificar(e); }
+        for (ModeloEntidad e : spawneados) {
+            e.setPosicion(entidad.getPosicion() != null ? entidad.getPosicion().clone() : new motor.util.VecDouble2D());
+            entidad.getNotificadorInstanciacion().notificar(e);
+        }
         return 0;
     }
 }

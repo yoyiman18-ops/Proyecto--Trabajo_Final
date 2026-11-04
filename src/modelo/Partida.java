@@ -6,7 +6,7 @@ import java.util.Objects;
 
 import modelo.enemigo.Enemigo;
 import modelo.enemigo.SpawnerEnemigos;
-import motor.util.Contador;
+import motor.util.ContadorSegundos;
 import motor.util.observer.Notificador;
 
 public final class Partida implements ModeloPartida {
@@ -15,7 +15,7 @@ public final class Partida implements ModeloPartida {
     private final int maxEnemigosSimultaneos;
     private final double velocidadBaseEnemigos;
     private final double incrementoVelocidadOleada;
-    private final Contador contadorEntreOleadas;
+    private final ContadorSegundos contadorEntreOleadas;
     private final Notificador<EstadoOleadas> notificadorOleadas;
     private final Notificador<Integer> notificadorSonido;
     private final Notificador<Enemigo> notificadorEnemigoGenerado;
@@ -66,7 +66,7 @@ public final class Partida implements ModeloPartida {
         this.maxEnemigosSimultaneos = maxEnemigosSimultaneos;
         this.velocidadBaseEnemigos = velocidadBaseEnemigos;
         this.incrementoVelocidadOleada = incrementoVelocidadOleada;
-        this.contadorEntreOleadas = new Contador(intervaloOleadas);
+        this.contadorEntreOleadas = new ContadorSegundos(intervaloOleadas);
         this.notificadorOleadas = Objects.requireNonNull(notificadorOleadas, "El notificador de oleadas no puede ser nulo");
         this.notificadorSonido = Objects.requireNonNull(notificadorSonido, "El notificador de sonido no puede ser nulo");
         this.notificadorEnemigoGenerado = Objects.requireNonNull(notificadorEnemigoGenerado, "El notificador de enemigo generado no puede ser nulo");
@@ -147,25 +147,6 @@ public final class Partida implements ModeloPartida {
         this.eleccionMejoraActiva = false;
         emitirSonido(oleadasCompletadas ? idSonidoVictoria : idSonidoDerrota);
     }
-
-    public double calcularVelocidadEnemigoOleadaActual() {
-        return 75 + Math.max(0, oleadaActual - 1) * 8.0;
-    }
-
-    public int calcularEnemigosAGenerar() {
-        int espaciosDisponibles = Math.max(0, maxEnemigosSimultaneos - enemigosActivos);
-        return Math.min(espaciosDisponibles, enemigosPorAparecer);
-    }
-
-    public boolean registrarEnemigoGenerado(Enemigo enemigo) {
-        Objects.requireNonNull(enemigo, "El enemigo no puede ser nulo");
-        if (enemigosPorAparecer <= 0 || enemigosActivos >= maxEnemigosSimultaneos || enemigos.contains(enemigo)) {
-            return false;
-        }
-        enemigos.add(enemigo);
-        return true;
-    }
-
 
     @Override
     public boolean actualizarOleadas(double dt) {

@@ -142,7 +142,12 @@ public class VistaJuego extends StackPane implements VistaPartida {
     @Override
     public void agregarNodoJuego(Node nodo) {
         Objects.requireNonNull(nodo, "El nodo a agregar no puede ser nulo");
-        areaJuego.getChildren().add(nodo);
+        if (nodo.getParent() instanceof Pane parent) {
+            parent.getChildren().remove(nodo);
+        }
+        if (!areaJuego.getChildren().contains(nodo)) {
+            areaJuego.getChildren().add(nodo);
+        }
     }
 
     @Override

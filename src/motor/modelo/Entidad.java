@@ -171,7 +171,7 @@ implements ModeloEntidad {
     @Override public double getAceleracion() { return this.aceleracion; }
     @Override public double getFriccion() { return this.friccion; }
     @Override public double getVelocidadMax() { return this.velocidadMax; }
-    @Override public void setVelocidadMax(double velocidadMax) {
+    public void setVelocidadMax(double velocidadMax) {
         if (!Double.isFinite(velocidadMax) || velocidadMax < 0) {
             throw new IllegalArgumentException("La velocidad maxima debe ser finita y no negativa.");
         }

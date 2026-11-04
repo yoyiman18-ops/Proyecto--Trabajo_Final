@@ -325,6 +325,9 @@ public final class ControladorPartida implements ReceptorEstadoAcciones, Ticking
     }
 
     private void desuscribirObservadores() {
+        motor.detener();
+        motor.setPausa(false);
+        motor.limpiar();
         motor.reloj().desuscribirObservador(controladorVista.getObservadorActualizacion());
         motor.reloj().desuscribirObservador(observadorTick);
         motor.teclado().desuscribir(observadorAcciones);
